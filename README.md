@@ -45,6 +45,7 @@ Public blockchains (like Ethereum or Solana) cannot be used for B2B commerce bec
 In Prisma's Compact smart contracts, we strictly separate what the world sees (Public State) from what the company keeps secret (Private Witness):
 * **Public Ledger State:** The only information stored on the public blockchain is the *total company budget limit* and the *cryptographic proof* that a transaction occurred. Competitors can only see that a cryptographic action happened, but no details of the action itself.
 * **Private Witness:** The actual financial details—such as the individual employee's salary amount, the vendor's invoice amount, and the recipient's identity—are held entirely off-chain in the Private Witness. The ZK circuit validates that the Private Witness data complies with the Public State constraints (e.g., ensuring a salary doesn't exceed the company budget limit) without ever publishing the private data to the ledger.
+* **Using `disclose()`:** In our smart contract circuits, we deliberately use the `disclose()` function only when we specifically want to move a variable from the Private Witness into the Public State (such as the final updated total budget). This guarantees absolute control over what becomes public.
 
 ---
 
