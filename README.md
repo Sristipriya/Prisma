@@ -41,6 +41,11 @@ Instead of asking enterprises to compromise on privacy, Prisma offers a mathemat
 Public blockchains (like Ethereum or Solana) cannot be used for B2B commerce because they leak sensitive financial data. Private blockchains lack global liquidity and interoperability. 
 **Midnight** solves this perfectly: It allows us to prove that a payment is valid and authorized on a public ledger, while keeping the actual financial data (who is being paid, and exactly how much) completely private using advanced ZK cryptography.
 
+### Public Ledger State vs Private Witness
+In Prisma's Compact smart contracts, we strictly separate what the world sees (Public State) from what the company keeps secret (Private Witness):
+* **Public Ledger State:** The only information stored on the public blockchain is the *total company budget limit* and the *cryptographic proof* that a transaction occurred. Competitors can only see that a cryptographic action happened, but no details of the action itself.
+* **Private Witness:** The actual financial details—such as the individual employee's salary amount, the vendor's invoice amount, and the recipient's identity—are held entirely off-chain in the Private Witness. The ZK circuit validates that the Private Witness data complies with the Public State constraints (e.g., ensuring a salary doesn't exceed the company budget limit) without ever publishing the private data to the ledger.
+
 ---
 
 ## 📸 Comprehensive Platform Gallery & Screenshots
