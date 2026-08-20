@@ -107,7 +107,7 @@ Prisma is built using a modern, highly scalable stack focused on performance and
 
 ### Project Directory Structure
 ```text
-Prisma/
+.
 ├── app/                        # Next.js App Router (Landing, Dashboard UI)
 ├── components/                 # Reusable UI components & Wallet Context
 ├── contracts/                  # Midnight ZK Smart Contracts
@@ -146,7 +146,7 @@ Prisma includes a comprehensive test suite to validate the Zero-Knowledge circui
 ```bash
 # 1. Clone the repository
 git clone https://github.com/Sristipriya/Prisma.git
-cd Prisma/prisma-app
+cd Prisma
 
 # 2. Install dependencies
 npm install
