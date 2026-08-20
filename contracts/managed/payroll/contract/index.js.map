@@ -1,0 +1,8 @@
+{
+  "version": 3,
+  "file": "index.js",
+  "sourceRoot": "../../../../../mnt/d/Prsima/prisma-app/contracts/",
+  "sources": ["payroll.compact"],
+  "names": [],
+  "mappings": ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;EAAA;;;;;;;;;;MAMA,AAAA,WAGC;;OAAA;MAED,AAAA,cAEC;;OAAA;;;;GACA;EAdD;;;;;;;;;;;;;;;;;;;;;;;;;IAIA;;;;;;;;;yEAA+B;;;;;;;GAU9B;EARD,AAAA,cAGC,CAH0B,QAAiB,EAAE,QAAgB,gBAG7D;EAED,AAAA,iBAEC,iBAAA;;;;;;;;;;;;;;;;IATD;qCAAA;;;;;;;;;;;0GAA+B;KAAA;;;;;;;;EAE/B,AAAA,WAGC;;;;UAH0B,QAAiB;UAAE,QAAgB;;;;;;;;;;;;;;;yCAAnC,QAAiB,EAAE,QAAgB;GAG7D;EAED,AAAA,cAEC;;;;;GAAA;;;;"
+}

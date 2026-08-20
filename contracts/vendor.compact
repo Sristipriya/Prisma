@@ -1,0 +1,17 @@
+pragma compiler_version >= 0.13.0;
+
+export contract PrismaVendor {
+  state owner: Bytes<32>;
+  
+  constructor(ownerKey: Bytes<32>) {
+    owner = ownerKey;
+  }
+  
+  export circuit registerVendor(vendorKey: Bytes<32>) {
+    // Zero-knowledge proof generation for registering a vendor
+  }
+  
+  export circuit payVendor(vendorKey: Bytes<32>, amount: Uint<64>) {
+    // Process vendor payment privately
+  }
+}
