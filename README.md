@@ -122,7 +122,7 @@ Prisma/
 
 ---
 
-## Testing & CI/CD Validation (Level 3)
+## Testing & CI/CD Validation 
 
 Prisma includes a comprehensive test suite to validate the Zero-Knowledge circuits.
 
