@@ -114,6 +114,16 @@ Prisma/
 
 ---
 
+## 🧪 Testing & CI/CD Validation (Level 3)
+
+Prisma includes a comprehensive test suite to validate the Zero-Knowledge circuits.
+
+* **Vitest Constraints Simulator:** We simulate the Compact WASM output to test ZK invariants locally.
+* **Test Cases:** Validates that payroll and vendor circuits successfully update the ledger for valid amounts, but throw `Spending limit exceeded` constraint assertions if payments cross the budget limits, without revealing the individual amounts.
+* **CI/CD Pipeline:** Integrated with GitHub Actions. Every push to the repository runs `vitest run` on the constraints simulator to ensure ZK logic integrity.
+
+---
+
 ## 💻 Run Locally
 
 ### Prerequisites
