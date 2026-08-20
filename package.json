@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "echo \"No tests configured yet\" && exit 0",
+    "test": "vitest run",
     "compact": "echo \"Compact compilation executed via CLI\"",
     "typecheck": "tsc --noEmit"
   },
@@ -40,6 +40,7 @@
     "zustand": "^5.0.14"
   },
   "devDependencies": {
+    "@midnight-ntwrk/testkit-js": "^4.1.1",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
@@ -47,6 +48,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.2.12",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^4.1.11"
   }
 }
