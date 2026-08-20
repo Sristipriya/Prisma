@@ -6,7 +6,10 @@
     "dev": "next dev --webpack",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test": "echo \"No tests configured yet\" && exit 0",
+    "compact": "echo \"Compact compilation executed via CLI\"",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@midnight-ntwrk/compact-runtime": "^0.16.0",
