@@ -1,36 +1,135 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+<div align="center">
+  <br>
+  
+  [![CI](https://github.com/Sristipriya/Prisma/actions/workflows/ci.yml/badge.svg)](https://github.com/Sristipriya/Prisma/actions/workflows/ci.yml)
+  
+  <i>Financial infrastructure for the shielded web.</i>
+  <br><br>
+  
+  # Prisma: Zero-Knowledge Payroll & Vendor Settlements
+  
+  **Enterprise-grade cryptographic privacy for global payroll and vendor payments.**
+  
+  [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+  [![Midnight Network](https://img.shields.io/badge/Midnight-Preview-blueviolet)](https://midnight.network/)
+  [![Next.js](https://img.shields.io/badge/Next.js-15-black)](https://nextjs.org/)
+  [![Status](https://img.shields.io/badge/Status-Live-success)](#)
+</div>
 
-## Getting Started
+---
 
-First, run the development server:
+## 🚨 The Real-World Problem
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+As businesses expand globally, they increasingly rely on blockchain rails for cross-border payroll, contractor payments, and vendor settlements. 
+
+However, **enterprises cannot adopt Web3 payments without absolute financial privacy:**
+1. **The Privacy Dilemma:** If a company pays its employees or vendors on a public blockchain, their entire payroll structure, negotiated pricing, and vendor relationships are completely exposed to competitors.
+2. **The Compliance Challenge:** Enterprises must prove compliance and maintain audit trails without doxing their workforce or leaking sensitive financial flow data to the public.
+
+Today, companies are forced to choose between the speed and borderless nature of crypto, and the privacy of legacy banking. 
+
+---
+
+## 💡 The Solution: Prisma 
+
+**Prisma** is a verifiable financial infrastructure layer built on the **Midnight Privacy Blockchain**. It wraps corporate transactions in cryptographic guardrails using **Zero-Knowledge (ZK) Proofs**. 
+
+Instead of asking enterprises to compromise on privacy, Prisma offers a mathematical guarantee:
+> *"A company can execute global payroll and vendor settlements instantly on a public ledger, while using Zero-Knowledge Proofs to guarantee that the transaction amounts, recipient addresses, and contract terms remain completely encrypted and private."*
+
+### Why Midnight?
+Public blockchains (like Ethereum or Solana) cannot be used for B2B commerce because they leak sensitive financial data. Private blockchains lack global liquidity and interoperability. 
+**Midnight** solves this perfectly: It allows us to prove that a payment is valid and authorized on a public ledger, while keeping the actual financial data (who is being paid, and exactly how much) completely private using advanced ZK cryptography.
+
+---
+
+## 📸 Comprehensive Platform Gallery & Screenshots
+
+Prisma features an ultra-premium, minimalistic "liquid glass" dashboard tailored for modern finance teams.
+
+### 1. Zero-Knowledge Payroll Dashboard
+*Execute instant global payroll streams. Employee salaries are verified via ZK proofs while amounts remain hidden from the public ledger.*
+
+### 2. Vendor Settlement Management
+*Settle external contractors and vendor invoices effortlessly. ZK proofs guarantee that your vendor list and negotiated rates are protected from corporate espionage.*
+
+### 3. ZK Analytics & Audit Telemetry
+*Real-time monitoring of zero-knowledge proof generation, shielded ledger state, and privacy-preserving compliance proofs.*
+
+---
+
+## 🔗 Verified On-Chain Transactions & Contracts
+
+Prisma is fully integrated with Midnight. It generates real zero-knowledge proofs locally in the browser and settles them on-chain.
+
+> [!NOTE]
+> **Network & Testnet Details:** 
+> - **Primary Verified Deployment:** Midnight Preview Testnet.
+> - **Payroll Contract Address:** `0x16b52cffbdae782c23dadfbd27e4f4716371cf2e91c674f69e4a068ab644835c`
+> - **Vendor Contract Address:** `20b8638a3e733a1c4b7a0012509886e494591452210a48354dc560befbaff44d`
+> - **Wallet Compatibility:** Prisma is fully integrated with the 1AM Wallet and Lace Wallet for Midnight.
+
+---
+
+## 🏛️ Enterprise ZK Product Modules & Applications
+
+Prisma is architected to solve core enterprise financial problems using Midnight's ZK primitives:
+
+### 1. Shielded Global Payroll
+* **The Problem:** Companies want to pay employees in crypto, but public ledgers expose exact salaries to coworkers and the public.
+* **The Solution:** Prisma encrypts the payroll allocation. The ZK circuit proves the total funds match the sum of individual salaries without revealing the individual amounts on-chain.
+
+### 2. Private B2B Vendor Settlements
+* **The Problem:** Paying vendors on public chains exposes your supply chain and pricing to competitors.
+* **The Solution:** Prisma acts as a **Zero-Knowledge B2B Payment Gateway**. It cryptographically proves the company is paying an authorized invoice without exposing vendor identities or the invoice amount on the public ledger.
+
+---
+
+## 🏗 System Architecture & Tech Stack
+
+Prisma is built using a modern, highly scalable stack focused on performance and premium aesthetics:
+
+### Tech Stack
+* **Blockchain Network:** Midnight Network (Preview Testnet)
+* **Smart Contracts:** Compact (Midnight’s native ZK language)
+* **Web3 Integration:** 1AM Wallet & Lace Wallet
+* **Frontend:** Next.js 16 (App Router), React 19, Tailwind CSS
+* **Design System:** Custom "Liquid Glass" monochromatic UI, Lucide Icons
+* **Database:** Prisma ORM / SQLite (for local cache)
+
+### Project Directory Structure
+```text
+Prisma/
+├── app/                        # Next.js App Router (Landing, Dashboard UI)
+├── components/                 # Reusable UI components & Wallet Context
+├── contracts/                  # Midnight ZK Smart Contracts
+│   ├── payroll.compact         # Shielded Payroll Circuit
+│   └── vendor.compact          # ZK Vendor Settlement Circuit
+├── lib/                        # Utilities & Hooks
+│   ├── midnight/               # Midnight SDK Integration & Wallet Auth
+│   └── db/                     # Prisma ORM Schema
+├── managed/                    # Auto-generated WASM from Compact compiler
+└── public/                     # Static Assets & compiled ZK Proving Keys
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+---
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 💻 Run Locally
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### Prerequisites
+1. **1AM Wallet or Lace Wallet:** Installed in your browser and switched to the Midnight Preview network.
+2. **Node.js:** v20 or higher.
 
-## Learn More
+### Quick Start
+```bash
+# 1. Clone the repository
+git clone https://github.com/Sristipriya/Prisma.git
+cd Prisma/prisma-app
 
-To learn more about Next.js, take a look at the following resources:
+# 2. Install dependencies
+npm install
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+# 3. Start the development server
+npm run dev
+```
+Open `http://localhost:3000` in your browser. Connect your 1AM wallet, navigate to the Dashboard, and experience the future of private finance!
