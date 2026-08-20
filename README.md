@@ -18,7 +18,7 @@
 
 ---
 
-## 🚨 The Real-World Problem
+## The Real-World Problem
 
 As businesses expand globally, they increasingly rely on blockchain rails for cross-border payroll, contractor payments, and vendor settlements. 
 
@@ -30,7 +30,7 @@ Today, companies are forced to choose between the speed and borderless nature of
 
 ---
 
-## 💡 The Solution: Prisma 
+## The Solution: Prisma 
 
 **Prisma** is a verifiable financial infrastructure layer built on the **Midnight Privacy Blockchain**. It wraps corporate transactions in cryptographic guardrails using **Zero-Knowledge (ZK) Proofs**. 
 
@@ -48,7 +48,7 @@ In Prisma's Compact smart contracts, we strictly separate what the world sees (P
 
 ---
 
-## 📸 Comprehensive Platform Gallery & Screenshots
+## Comprehensive Platform Gallery & Screenshots
 
 Prisma features an ultra-premium, minimalistic "liquid glass" dashboard tailored for modern finance teams.
 
@@ -65,20 +65,20 @@ Prisma features an ultra-premium, minimalistic "liquid glass" dashboard tailored
 
 ---
 
-## 🔗 Verified On-Chain Transactions & Contracts
+## Verified On-Chain Transactions & Contracts
 
 Prisma is fully integrated with Midnight. It generates real zero-knowledge proofs locally in the browser and settles them on-chain.
 
 > [!NOTE]
 > **Network & Testnet Details:** 
 > - **Primary Verified Deployment:** Midnight Preview Testnet.
-> - **Payroll Contract Address:** `0x16b52cffbdae782c23dadfbd27e4f4716371cf2e91c674f69e4a068ab644835c`
-> - **Vendor Contract Address:** `20b8638a3e733a1c4b7a0012509886e494591452210a48354dc560befbaff44d`
+> - **Payroll Contract Transaction:** [`0x16b52cffbdae782c23dadfbd27e4f4716371cf2e91c674f69e4a068ab644835c`](https://preview.midnightexplorer.com/transactions/0x16b52cffbdae782c23dadfbd27e4f4716371cf2e91c674f69e4a068ab644835c)
+> - **Vendor Contract Transaction:** [`20b8638a3e733a1c4b7a0012509886e494591452210a48354dc560befbaff44d`](https://preview.midnightexplorer.com/transactions/20b8638a3e733a1c4b7a0012509886e494591452210a48354dc560befbaff44d)
 > - **Wallet Compatibility:** Prisma is fully integrated with the 1AM Wallet and Lace Wallet for Midnight.
 
 ---
 
-## 🏛️ Enterprise ZK Product Modules & Applications
+## Enterprise ZK Product Modules & Applications
 
 Prisma is architected to solve core enterprise financial problems using Midnight's ZK primitives:
 
@@ -92,7 +92,7 @@ Prisma is architected to solve core enterprise financial problems using Midnight
 
 ---
 
-## 🏗 System Architecture & Tech Stack
+## System Architecture & Tech Stack
 
 Prisma is built using a modern, highly scalable stack focused on performance and premium aesthetics:
 
@@ -121,7 +121,7 @@ Prisma/
 
 ---
 
-## 🧪 Testing & CI/CD Validation (Level 3)
+## Testing & CI/CD Validation (Level 3)
 
 Prisma includes a comprehensive test suite to validate the Zero-Knowledge circuits.
 
@@ -135,7 +135,7 @@ Prisma includes a comprehensive test suite to validate the Zero-Knowledge circui
 
 ---
 
-## 💻 Run Locally
+## Run Locally
 
 ### Prerequisites
 1. **1AM Wallet or Lace Wallet:** Installed in your browser and switched to the Midnight Preview network.
