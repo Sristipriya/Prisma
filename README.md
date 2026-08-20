@@ -54,9 +54,11 @@ Prisma features an ultra-premium, minimalistic "liquid glass" dashboard tailored
 
 ### 1. Zero-Knowledge Payroll Dashboard
 *Execute instant global payroll streams. Employee salaries are verified via ZK proofs while amounts remain hidden from the public ledger.*
+<img src="./public/screenshot/PayroolCOntract.png" alt="Payroll Contract Dashboard" width="100%" />
 
 ### 2. Vendor Settlement Management
 *Settle external contractors and vendor invoices effortlessly. ZK proofs guarantee that your vendor list and negotiated rates are protected from corporate espionage.*
+<img src="./public/screenshot/vendor%20contract.png" alt="Vendor Settlement Management" width="100%" />
 
 ### 3. ZK Analytics & Audit Telemetry
 *Real-time monitoring of zero-knowledge proof generation, shielded ledger state, and privacy-preserving compliance proofs.*
@@ -126,6 +128,10 @@ Prisma includes a comprehensive test suite to validate the Zero-Knowledge circui
 * **Vitest Constraints Simulator:** We simulate the Compact WASM output to test ZK invariants locally.
 * **Test Cases:** Validates that payroll and vendor circuits successfully update the ledger for valid amounts, but throw `Spending limit exceeded` constraint assertions if payments cross the budget limits, without revealing the individual amounts.
 * **CI/CD Pipeline:** Integrated with GitHub Actions. Every push to the repository runs `vitest run` on the constraints simulator to ensure ZK logic integrity.
+
+### Vitest Test Suite Execution
+*The test suite executes locally to cryptographically verify circuit logic, state transitions, and privacy bounds without leaking sensitive data on-chain.*
+<img src="./public/screenshot/Vite%20Test.png" alt="Vitest Output" width="100%" />
 
 ---
 
