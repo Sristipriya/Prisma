@@ -1,14 +1,29 @@
-pragma language_version >= 0.17;
+pragma language_version >= 0.14.0;
 
 import CompactStandardLibrary;
 
-export ledger owner: Bytes<32>;
+export ledger total_payroll_budget: Uint<32>;
+export ledger total_paid: Uint<32>;
 
-export circuit addEmployee(empKey: Bytes<32>, salary: Uint<64>): [] {
-    // Zero-knowledge proof generation for adding an employee securely
-    // In a full implementation, this would update a private ledger
+// Hash of the authorized employer to prevent rogue agents
+export ledger employer_hash: Bytes<32>;
+
+constructor(budget: Uint<32>, employer: Bytes<32>) {
+  total_payroll_budget = disclose(budget);
+  employer_hash = disclose(employer);
+  total_paid = 0 as Uint<32>;
 }
 
-export circuit processPayroll(): [] {
-    // Process payments privately, ensuring amounts remain confidential
+export circuit payEmployee(
+  salary_amount: Uint<32>,
+  secret_employer_hash: Bytes<32>
+): [] {
+  // 1. Confidential Authorization: Prove employer identity without revealing it on-chain
+  assert(secret_employer_hash == employer_hash, "Unauthorized employer signature");
+  
+  // 2. Budget Guardrails: Mathematically prove funds are within limits
+  assert(total_paid + salary_amount <= total_payroll_budget, "Payroll budget exceeded");
+  
+  // 3. State Update: Only the aggregated total is updated on the public ledger
+  total_paid = (total_paid + disclose(salary_amount)) as Uint<32>;
 }

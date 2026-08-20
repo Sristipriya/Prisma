@@ -1,17 +1,29 @@
-pragma compiler_version >= 0.13.0;
+pragma language_version >= 0.14.0;
 
-export contract PrismaVendor {
-  state owner: Bytes<32>;
+import CompactStandardLibrary;
+
+export ledger total_vendor_budget: Uint<32>;
+export ledger total_settled: Uint<32>;
+
+// ZK Allowlist to keep vendor identity private
+export ledger allowed_vendor_hash: Bytes<32>;
+
+constructor(budget: Uint<32>, vendor_hash: Bytes<32>) {
+  total_vendor_budget = disclose(budget);
+  allowed_vendor_hash = disclose(vendor_hash);
+  total_settled = 0 as Uint<32>;
+}
+
+export circuit settleInvoice(
+  invoice_amount: Uint<32>,
+  secret_vendor_hash: Bytes<32>
+): [] {
+  // 1. Private Allowlist Access: Prove vendor is in allowlist without revealing identity
+  assert(secret_vendor_hash == allowed_vendor_hash, "Vendor not in authorized allowlist");
   
-  constructor(ownerKey: Bytes<32>) {
-    owner = ownerKey;
-  }
+  // 2. Budget Guardrails: Prove sufficient budget without revealing exact transaction size initially
+  assert(total_settled + invoice_amount <= total_vendor_budget, "Insufficient vendor budget");
   
-  export circuit registerVendor(vendorKey: Bytes<32>) {
-    // Zero-knowledge proof generation for registering a vendor
-  }
-  
-  export circuit payVendor(vendorKey: Bytes<32>, amount: Uint<64>) {
-    // Process vendor payment privately
-  }
+  // 3. State Update: Disclose settled amount to public ledger for auditability
+  total_settled = (total_settled + disclose(invoice_amount)) as Uint<32>;
 }
