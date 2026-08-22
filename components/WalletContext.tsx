@@ -9,6 +9,7 @@ interface WalletContextType {
   connect: () => Promise<void>;
   disconnect: () => void;
   error: string | null;
+  networkName: string;
 }
 
 const WalletContext = createContext<WalletContextType | undefined>(undefined);
@@ -18,6 +19,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
   const [isConnected, setIsConnected] = useState(false);
   const [address, setAddress] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [networkName, setNetworkName] = useState<string>("Midnight Network");
 
   const connect = async () => {
     try {
@@ -28,7 +30,6 @@ export function WalletProvider({ children }: { children: ReactNode }) {
       }
       // @ts-ignore
       const midnightWallets = window.midnight || {};
-      // Prefer 1AM, then mnLace, then whatever is first
       const midnightObj = midnightWallets['1am'] || midnightWallets.mnLace || Object.values(midnightWallets)[0];
 
       if (!midnightObj) {
@@ -36,28 +37,33 @@ export function WalletProvider({ children }: { children: ReactNode }) {
       }
 
       let api;
-      if (typeof midnightObj.connect === 'function') {
-         api = await midnightObj.connect();
-      } else if (typeof midnightObj.enable === 'function') {
-         api = await midnightObj.enable();
-      } else {
-         api = midnightObj;
-      }
+      if (typeof midnightObj.connect === 'function') api = await midnightObj.connect();
+      else if (typeof midnightObj.enable === 'function') api = await midnightObj.enable();
+      else api = midnightObj;
+
       setConnector(api);
       setIsConnected(true);
       
       let state = null;
-      if (typeof api.state === 'function') {
-         state = await api.state();
-      } else if (typeof api.getState === 'function') {
-         state = await api.getState();
-      }
+      if (typeof api.state === 'function') state = await api.state();
+      else if (typeof api.getState === 'function') state = await api.getState();
       
       if (state && state.address) {
          setAddress(state.address);
       } else {
          setAddress("Connected Wallet");
       }
+
+      // Try to determine network from API configuration or state
+      let detectedNetwork = "Midnight Preprod"; // default fallback
+      try {
+        if (typeof api.getConfiguration === 'function') {
+           const config = await api.getConfiguration();
+           if (config?.indexerUri?.includes('preview')) detectedNetwork = "Midnight Preview";
+           else if (config?.indexerUri?.includes('preprod')) detectedNetwork = "Midnight Preprod";
+        }
+      } catch (e) {}
+      setNetworkName(detectedNetwork);
 
     } catch (err: any) {
       console.error("Wallet connection failed:", err);
@@ -69,10 +75,11 @@ export function WalletProvider({ children }: { children: ReactNode }) {
     setConnector(null);
     setIsConnected(false);
     setAddress(null);
+    setNetworkName("Midnight Network");
   };
 
   return (
-    <WalletContext.Provider value={{ connector, isConnected, address, connect, disconnect, error }}>
+    <WalletContext.Provider value={{ connector, isConnected, address, connect, disconnect, error, networkName } as any}>
       {children}
     </WalletContext.Provider>
   );

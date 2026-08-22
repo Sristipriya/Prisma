@@ -16,7 +16,7 @@ const NAV_ITEMS = [
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
-  const { isConnected, address, connect, disconnect, error: walletError } = useWallet();
+  const { isConnected, address, connect, disconnect, error: walletError, networkName } = useWallet();
   const [authChecking, setAuthChecking] = React.useState(true);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [walletLoading, setWalletLoading] = useState(false);
@@ -92,7 +92,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               <path d="M11 21.95V18a2 2 0 0 0-2-2v0a2 2 0 0 1-2-2v-1a2 2 0 0 0-2-2H2.05"/>
               <circle cx="12" cy="12" r="10"/>
             </svg>
-            Midnight Preprod
+            {isConnected ? networkName : 'No Network'}
           </div>
         </div>
 
@@ -206,7 +206,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
         <footer className="db-footer">
           <span>Prisma Infrastructure</span>
-          <span>Network: Midnight Preprod</span>
+          <span>Network: {isConnected ? networkName : 'Disconnected'}</span>
         </footer>
       </div>
     </div>

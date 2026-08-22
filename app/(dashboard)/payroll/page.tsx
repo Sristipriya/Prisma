@@ -11,10 +11,13 @@ interface PayrollStream {
   employee_name: string;
   amount: number;
   unlocked_amount: number;
-  status: 'Streaming' | 'Completed' | 'Paused';
+  status: 'Streaming' | 'Completed' | 'Paused' | 'Revoked';
   proof_hash: string;
   contract_address: string;
   created_at: string;
+  start_time: string;
+  duration_seconds: number;
+  withdrawn_amount: number;
 }
 
 export default function PayrollPage() {
