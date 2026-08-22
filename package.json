@@ -50,6 +50,7 @@
     "chalk": "^6.0.0",
     "eslint": "^9",
     "eslint-config-next": "16.2.12",
+    "pg": "^8.23.0",
     "tailwindcss": "^4",
     "typescript": "^5",
     "vitest": "^4.1.11"

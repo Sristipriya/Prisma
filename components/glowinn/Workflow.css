@@ -1,0 +1,141 @@
+.workflow {
+  padding-bottom: calc(var(--gutter) * 4);
+  background: var(--ground-deep);
+  position: relative;
+  z-index: 10;
+}
+
+.workflow__inner {
+  padding: calc(var(--gutter) * 2);
+  border-radius: calc(var(--radius) * 1.5);
+  display: flex;
+  flex-direction: column;
+  gap: 48px;
+}
+
+@media (min-width: 900px) {
+  .workflow__inner {
+    flex-direction: row;
+    align-items: center;
+    gap: 64px;
+  }
+}
+
+.workflow__content {
+  flex: 1;
+}
+
+.workflow__title {
+  font-size: clamp(2rem, 3.5vw, 2.75rem);
+  font-weight: 500;
+  color: var(--ink);
+  margin: 24px 0 16px;
+  letter-spacing: -0.02em;
+}
+
+.workflow__desc {
+  font-size: 1.1rem;
+  color: var(--ink-soft);
+  line-height: 1.6;
+  font-weight: 300;
+  margin-bottom: 40px;
+}
+
+.workflow__steps {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.workflow__step {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+}
+
+.workflow__step-num {
+  font-family: monospace;
+  font-size: 0.9rem;
+  color: #6ee7b7;
+  background: rgba(110, 231, 183, 0.1);
+  padding: 6px 12px;
+  border-radius: 20px;
+  letter-spacing: 0.05em;
+}
+
+.workflow__step strong {
+  display: block;
+  font-weight: 500;
+  color: var(--ink);
+  margin-bottom: 4px;
+  font-size: 1.1rem;
+}
+
+.workflow__step p {
+  color: var(--ink-faint);
+  font-weight: 300;
+  font-size: 0.95rem;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.workflow__visual {
+  flex: 1;
+  width: 100%;
+}
+
+.code-mockup {
+  background: rgba(10, 10, 10, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(10px);
+}
+
+.code-mockup__header {
+  padding: 12px 16px;
+  background: rgba(255, 255, 255, 0.02);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.mac-dots {
+  display: flex;
+  gap: 6px;
+}
+
+.mac-dots span {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #333;
+}
+.mac-dots span:nth-child(1) { background: #ff5f56; }
+.mac-dots span:nth-child(2) { background: #ffbd2e; }
+.mac-dots span:nth-child(3) { background: #27c93f; }
+
+.file-name {
+  font-family: monospace;
+  font-size: 0.8rem;
+  color: #888;
+}
+
+.code-mockup__body {
+  margin: 0;
+  padding: 24px;
+  overflow-x: auto;
+}
+
+.code-mockup__body code {
+  font-family: 'Fira Code', monospace;
+  font-size: 0.9rem;
+  color: #c9d1d9;
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
