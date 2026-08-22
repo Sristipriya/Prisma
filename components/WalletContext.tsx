@@ -42,17 +42,34 @@ export function WalletProvider({ children }: { children: ReactNode }) {
       else api = midnightObj;
 
       setConnector(api);
-      setIsConnected(true);
-      
-      let state = null;
-      if (typeof api.state === 'function') state = await api.state();
-      else if (typeof api.getState === 'function') state = await api.getState();
-      
-      if (state && state.address) {
-         setAddress(state.address);
-      } else {
-         setAddress("Connected Wallet");
+
+      let addressStr = '';
+      if (typeof api.getUsedAddresses === 'function') {
+        const used = await api.getUsedAddresses();
+        if (Array.isArray(used) && used.length > 0) addressStr = used[0];
+      } else if (typeof api.getRewardAddresses === 'function') {
+        const rewards = await api.getRewardAddresses();
+        if (Array.isArray(rewards) && rewards.length > 0) addressStr = rewards[0];
+      } else if (typeof api.getChangeAddress === 'function') {
+        addressStr = await api.getChangeAddress();
       }
+
+      if (!addressStr) {
+        let addrs: any = {};
+        if (typeof api.getShieldedAddresses === 'function') addrs = await api.getShieldedAddresses();
+        else if (typeof api.state === 'function') addrs = (await api.state()) || {};
+        
+        if (addrs && (addrs.shieldedCoinPublicKey || addrs.coinPublicKey)) {
+          const pubkey = addrs.shieldedCoinPublicKey || addrs.coinPublicKey;
+          addressStr = `mn_shield_${pubkey.slice(0, 10)}...${pubkey.slice(-8)}`;
+        } else if (addrs && addrs.address) {
+          addressStr = addrs.address;
+        }
+      }
+
+      setAddress(addressStr || "Connected Wallet");
+      setIsConnected(true);
+      toast.success(`Connected to 1AM Wallet (${networkName})`);
 
       // Try to determine network from API configuration or state
       let detectedNetwork = "Midnight Preprod"; // default fallback
