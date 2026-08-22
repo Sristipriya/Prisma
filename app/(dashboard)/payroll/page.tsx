@@ -106,6 +106,8 @@ export default function PayrollPage() {
       const { data, error } = await supabase.from('payroll_streams').insert([{
         user_id: session.user.id,
         employee_id: selectedEmp.id,
+        employee_name: selectedEmp.full_name,
+        employee_address: selectedEmp.shielded_address || 'mn_shield_tbd',
         amount: parseFloat(amount),
         duration_seconds: 2592000, // 30 days
         withdrawn_amount: 0,
