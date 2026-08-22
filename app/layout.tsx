@@ -14,8 +14,11 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Prisma | Payroll & Vendor Management",
-  description: "Next-gen zero-knowledge payroll and vendor management platform on the Midnight Network.",
+  title: "Glowinn — Made for Modern Elegance",
+  description: "From radiant skincare to flawless makeup, explore products designed for every skin type and style.",
+  icons: {
+    icon: "/favicon.svg",
+  },
 };
 
 import { Toaster } from 'sonner';
@@ -26,10 +29,16 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html
-      lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
-    >
+    <html lang="en" className="h-full antialiased">
+      <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Jost:wght@300;400;500;600&display=swap"
+          rel="stylesheet"
+        />
+        <link rel="preload" as="video" href="/hero.mp4" />
+      </head>
       <body className="min-h-full flex flex-col">
         <WalletProvider>
           {children}
