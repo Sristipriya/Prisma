@@ -1,0 +1,8 @@
+{
+  "version": 3,
+  "file": "index.js",
+  "sourceRoot": "../../../../",
+  "sources": ["src/ghost.compact"],
+  "names": [],
+  "mappings": ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;EAOA;;;;;;;;;;MAKA,AAAA,KAGC;;;;;cAHoB,QAAgB;;;;;;;;;;;;;;;;;;yCAAhB,QAAgB;;;;;;;kEAAhB,QAAgB;;;OAGpC;;;;GALA;EAHD;;;;;UAAY,OAAe;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;IAH3B;;;;;;;;;yEAAuC;IACvC;;;;;;;;;yEAAoC;IAGlC;;;;;;;2HAA0B,OAAK;;yEAAjB;UACd,KAAW;IAAX;;;;;;;2HAAA,KAAW;;yEAAA;;;;;;;GACZ;EAED,AAAA,QAGC,4BAHoB,QAAgB;QAC5B,GAAsC;2DAAtC;;;;;;;;;;;gIAAW;;mCAAG,QAAM;6BAApB,GAAsC;;qDAAd;;;;;;;;;;;0HAAc;;UAC7C,KAAW;;;;;6CAAI;;;;;;;;;;;kHAAW;;qBAAY,QAAM;IAA5C;;;;;;;2HAAA,KAAW;;yEAAA;;GACZ;;;;;;;;;;;;;;;;IAXD;qCAAA;;;;;;;;;;;0GAAuC;KAAA;IACvC;qCAAA;;;;;;;;;;;0GAAoC;KAAA;;;;;;;;;;"
+}
