@@ -128,32 +128,48 @@ Prisma is architected to solve three high-impact, real-world enterprise problems
 
 ---
 
-## 🏗️ System Architecture & Tech Stack
+## 🏗️ Detailed Project Architecture & Directory Structure
 
-Prisma is built using a modern, highly scalable stack:
-
-### Tech Stack
-* **Blockchain Network:** Midnight Network (Preprod Testnet)
-* **Smart Contracts:** Compact (Midnight's native ZK language)
-* **Web3 Integration:** Midnight.js & 1AM Wallet
-* **Frontend:** Next.js 14 (App Router), React 18, Tailwind CSS, Framer Motion
-* **Database:** Supabase (PostgreSQL) for real-time off-chain state syncing
-* **State Management:** React Context API
-
-### Project Directory Structure
 ```text
 prisma-app/
-├── app/                        # Next.js App Router (Pages, Dashboard UI)
-├── components/                 # Reusable UI components & Layouts
-├── contracts/                  # Midnight ZK Smart Contracts
-│   ├── payroll.compact         # Shielded payroll stream circuit
-│   └── vendor.compact          # Confidential vendor settlement circuit
-├── lib/                        # Utilities & Hooks
-│   ├── midnight/               # Midnight SDK Integration & Wallet Auth
-│   └── supabase.ts             # Supabase DB Connection
-├── public/                     # Static Assets & compiled ZK Proving Keys
-├── Screenshot/                 # High-Resolution Application Screenshots
-└── tests/                      # Automated Vitest testing suite
+├── .github/
+│   └── workflows/
+│       └── ci.yml                     # Continuous Integration: linting, build & cryptographic tests
+├── app/                               # Next.js 14 App Router Directory
+│   ├── (dashboard)/                   # Authenticated Enterprise Modules
+│   │   ├── payroll/page.tsx           # Employer Payroll Stream Creation & Management
+│   │   ├── worker/page.tsx            # Worker Real-Time Salary Stream & ZK Withdrawal UI
+│   │   └── vendor/page.tsx            # Shielded B2B Invoice Generation & Settlement
+│   ├── analytics/page.tsx             # ZK Circuit Execution Metrics, Proof Volume & Latency
+│   ├── login/page.tsx                 # Supabase-authenticated User Session Portal
+│   ├── layout.tsx                     # Root Application Shell & Theme Wrapper
+│   ├── page.tsx                       # High-Conversion Landing Page & Feature Showcase
+│   └── globals.css                    # Dark Glassmorphic Design System & Animations
+├── components/                        # Reusable Component Architecture
+│   ├── WalletContext.tsx              # Midnight 1AM & Lace DApp Connector with Network Auto-Switching
+│   ├── Sidebar.tsx                    # Collapsible Dashboard Navigation with Live Network Status
+│   └── LandingNav.tsx                 # Responsive Header Navigation for Public Pages
+├── contracts/                         # Midnight Smart Contracts (Compact Language)
+│   ├── payroll.compact                # Zero-Knowledge Corporate Payroll & Streaming Allowance Circuit
+│   ├── vendor.compact                 # Confidential B2B Vendor Invoicing & Settlement Circuit
+│   └── managed/                       # Auto-generated Compact Compiler Bindings
+│       └── payroll/
+│           ├── contract/index.js      # Generated TypeScript / JavaScript Runtime Contract Bindings
+│           ├── zkir/spend.bzkir       # Binary ZK Intermediate Representation (ZKIR) Circuits
+│           └── keys/                  # Compiled Local Prover & Verifier Key Cache
+├── lib/                               # Core Business Logic & Infrastructure
+│   ├── midnight/
+│   │   └── providers.ts               # Midnight.js SDK Configuration (FetchZkConfigProvider & Proof Server)
+│   └── supabase.ts                    # Supabase Client for Off-Chain Profile & Stream Indexing
+├── public/                            # Static Web Assets & Browser-Accessible Keys
+│   ├── ghost/keys/                    # spend.prover (147KB) & spend.verifier (1.3KB) for Client Proving
+│   ├── payroll/                       # Public WASM binaries and circuit definitions
+│   ├── vendor/                        # Public vendor contract artifacts
+│   └── Screenshot/                    # Platform showcase visual documentation
+├── Screenshot/                        # Root-level High-Resolution Screenshot Gallery for GitHub
+└── tests/                             # Cryptographic & Functional Test Suites
+    └── contracts/
+        └── payroll.test.ts            # Vitest Functional Circuit Verification & State Assertion Tests
 ```
 
 ---
@@ -161,9 +177,9 @@ prisma-app/
 ## 💻 Run Locally
 
 ### Prerequisites
-1. **1AM Wallet:** Installed in your browser and switched to the Midnight Preprod network.
-2. **Node.js:** v20 or higher.
-3. **Docker:** Required for the local proof server.
+1. **1AM Wallet or Midnight Lace:** Installed in your browser and switched to the Midnight Preprod network.
+2. **Node.js:** v20 or higher (v24 recommended).
+3. **Docker:** Required to run the local Midnight proof server container.
 
 ### Quick Start
 ```bash
