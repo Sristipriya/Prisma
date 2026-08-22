@@ -1,9 +1,10 @@
 "use client";
 import React from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useWallet } from '@/components/WalletContext';
-import { Briefcase, Building2, Activity, Wallet, Power } from 'lucide-react';
+import { Briefcase, Building2, Activity, Wallet, Power, LogOut } from 'lucide-react';
+import { supabase } from '@/lib/supabase';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -14,6 +15,34 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     { name: 'Vendor Settlements', href: '/vendor', icon: Building2 },
     { name: 'ZK Analytics', href: '/analytics', icon: Activity },
   ];
+
+  const router = useRouter();
+  const [authChecking, setAuthChecking] = React.useState(true);
+
+  React.useEffect(() => {
+    const checkAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        router.push('/login');
+      } else {
+        setAuthChecking(false);
+      }
+    };
+    
+    checkAuth();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (!session) {
+        router.push('/login');
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, [router]);
+
+  if (authChecking) {
+    return <div className="min-h-screen bg-black flex items-center justify-center text-white text-sm font-mono tracking-widest uppercase">Verifying Enterprise Access...</div>;
+  }
 
   return (
     <div className="min-h-screen bg-[var(--color-ghost-bg)] text-[var(--color-ghost-text)] font-sans antialiased selection:bg-white/20 selection:text-white">
@@ -71,9 +100,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 <button
                   onClick={disconnect}
                   className="p-1.5 text-gray-400 hover:text-white hover:bg-white/10 rounded-sm transition-all"
-                  title="Disconnect"
+                  title="Disconnect Wallet"
                 >
-                  <Power className="w-3.5 h-3.5" />
+                  <Wallet className="w-3.5 h-3.5" />
                 </button>
               </div>
             ) : (
@@ -85,6 +114,16 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 <span>Connect Wallet</span>
               </button>
             )}
+            <button
+                onClick={async () => {
+                  await supabase.auth.signOut();
+                  router.push('/login');
+                }}
+                className="p-2 text-gray-400 hover:text-red-400 hover:bg-red-400/10 rounded-md transition-all ml-2"
+                title="Sign Out of Prisma"
+              >
+                <LogOut className="w-4 h-4" />
+            </button>
           </div>
         </div>
       </header>

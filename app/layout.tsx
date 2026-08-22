@@ -18,6 +18,8 @@ export const metadata: Metadata = {
   description: "Next-gen zero-knowledge payroll and vendor management platform on the Midnight Network.",
 };
 
+import { Toaster } from 'sonner';
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -31,6 +33,7 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col">
         <WalletProvider>
           {children}
+          <Toaster theme="dark" position="bottom-right" richColors />
         </WalletProvider>
       </body>
     </html>
