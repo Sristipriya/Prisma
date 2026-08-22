@@ -10,7 +10,7 @@ import { deployContract, findDeployedContract } from '@midnight-ntwrk/midnight-j
 import { CompiledContract } from '@midnight-ntwrk/midnight-js-protocol/compact-js';
 
 // Initialize Midnight network
-setNetworkId('testnet');
+setNetworkId('preprod');
 
 // We have no witnesses for this contract
 const compiledPayrollContract = CompiledContract.make(
@@ -53,10 +53,10 @@ export async function deployPayrollContract(api: any) {
 
   if (!config) {
     config = {
-      indexerUri: 'https://indexer.testnet.midnight.network/api/v4/graphql',
-      indexerWsUri: 'wss://indexer.testnet.midnight.network/api/v4/graphql/ws',
+      indexerUri: 'https://indexer.preprod.midnight.network/api/v4/graphql',
+      indexerWsUri: 'wss://indexer.preprod.midnight.network/api/v4/graphql/ws',
       proverServerUri: 'http://127.0.0.1:6300',
-      nodeUri: 'https://rpc.testnet.midnight.network',
+      nodeUri: 'https://rpc.preprod.midnight.network',
     };
   }
 
@@ -93,8 +93,8 @@ export async function deployPayrollContract(api: any) {
   
   const proofProvider = httpClientProofProvider(config.proverServerUri || 'http://127.0.0.1:6300', zkConfigProvider);
   const publicDataProvider = indexerPublicDataProvider(
-    config.indexerUri || 'https://indexer.preview.midnight.network/api/v4/graphql', 
-    config.indexerWsUri || 'wss://indexer.preview.midnight.network/api/v4/graphql/ws', 
+    config.indexerUri || 'https://indexer.preprod.midnight.network/api/v4/graphql', 
+    config.indexerWsUri || 'wss://indexer.preprod.midnight.network/api/v4/graphql/ws', 
     window.WebSocket as any
   );
 
