@@ -43,9 +43,9 @@ export default function AnalyticsPage() {
         setVendorCount(vendorData.length);
       }
 
-      const payrollEntries: AuditEntry[] = (payrollData || []).map(r => ({
+      const payrollEntries: AuditEntry[] = (payrollData || []).map((r: any) => ({
         id: r.created_at + 'p', type: 'payroll',
-        description: `Payroll stream — ${r.profiles?.full_name || 'Unknown'}`,
+        description: `Payroll stream — ${Array.isArray(r.profiles) ? r.profiles[0]?.full_name : r.profiles?.full_name || 'Unknown'}`,
         amount: r.amount, proof_hash: r.proof_hash, created_at: r.start_time || r.created_at,
       }));
       const vendorEntries: AuditEntry[] = (vendorData || []).map(r => ({
