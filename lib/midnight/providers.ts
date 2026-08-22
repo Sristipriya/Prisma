@@ -41,7 +41,7 @@ function inMemoryPrivateStateProvider() {
   } as any;
 }
 
-export async function deployPayrollContract(api: any) {
+export async function deployPayrollContract(api: any, amount: number, employeeName: string) {
   let config: any = null;
   try {
     if (typeof api?.getConfiguration === 'function') {
@@ -64,7 +64,6 @@ export async function deployPayrollContract(api: any) {
   let encryptionPublicKey = '';
 
   try {
-    console.log("Inspecting Midnight Wallet API:", api);
     if (typeof api?.getShieldedAddresses === 'function') {
       const addrs = await api.getShieldedAddresses();
       coinPublicKey = addrs?.shieldedCoinPublicKey || addrs?.coinPublicKey || '';
@@ -73,24 +72,17 @@ export async function deployPayrollContract(api: any) {
       const st = await api.state();
       coinPublicKey = st?.shieldedCoinPublicKey || st?.coinPublicKey || '';
       encryptionPublicKey = st?.shieldedEncryptionPublicKey || st?.encryptionPublicKey || '';
-    } else if (typeof api?.getCoinPublicKey === 'function') {
-      coinPublicKey = await api.getCoinPublicKey();
-      encryptionPublicKey = typeof api?.getEncryptionPublicKey === 'function' ? await api.getEncryptionPublicKey() : coinPublicKey;
     }
   } catch (e) {
     console.warn("Failed to fetch shielded addresses from API", e);
   }
 
-  // Ensure keys are valid 64-char hex strings so Compact runtime validation passes
   const dummyHexKey = '0000000000000000000000000000000000000000000000000000000000000000';
   if (!coinPublicKey || coinPublicKey.length < 8) coinPublicKey = dummyHexKey;
   if (!encryptionPublicKey || encryptionPublicKey.length < 8) encryptionPublicKey = dummyHexKey;
 
   const privateStateProvider = inMemoryPrivateStateProvider();
-  
-  // ZK keys are served statically from the public directory
   const zkConfigProvider = new FetchZkConfigProvider(window.location.origin, fetch.bind(window));
-  
   const proofProvider = httpClientProofProvider(config.proverServerUri || 'http://127.0.0.1:6300', zkConfigProvider);
   const publicDataProvider = indexerPublicDataProvider(
     config.indexerUri || 'https://indexer.preprod.midnight.network/api/v4/graphql', 
@@ -103,18 +95,8 @@ export async function deployPayrollContract(api: any) {
     getEncryptionPublicKey: () => encryptionPublicKey,
     balanceTx: async (tx: UnboundTransaction, ttl?: Date) => {
       const serializedTx = toHex(tx.serialize());
-      
-      // Look for any balance function on api or api.experimental
-      let balanceFn = 
-        api.balanceUnsealedTransaction || 
-        api.balanceTransaction || 
-        api.balanceTx || 
-        api.experimental?.balanceUnsealedTransaction || 
-        api.experimental?.balanceTransaction || 
-        api.experimental?.balanceTx;
-
+      let balanceFn = api.balanceUnsealedTransaction || api.balanceTransaction || api.balanceTx || api.experimental?.balanceUnsealedTransaction;
       if (!balanceFn) {
-        // Dynamic search for any method with 'balance' in its name
         for (const key of Object.keys(api || {})) {
           if (key.toLowerCase().includes('balance') && typeof api[key] === 'function') {
             balanceFn = api[key];
@@ -122,12 +104,7 @@ export async function deployPayrollContract(api: any) {
           }
         }
       }
-
-      if (typeof balanceFn !== 'function') {
-        const availableMethods = Object.keys(api || {}).filter(k => typeof api[k] === 'function').join(', ');
-        throw new Error(`1AM Wallet does not expose a balance method. Available wallet methods: [${availableMethods || 'none'}]`);
-      }
-
+      if (typeof balanceFn !== 'function') throw new Error(`1AM Wallet does not expose a balance method.`);
       const received = await balanceFn.call(api, serializedTx);
       const rawTx = typeof received === 'string' ? received : (received?.tx || received?.serializedTx || serializedTx);
       return Transaction.deserialize<SignatureEnabled, Proof, Binding>('signature', 'proof', 'binding', fromHex(rawTx));
@@ -151,13 +128,18 @@ export async function deployPayrollContract(api: any) {
     midnightProvider
   };
 
-  const contract = new Contract({} as any);
+  // Convert employer name string to a dummy 32-byte hex hash for the constructor
+  let employerHash = '';
+  for (let i = 0; i < employeeName.length && i < 32; i++) employerHash += employeeName.charCodeAt(i).toString(16).padStart(2, '0');
+  employerHash = employerHash.padEnd(64, '0'); // pad to 64 hex chars (32 bytes)
   
-  // Actually perform the deployment transaction
+  // Convert amount to BigInt for Uint<32>
+  const budget = BigInt(Math.floor(amount));
+
   const deployedContract = await deployContract(providers as any, {
     privateStateId: 'payroll-deploy',
     compiledContract: compiledPayrollContract as any,
-    args: [],
+    args: [budget, employerHash],
     initialPrivateState: {} as any
   } as any);
 

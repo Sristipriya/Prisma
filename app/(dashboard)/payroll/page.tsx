@@ -80,7 +80,7 @@ export default function PayrollPage() {
         else if (typeof midnightObj.enable === 'function') api = await midnightObj.enable();
         else api = midnightObj;
         const { deployPayrollContract } = await import('@/lib/midnight/providers');
-        const { address } = await deployPayrollContract(api);
+        const { address } = await deployPayrollContract(api, parseFloat(amount), employeeName);
         contractAddress = address;
       }
 
