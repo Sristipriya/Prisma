@@ -11,7 +11,7 @@ import { CompiledContract } from '@midnight-ntwrk/midnight-js-protocol/compact-j
 
 setNetworkId('preprod');
 
-const compiledPayrollContract = CompiledContract.make('payroll', Contract as any).pipe(CompiledContract.withWitnesses({} as never));
+const compiledPayrollContract = CompiledContract.make('ghost', Contract as any).pipe(CompiledContract.withWitnesses({} as never));
 
 function inMemoryPrivateStateProvider() {
   let contractAddress: any = null;
