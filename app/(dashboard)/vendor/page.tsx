@@ -67,9 +67,8 @@ export default function VendorPage() {
         if (typeof midnightObj.connect === 'function') api = await midnightObj.connect();
         else if (typeof midnightObj.enable === 'function') api = await midnightObj.enable();
         else api = midnightObj;
-        const { deployPayrollContract } = await import('@/lib/midnight/providers');
-        // We reuse deployPayrollContract for vendor as a mock deployer for now
-        const { address } = await deployPayrollContract(api, parseFloat(amount), vendorName);
+        const { deployVendorContract } = await import('@/lib/midnight/providers');
+        const { address } = await deployVendorContract(api, parseFloat(amount), vendorName);
         contractAddress = address;
       }
 
