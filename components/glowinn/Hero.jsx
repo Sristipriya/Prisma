@@ -1,13 +1,15 @@
 "use client";
 
 import React, { useRef, useState, useEffect } from 'react';
+import Link from 'next/link';
 import './Hero.css';
 
 const HERO_VIDEO_URL = '/hero.mp4';
 
 const STATS = [
-  { figure: '2M+', label: 'People', foot: 'Happy Customers' },
-  { figure: '1000+', label: 'Products', foot: 'Retail Market' },
+  { figure: '100%', label: 'Shielded', foot: 'Private State' },
+  { figure: '< 3s', label: 'Proof Time', foot: 'Midnight Preprod' },
+  { figure: '0%', label: 'Data Leak', foot: 'Zero-Knowledge' },
 ];
 
 export default function Hero() {
@@ -43,25 +45,38 @@ export default function Hero() {
       </div>
 
       <div className="hero__body shell">
+        <div className="hero__pill-tag">
+          <span className="hero__dot" />
+          <span>Midnight Network • Zero-Knowledge Engine</span>
+        </div>
+
         <h1 className="hero__title">
-          <span className="hero__title-lead">Discover Beauty</span>
-          Made for Modern Elegance.
+          <span className="hero__title-lead">Shielded Financial Infrastructure</span>
+          Private Payroll & Vendor Settlements.
         </h1>
-        <a className="btn btn--pearl hero__cta" href="/payroll">
-          Explore Our Products
-        </a>
+
+        <div className="hero__actions">
+          <Link className="btn btn--pearl hero__cta" href="/payroll">
+            Launch Shielded Payroll
+          </Link>
+          <Link className="btn btn--ink hero__cta" href="/vendor">
+            Vendor Settlements
+          </Link>
+        </div>
       </div>
 
       <div className="hero__foot shell">
         <article className="card card--note">
-          <h2>Beauty That Speaks for Itself</h2>
+          <h2>Zero-Knowledge Privacy</h2>
           <p>
-            From radiant skincare to flawless makeup, explore products designed
-            for every skin type and style.
+            Execute enterprise payroll streams and contractor invoices with
+            cryptographic zero-knowledge proofs on Midnight Network.
           </p>
         </article>
 
-        <p className="hero__caption">Beauty glowinn in innerway of smile.</p>
+        <p className="hero__caption">
+          Mathematical proofs without disclosing balances or recipient state.
+        </p>
 
         <div className="hero__stats">
           {STATS.map((s) => (

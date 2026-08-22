@@ -1,13 +1,19 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { Cloudmark, MenuIcon } from './icons';
+import Link from 'next/link';
+import { PrismaLogo, MenuIcon } from './icons';
 import './Navbar.css';
 
-const LINKS = ['Home', 'Products', 'Our business', 'Clients', 'About'];
+const LINKS = [
+  { label: 'Overview', href: '#top' },
+  { label: 'Shielded Payroll', href: '/payroll' },
+  { label: 'Vendor Settlements', href: '/vendor' },
+  { label: 'ZK Analytics', href: '/analytics' },
+];
 
 export default function Navbar() {
-  const [active, setActive] = useState('Home');
+  const [active, setActive] = useState('Overview');
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
@@ -21,42 +27,41 @@ export default function Navbar() {
     };
   }, [open]);
 
-  const handleLinkClick = (label) => {
-    setActive(label);
-    setOpen(false);
-  };
-
   return (
     <header className="nav">
       <div className="nav__inner shell">
         {/* 1. BRAND */}
-        <a className="nav__brand" href="#top">
-          <Cloudmark />
-          <span>Glowinn</span>
-        </a>
+        <Link className="nav__brand" href="#top">
+          <PrismaLogo size={22} />
+          <span>Prisma</span>
+          <span className="nav__badge">v2.0</span>
+        </Link>
 
         {/* 2. RAIL */}
         <nav className="nav__rail" aria-label="Primary">
-          {LINKS.map((label) => (
-            <a
-              key={label}
-              href={`#${label.toLowerCase().replace(/\s+/g, '-')}`}
-              className={active === label ? 'is-active' : ''}
-              onClick={() => handleLinkClick(label)}
+          {LINKS.map((item) => (
+            <Link
+              key={item.label}
+              href={item.href}
+              className={active === item.label ? 'is-active' : ''}
+              onClick={() => {
+                setActive(item.label);
+                setOpen(false);
+              }}
             >
-              {label}
-            </a>
+              {item.label}
+            </Link>
           ))}
         </nav>
 
         {/* 3. ACTIONS */}
         <div className="nav__actions">
-          <a className="nav__register" href="#register">
-            Register
-          </a>
-          <a className="btn btn--ink" href="/payroll">
-            Buy Now
-          </a>
+          <Link className="nav__register" href="/login">
+            Sign In
+          </Link>
+          <Link className="btn btn--ink" href="/payroll">
+            Launch dApp
+          </Link>
         </div>
 
         {/* 4. TOGGLE */}
@@ -73,25 +78,28 @@ export default function Navbar() {
       {/* MOBILE SHEET */}
       {open && (
         <div className="nav__sheet">
-          {LINKS.map((label) => (
-            <a
-              key={label}
-              href={`#${label.toLowerCase().replace(/\s+/g, '-')}`}
-              onClick={() => handleLinkClick(label)}
+          {LINKS.map((item) => (
+            <Link
+              key={item.label}
+              href={item.href}
+              onClick={() => {
+                setActive(item.label);
+                setOpen(false);
+              }}
             >
-              {label}
-            </a>
+              {item.label}
+            </Link>
           ))}
-          <a href="#register" onClick={() => setOpen(false)}>
-            Register
-          </a>
-          <a
+          <Link href="/login" onClick={() => setOpen(false)}>
+            Sign In
+          </Link>
+          <Link
             className="btn btn--pearl"
             href="/payroll"
             onClick={() => setOpen(false)}
           >
-            Buy Now
-          </a>
+            Launch dApp
+          </Link>
         </div>
       )}
     </header>

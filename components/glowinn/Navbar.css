@@ -21,6 +21,18 @@
   color: var(--ink);
 }
 
+.nav__badge {
+  font-size: 10px;
+  font-family: monospace;
+  color: var(--ink-faint);
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--hairline);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
 .nav__rail {
   margin-inline: auto;
   display: flex;

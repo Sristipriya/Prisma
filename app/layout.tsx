@@ -14,8 +14,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Glowinn — Made for Modern Elegance",
-  description: "From radiant skincare to flawless makeup, explore products designed for every skin type and style.",
+  title: "Prisma — Shielded Financial Infrastructure | Midnight Network",
+  description: "Next-gen zero-knowledge payroll streaming and vendor invoice settlements on the Midnight Network.",
   icons: {
     icon: "/favicon.svg",
   },
