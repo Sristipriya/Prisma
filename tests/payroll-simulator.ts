@@ -22,7 +22,7 @@ export class PayrollSimulator {
       currentContractState,
       currentZswapLocalState,
     } = this.contract.initialState(
-      createConstructorContext({}, "0".repeat(64)),
+      createConstructorContext({} as any, "0".repeat(64)),
       budget,
     );
     this.circuitContext = {
