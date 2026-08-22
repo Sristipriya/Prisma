@@ -21,11 +21,18 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [walletLoading, setWalletLoading] = useState(false);
 
+  const [userRole, setUserRole] = useState<'employer' | 'employee' | null>(null);
+
   React.useEffect(() => {
     const checkAuth = async () => {
       const { data: { session } } = await supabase.auth.getSession();
-      if (!session) router.push('/login');
-      else setAuthChecking(false);
+      if (!session) {
+        router.push('/login');
+      } else {
+        const { data: profile } = await supabase.from('profiles').select('role').eq('id', session.user.id).single();
+        if (profile) setUserRole(profile.role as 'employer' | 'employee');
+        setAuthChecking(false);
+      }
     };
     checkAuth();
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
@@ -33,6 +40,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     });
     return () => subscription.unsubscribe();
   }, [router]);
+
+  const navItems = userRole === 'employee' 
+    ? [{ name: 'My Portal', href: '/worker', desc: 'Manage your salary streams' }]
+    : [
+        { name: 'Payroll Streams', href: '/payroll', desc: 'Shielded salary distribution' },
+        { name: 'Vendor Settlements', href: '/vendor', desc: 'ZK invoice payments' },
+        { name: 'ZK Analytics', href: '/analytics', desc: 'Live proof telemetry' },
+      ];
 
   const handleConnect = async () => {
     setWalletLoading(true);
@@ -79,7 +94,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         {/* Nav */}
         <nav className="db-sidebar__nav">
           <div className="db-nav-label">Modules</div>
-          {NAV_ITEMS.map(item => {
+          {navItems.map(item => {
             const isActive = pathname === item.href;
             return (
               <Link
@@ -141,7 +156,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </button>
 
           <div className="db-topbar__title">
-            {NAV_ITEMS.find(n => n.href === pathname)?.name ?? 'Dashboard'}
+            {navItems.find(n => n.href === pathname)?.name ?? 'Dashboard'}
           </div>
 
           <div className="db-topbar__right">
@@ -162,7 +177,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         {/* Mobile Nav */}
         {mobileNavOpen && (
           <div className="db-mobile-nav">
-            {NAV_ITEMS.map(item => (
+            {navItems.map(item => (
               <Link
                 key={item.href}
                 href={item.href}

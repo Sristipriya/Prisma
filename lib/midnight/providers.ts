@@ -149,3 +149,87 @@ export async function deployPayrollContract(api: any, amount: number, employeeNa
     providers 
   };
 }
+
+export async function withdrawFromPayrollContract(api: any, contractAddress: string, amount: number) {
+  let config: any = null;
+  try { if (typeof api?.getConfiguration === 'function') config = await api.getConfiguration(); } catch (e) {}
+  if (!config) {
+    config = {
+      indexerUri: 'https://indexer.preprod.midnight.network/api/v4/graphql',
+      indexerWsUri: 'wss://indexer.preprod.midnight.network/api/v4/graphql/ws',
+      proverServerUri: 'http://127.0.0.1:6300',
+      nodeUri: 'https://rpc.preprod.midnight.network',
+    };
+  }
+
+  let coinPublicKey = '', encryptionPublicKey = '';
+  try {
+    if (typeof api?.getShieldedAddresses === 'function') {
+      const addrs = await api.getShieldedAddresses();
+      coinPublicKey = addrs?.shieldedCoinPublicKey || addrs?.coinPublicKey || '';
+      encryptionPublicKey = addrs?.shieldedEncryptionPublicKey || addrs?.encryptionPublicKey || '';
+    } else if (typeof api?.state === 'function') {
+      const st = await api.state();
+      coinPublicKey = st?.shieldedCoinPublicKey || st?.coinPublicKey || '';
+      encryptionPublicKey = st?.shieldedEncryptionPublicKey || st?.encryptionPublicKey || '';
+    }
+  } catch (e) {}
+
+  const dummyHexKey = '0000000000000000000000000000000000000000000000000000000000000000';
+  if (!coinPublicKey || coinPublicKey.length < 8) coinPublicKey = dummyHexKey;
+  if (!encryptionPublicKey || encryptionPublicKey.length < 8) encryptionPublicKey = dummyHexKey;
+
+  const privateStateProvider = inMemoryPrivateStateProvider();
+  const zkConfigProvider = new FetchZkConfigProvider(window.location.origin, fetch.bind(window));
+  const proofProvider = httpClientProofProvider(config.proverServerUri || 'http://127.0.0.1:6300', zkConfigProvider);
+  const publicDataProvider = indexerPublicDataProvider(
+    config.indexerUri || 'https://indexer.preprod.midnight.network/api/v4/graphql', 
+    config.indexerWsUri || 'wss://indexer.preprod.midnight.network/api/v4/graphql/ws', 
+    window.WebSocket as any
+  );
+
+  const walletProvider = {
+    getCoinPublicKey: () => coinPublicKey,
+    getEncryptionPublicKey: () => encryptionPublicKey,
+    balanceTx: async (tx: UnboundTransaction, ttl?: Date) => {
+      const serializedTx = toHex(tx.serialize());
+      let balanceFn = api.balanceUnsealedTransaction || api.balanceTransaction || api.balanceTx || api.experimental?.balanceUnsealedTransaction;
+      if (!balanceFn) {
+        for (const key of Object.keys(api || {})) {
+          if (key.toLowerCase().includes('balance') && typeof api[key] === 'function') {
+            balanceFn = api[key]; break;
+          }
+        }
+      }
+      if (typeof balanceFn !== 'function') throw new Error(`1AM Wallet does not expose a balance method.`);
+      const received = await balanceFn.call(api, serializedTx);
+      const rawTx = typeof received === 'string' ? received : (received?.tx || received?.serializedTx || serializedTx);
+      return Transaction.deserialize<SignatureEnabled, Proof, Binding>('signature', 'proof', 'binding', fromHex(rawTx));
+    },
+  };
+
+  const midnightProvider = {
+    submitTx: async (tx: FinalizedTransaction) => {
+      await api.submitTransaction(toHex(tx.serialize()));
+      return tx.identifiers()[0];
+    }
+  };
+
+  const providers = {
+    privateStateProvider, zkConfigProvider, proofProvider, publicDataProvider, walletProvider, midnightProvider
+  };
+
+  // Find the existing contract on the network
+  const contract = await findDeployedContract(providers as any, {
+    privateStateId: 'payroll-withdraw',
+    contractAddress,
+    compiledContract: compiledPayrollContract as any,
+    initialPrivateState: {} as any
+  } as any);
+
+  // Execute the spend circuit (simulating withdrawal for the MVP)
+  const withdrawAmount = BigInt(Math.floor(amount));
+  await contract.callTx.spend(withdrawAmount);
+  
+  return { success: true };
+}

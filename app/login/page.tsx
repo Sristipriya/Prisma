@@ -18,12 +18,15 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
+  const [role, setRole] = useState<'employer' | 'employee'>('employer');
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setLoading(true);
 
     try {
+      let userId = '';
       if (mode === 'signup') {
         if (password !== confirmPw) {
           setError('Passwords do not match.');
@@ -35,20 +38,44 @@ export default function LoginPage() {
           setLoading(false);
           return;
         }
-        const { error: signUpError } = await supabase.auth.signUp({
+        const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
           email,
           password,
           options: { data: { full_name: name } },
         });
         if (signUpError) throw signUpError;
+        
+        userId = signUpData.user?.id || '';
+        
         // Immediately sign in after signup
         const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
         if (signInError) throw signInError;
+        
+        // Wait for profile row to be available (inserted by trigger, or we insert it manually)
+        // Since we didn't add a trigger, we insert it manually:
+        if (userId) {
+          await supabase.from('profiles').upsert([{ 
+            id: userId, 
+            role: role, 
+            full_name: name 
+          }]);
+        }
+        
+        router.push(role === 'employer' ? '/payroll' : '/worker');
       } else {
-        const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
+        const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({ email, password });
         if (signInError) throw signInError;
+        
+        userId = signInData.user?.id || '';
+        if (userId) {
+          const { data: profile } = await supabase.from('profiles').select('role').eq('id', userId).single();
+          if (profile?.role === 'employee') {
+            router.push('/worker');
+            return;
+          }
+        }
+        router.push('/payroll');
       }
-      router.push('/payroll');
     } catch (err: any) {
       setError(err.message || 'Authentication failed. Please try again.');
     } finally {
@@ -141,6 +168,43 @@ export default function LoginPage() {
           </div>
 
           <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            {/* Role selector — only for signup */}
+            {mode === 'signup' && (
+              <div>
+                <label style={labelStyle}>I am a...</label>
+                <div style={{ display: 'flex', gap: '10px' }}>
+                  <button
+                    type="button"
+                    onClick={() => setRole('employer')}
+                    style={{
+                      flex: 1, padding: '10px', borderRadius: '8px', border: '1px solid',
+                      borderColor: role === 'employer' ? '#6ee7b7' : 'rgba(255,255,255,0.1)',
+                      background: role === 'employer' ? 'rgba(110,231,183,0.1)' : 'rgba(0,0,0,0.3)',
+                      color: role === 'employer' ? '#6ee7b7' : 'rgba(255,255,255,0.5)',
+                      fontSize: '13px', fontFamily: "'Jost', sans-serif", cursor: 'pointer',
+                      transition: 'all 0.2s ease'
+                    }}
+                  >
+                    Company / Employer
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setRole('employee')}
+                    style={{
+                      flex: 1, padding: '10px', borderRadius: '8px', border: '1px solid',
+                      borderColor: role === 'employee' ? '#93c5fd' : 'rgba(255,255,255,0.1)',
+                      background: role === 'employee' ? 'rgba(147,197,253,0.1)' : 'rgba(0,0,0,0.3)',
+                      color: role === 'employee' ? '#93c5fd' : 'rgba(255,255,255,0.5)',
+                      fontSize: '13px', fontFamily: "'Jost', sans-serif", cursor: 'pointer',
+                      transition: 'all 0.2s ease'
+                    }}
+                  >
+                    Worker / Vendor
+                  </button>
+                </div>
+              </div>
+            )}
+
             {/* Name field — only for signup */}
             {mode === 'signup' && (
               <div>

@@ -24,46 +24,62 @@ export default function PayrollPage() {
   const [employeeName, setEmployeeName] = useState('');
   const [isDeploying, setIsDeploying] = useState(false);
   const [streams, setStreams] = useState<PayrollStream[]>([]);
+  const [employees, setEmployees] = useState<{ id: string, full_name: string, shielded_address: string }[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
+  const [now, setNow] = useState(Date.now());
 
-  const fetchStreams = async () => {
+  const fetchStreamsAndEmployees = async () => {
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) return;
-      const { data, error } = await supabase.from('payroll_streams').select('*').order('created_at', { ascending: false });
-      if (error) throw error;
-      setStreams((data as PayrollStream[]) || []);
+      
+      const [streamsRes, employeesRes] = await Promise.all([
+        supabase.from('payroll_streams').select('*, profiles!payroll_streams_employee_id_fkey(full_name)').order('start_time', { ascending: false }),
+        supabase.from('profiles').select('*').eq('role', 'employee')
+      ]);
+      
+      if (streamsRes.error) throw streamsRes.error;
+      
+      const mappedStreams = (streamsRes.data as any[]).map(s => ({
+        ...s,
+        employee_name: s.profiles?.full_name || s.employee_name || 'Unknown',
+      }));
+      setStreams(mappedStreams);
+      
+      if (employeesRes.data) {
+        setEmployees(employeesRes.data);
+        if (employeesRes.data.length > 0 && !employee) {
+          setEmployee(employeesRes.data[0].id);
+        }
+      }
     } catch (err: any) {
-      toast.error('Failed to load streams: ' + err.message);
+      toast.error('Failed to load data: ' + err.message);
     } finally {
       setIsLoading(false);
     }
   };
 
-  useEffect(() => { fetchStreams(); }, []);
+  useEffect(() => { fetchStreamsAndEmployees(); }, []);
 
   useEffect(() => {
     const channel = supabase.channel('payroll_realtime')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'payroll_streams' }, fetchStreams)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'payroll_streams' }, fetchStreamsAndEmployees)
       .subscribe();
     return () => { supabase.removeChannel(channel); };
   }, []);
 
   useEffect(() => {
-    const timer = setInterval(() => {
-      setStreams(prev => prev.map(s => {
-        if (s.status === 'Streaming' && Number(s.unlocked_amount) < Number(s.amount)) {
-          return { ...s, unlocked_amount: Math.min(s.amount, Number(s.unlocked_amount) + 0.15) };
-        }
-        return s;
-      }));
-    }, 1000);
+    const timer = setInterval(() => setNow(Date.now()), 1000);
     return () => clearInterval(timer);
   }, []);
 
   const handleDeploy = async () => {
-    if (!amount || !employee || !employeeName) { toast.error('Fill in all fields'); return; }
+    if (!amount || !employee) { toast.error('Fill in all fields'); return; }
+    
+    const selectedEmp = employees.find(e => e.id === employee);
+    if (!selectedEmp) { toast.error('Invalid employee selected'); return; }
+
     setIsDeploying(true);
     const t = toast.loading('Initializing ZK circuit…');
     try {
@@ -80,24 +96,24 @@ export default function PayrollPage() {
         else if (typeof midnightObj.enable === 'function') api = await midnightObj.enable();
         else api = midnightObj;
         const { deployPayrollContract } = await import('@/lib/midnight/providers');
-        const { address } = await deployPayrollContract(api, parseFloat(amount), employeeName);
+        const { address } = await deployPayrollContract(api, parseFloat(amount), selectedEmp.full_name);
         contractAddress = address;
       }
 
       const { data, error } = await supabase.from('payroll_streams').insert([{
         user_id: session.user.id,
-        employee_name: employeeName,
-        employee_address: employee,
+        employee_id: selectedEmp.id,
         amount: parseFloat(amount),
-        unlocked_amount: 0,
+        duration_seconds: 2592000, // 30 days
+        withdrawn_amount: 0,
         status: 'Streaming',
         proof_hash: contractAddress.slice(0, 10) + '...' + contractAddress.slice(-6),
         contract_address: contractAddress,
       }]).select();
       if (error) throw error;
 
-      if (data && data.length > 0) setStreams(prev => [data[0] as PayrollStream, ...prev]);
-      setAmount(''); setEmployee(''); setEmployeeName('');
+      if (data && data.length > 0) setStreams(prev => [{ ...data[0], employee_name: selectedEmp.full_name } as PayrollStream, ...prev]);
+      setAmount(''); 
       setShowForm(false);
       toast.success(`Stream deployed: ${contractAddress.slice(0, 16)}…`, { id: t });
     } catch (e: any) {
@@ -172,12 +188,17 @@ export default function PayrollPage() {
           ) : (
             <div className="dp-form__fields">
               <div className="dp-field">
-                <label className="dp-label">Employee Name</label>
-                <input className="dp-input" type="text" value={employeeName} onChange={e => setEmployeeName(e.target.value)} placeholder="e.g. Sarah Jenkins" />
-              </div>
-              <div className="dp-field">
-                <label className="dp-label">Shielded Address</label>
-                <input className="dp-input dp-input--mono" type="text" value={employee} onChange={e => setEmployee(e.target.value)} placeholder="mn_shield_addr_..." />
+                <label className="dp-label">Select Employee</label>
+                <select 
+                  className="dp-input" 
+                  value={employee} 
+                  onChange={e => setEmployee(e.target.value)}
+                >
+                  <option value="">-- Choose Employee --</option>
+                  {employees.map(emp => (
+                    <option key={emp.id} value={emp.id}>{emp.full_name}</option>
+                  ))}
+                </select>
               </div>
               <div className="dp-field">
                 <label className="dp-label">Monthly Amount (tNight)</label>
@@ -186,9 +207,9 @@ export default function PayrollPage() {
               <div>
                 <button
                   onClick={handleDeploy}
-                  disabled={isDeploying || !amount || !employee || !employeeName}
+                  disabled={isDeploying || !amount || !employee}
                   className="dp-primary-btn"
-                  style={{ width: 'auto' }}
+                  style={{ width: 'auto', marginTop: '20px' }}
                 >
                   {isDeploying ? 'Deploying…' : 'Deploy via 1AM Wallet'}
                 </button>
@@ -218,13 +239,18 @@ export default function PayrollPage() {
         ) : (
           <div className="dp-list">
             {streams.map(stream => {
-              const pct = Math.min(100, (Number(stream.unlocked_amount) / Number(stream.amount)) * 100);
+              const startMs = new Date(stream.start_time).getTime();
+              const elapsedSec = stream.status === 'Revoked' ? 0 : Math.max(0, Math.floor((now - startMs) / 1000));
+              const durationSec = stream.duration_seconds || 2592000;
+              const unlockedAmount = Math.min(Number(stream.amount), (Number(stream.amount) * elapsedSec) / durationSec);
+              const pct = Math.min(100, (unlockedAmount / Number(stream.amount)) * 100);
+              
               return (
                 <div key={stream.id} className="dp-stream-card">
                   <div className="dp-stream-card__top">
                     <div>
                       <div className="dp-stream-card__name">{stream.employee_name}</div>
-                      <div className="dp-stream-card__addr">{stream.employee_address}</div>
+                      <div className="dp-stream-card__addr">Total: {stream.amount} tNight</div>
                     </div>
                     <div className="dp-stream-card__actions">
                       <span className={`dp-badge ${stream.status === 'Streaming' ? 'dp-badge--active' : stream.status === 'Paused' ? 'dp-badge--paused' : 'dp-badge--done'}`}>
@@ -242,8 +268,8 @@ export default function PayrollPage() {
 
                   <div className="dp-progress">
                     <div className="dp-progress__labels">
-                      <span>{Number(stream.unlocked_amount).toFixed(2)} <span style={{ color: 'rgba(255,255,255,0.3)' }}>tNight unlocked</span></span>
-                      <span style={{ color: 'rgba(255,255,255,0.3)' }}>Total: {stream.amount} tNight</span>
+                      <span>{unlockedAmount.toFixed(4)} <span style={{ color: 'rgba(255,255,255,0.3)' }}>tNight unlocked</span></span>
+                      <span style={{ color: 'rgba(255,255,255,0.3)' }}>Withdrawn: {Number(stream.withdrawn_amount || 0).toFixed(2)}</span>
                     </div>
                     <div className="dp-progress__bar">
                       <div className="dp-progress__fill" style={{ width: `${pct}%` }} />
@@ -252,7 +278,7 @@ export default function PayrollPage() {
 
                   <div className="dp-stream-card__footer">
                     <span style={{ color: 'rgba(255,255,255,0.3)', fontSize: '11px' }}>
-                      Started: {new Date(stream.created_at).toLocaleDateString()}
+                      Started: {new Date(stream.start_time).toLocaleDateString()}
                     </span>
                     <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
                       <span style={{ fontFamily: 'monospace', fontSize: '10px', color: 'rgba(255,255,255,0.25)' }}>Tx: {stream.proof_hash}</span>
