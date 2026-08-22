@@ -139,7 +139,7 @@ export async function deployPayrollContract(api: any, amount: number, employeeNa
   const deployedContract = await deployContract(providers as any, {
     privateStateId: 'payroll-deploy',
     compiledContract: compiledPayrollContract as any,
-    args: [budget, employerHash],
+    args: [budget],
     initialPrivateState: {} as any
   } as any);
 
