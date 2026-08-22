@@ -226,7 +226,7 @@ export default function PayrollPage() {
             <h2 className="dp-card__title">Live Shielded Streams</h2>
             <p className="dp-card__sub">Real-time data from Supabase · Realtime subscribed</p>
           </div>
-          <button onClick={fetchStreams} className="dp-icon-btn" title="Refresh">↺</button>
+          <button onClick={fetchStreamsAndEmployees} className="dp-icon-btn" title="Refresh">↺</button>
         </div>
 
         {isLoading ? (
