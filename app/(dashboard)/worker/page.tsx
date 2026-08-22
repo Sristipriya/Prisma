@@ -16,6 +16,29 @@ interface WorkerStream {
   contract_address: string;
 }
 
+const MOCK_STREAMS: WorkerStream[] = [
+  {
+    id: 'mock-1',
+    employer_name: 'Apex Innovations (Demo)',
+    amount: 12500,
+    duration_seconds: 2592000,
+    withdrawn_amount: 3200,
+    start_time: new Date(Date.now() - 1200000000).toISOString(),
+    status: 'Streaming',
+    contract_address: 'mn_contract_demo123456789'
+  },
+  {
+    id: 'mock-2',
+    employer_name: 'Global Ventures (Demo)',
+    amount: 5000,
+    duration_seconds: 2592000,
+    withdrawn_amount: 4900,
+    start_time: new Date(Date.now() - 2500000000).toISOString(),
+    status: 'Streaming',
+    contract_address: 'mn_contract_demo987654321'
+  }
+];
+
 export default function WorkerPage() {
   const { isConnected, connect, address } = useWallet();
   const [streams, setStreams] = useState<WorkerStream[]>([]);
@@ -55,11 +78,12 @@ export default function WorkerPage() {
   useEffect(() => { fetchStreams(); }, []);
 
   useEffect(() => {
-    const timer = setInterval(() => setNow(Date.now()), 1000);
+    const timer = setInterval(() => setNow(Date.now()), 100); // Faster tick for visual flair
     return () => clearInterval(timer);
   }, []);
 
   const handleWithdraw = async (stream: WorkerStream, unlockedAmount: number) => {
+    if (stream.id.startsWith('mock')) return toast.success('Demo withdrawal initiated via 1AM wallet!');
     if (unlockedAmount <= 0) return toast.error('No funds unlocked yet');
     if (!isConnected) return toast.error('Please connect your 1AM wallet first');
     
@@ -95,12 +119,15 @@ export default function WorkerPage() {
     if (stream.status === 'Revoked') return 0;
     
     const startMs = new Date(stream.start_time).getTime();
-    const elapsedSec = Math.max(0, Math.floor((now - startMs) / 1000));
-    const durationSec = stream.duration_seconds || 2592000; // default 30 days
+    const elapsedSec = Math.max(0, (now - startMs) / 1000);
+    const durationSec = stream.duration_seconds || 2592000;
     
     const totalUnlocked = Math.min(Number(stream.amount), (Number(stream.amount) * elapsedSec) / durationSec);
     return Math.max(0, totalUnlocked - Number(stream.withdrawn_amount));
   };
+
+  const displayStreams = (streams.length === 0 && !isLoading) ? MOCK_STREAMS : streams;
+  const isMock = streams.length === 0 && !isLoading;
 
   return (
     <div className="dp-page page-in">
@@ -115,58 +142,74 @@ export default function WorkerPage() {
       <div className="dp-card card glass-heavy">
         <div className="dp-card__header">
           <div>
-            <h2 className="dp-card__title">Incoming Streams</h2>
+            <h2 className="dp-card__title">Incoming Streams {isMock && <span className="dp-badge" style={{marginLeft: '12px', background: 'rgba(255,255,255,0.1)'}}>Demo Mode</span>}</h2>
+            {isMock && <p className="dp-card__sub" style={{color: 'rgba(255,165,0,0.8)'}}>No real streams detected. Displaying visual mock data. Deploy a real stream from an Employer account to see it here.</p>}
           </div>
           <button onClick={fetchStreams} className="dp-icon-btn" title="Refresh">↺</button>
         </div>
 
         {isLoading ? (
           <div className="dp-empty">Loading streams…</div>
-        ) : streams.length === 0 ? (
-          <div className="dp-empty">
-            <p>You have no active incoming streams.</p>
-          </div>
         ) : (
-          <div className="dp-list">
-            {streams.map(stream => {
+          <div className="dp-list" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))', gap: '24px', padding: '12px 0' }}>
+            {displayStreams.map(stream => {
               const unlocked = calculateUnlocked(stream);
-              const totalUnlockedStr = (Number(stream.withdrawn_amount) + unlocked).toFixed(4);
+              const totalUnlockedStr = (Number(stream.withdrawn_amount) + unlocked).toFixed(6); // 6 decimals for real-time visual flair
               const pct = Math.min(100, ((Number(stream.withdrawn_amount) + unlocked) / Number(stream.amount)) * 100);
               
               return (
-                <div key={stream.id} className="dp-stream-card">
-                  <div className="dp-stream-card__top">
+                <div key={stream.id} className="dp-stream-card" style={{ padding: '24px', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '16px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                     <div>
-                      <div className="dp-stream-card__name">{stream.employer_name}</div>
-                      <div className="dp-stream-card__addr">Total: {stream.amount} tNight</div>
+                      <div style={{ fontSize: '18px', fontWeight: 500, color: '#fff', marginBottom: '4px' }}>{stream.employer_name}</div>
+                      <div style={{ fontFamily: 'monospace', fontSize: '12px', color: 'rgba(255,255,255,0.4)' }}>{stream.contract_address.slice(0,16)}...</div>
                     </div>
-                    <div className="dp-stream-card__actions">
-                      <button 
-                        onClick={() => handleWithdraw(stream, unlocked)}
-                        disabled={unlocked <= 0 || stream.status === 'Revoked'}
-                        className="dp-primary-btn"
-                        style={{ padding: '6px 14px', fontSize: '12px' }}
-                      >
-                        Withdraw {unlocked > 0 ? unlocked.toFixed(2) : '0.00'}
-                      </button>
+                    <div className="dp-badge dp-badge--confirmed">{stream.status}</div>
+                  </div>
+
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', background: 'linear-gradient(180deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0) 100%)', padding: '32px 0', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.02)' }}>
+                    <div style={{ fontSize: '12px', textTransform: 'uppercase', letterSpacing: '1px', color: 'rgba(255,255,255,0.4)', marginBottom: '8px' }}>Available to Withdraw</div>
+                    <div style={{ fontFamily: 'monospace', fontSize: '36px', fontWeight: 300, color: '#fff', textShadow: '0 0 20px rgba(255,255,255,0.2)' }}>
+                      {unlocked.toFixed(6)}
+                    </div>
+                    <div style={{ fontSize: '14px', color: '#1abc9c', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <span style={{ width: '8px', height: '8px', background: '#1abc9c', borderRadius: '50%', boxShadow: '0 0 10px #1abc9c', animation: 'pulse 2s infinite' }}></span>
+                      Streaming Live
                     </div>
                   </div>
 
                   <div className="dp-progress">
                     <div className="dp-progress__labels">
-                      <span>{totalUnlockedStr} <span style={{ color: 'rgba(255,255,255,0.3)' }}>tNight earned</span></span>
-                      <span style={{ color: 'rgba(255,255,255,0.3)' }}>{pct.toFixed(1)}%</span>
+                      <span style={{ fontSize: '13px' }}>{totalUnlockedStr} <span style={{ color: 'rgba(255,255,255,0.3)' }}>/ {stream.amount} tNight</span></span>
+                      <span style={{ color: 'rgba(255,255,255,0.5)', fontFamily: 'monospace' }}>{pct.toFixed(2)}%</span>
                     </div>
-                    <div className="dp-progress__bar">
-                      <div className="dp-progress__fill" style={{ width: `${pct}%` }} />
+                    <div className="dp-progress__bar" style={{ height: '8px', background: 'rgba(255,255,255,0.05)' }}>
+                      <div className="dp-progress__fill" style={{ width: `${pct}%`, background: 'linear-gradient(90deg, #1abc9c, #4ade80)' }} />
                     </div>
                   </div>
+
+                  <button 
+                    onClick={() => handleWithdraw(stream, unlocked)}
+                    disabled={unlocked <= 0 || stream.status === 'Revoked'}
+                    className="dp-primary-btn"
+                    style={{ width: '100%', padding: '12px', marginTop: '4px' }}
+                  >
+                    Withdraw Funds to 1AM
+                  </button>
                 </div>
               );
             })}
           </div>
         )}
       </div>
+      
+      <style dangerouslySetInnerHTML={{__html: `
+        @keyframes pulse {
+          0% { opacity: 1; box-shadow: 0 0 0 0 rgba(26, 188, 156, 0.7); }
+          70% { opacity: 0.7; box-shadow: 0 0 0 10px rgba(26, 188, 156, 0); }
+          100% { opacity: 1; box-shadow: 0 0 0 0 rgba(26, 188, 156, 0); }
+        }
+      `}} />
     </div>
   );
 }
