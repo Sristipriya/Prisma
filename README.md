@@ -72,8 +72,8 @@ Prisma is fully integrated with Midnight. It generates real zero-knowledge proof
 
 > [!NOTE]
 > **Network & Testnet Details:** 
-> - **Primary Verified Deployment:** Midnight Preview Testnet.
-> - **Payroll Contract Transaction:** [`0x16b52cffbdae782c23dadfbd27e4f4716371cf2e91c674f69e4a068ab644835c`](https://preview.midnightexplorer.com/transactions/0x16b52cffbdae782c23dadfbd27e4f4716371cf2e91c674f69e4a068ab644835c)
+> - **Primary Verified Deployment:** Midnight Preprod Testnet.
+> - **Payroll Contract Transaction:** [`0x16b52cffbdae782c23dadfbd27e4f4716371cf2e91c674f69e4a068ab644835c`](https://testnet.midnightexplorer.com/transactions/0x16b52cffbdae782c23dadfbd27e4f4716371cf2e91c674f69e4a068ab644835c)
 > - **Vendor Contract Transaction:** [`20b8638a3e733a1c4b7a0012509886e494591452210a48354dc560befbaff44d`](https://preview.midnightexplorer.com/transactions/20b8638a3e733a1c4b7a0012509886e494591452210a48354dc560befbaff44d)
 > - **Wallet Compatibility:** Prisma is fully integrated with the 1AM Wallet and Lace Wallet for Midnight.
 
