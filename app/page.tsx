@@ -29,8 +29,8 @@ const FEATURES = [
   },
   {
     icon: Zap,
-    title: 'Sub-3s Settlement',
-    desc: 'Client-side proving completes in under 3 seconds. Midnight confirms shielded transactions with cryptographic finality.',
+    title: 'Client-Side Circuit Execution',
+    desc: 'Zero-Knowledge proofs are generated and verified locally in the browser before being broadcasted.',
   },
   {
     icon: Globe,
@@ -455,6 +455,22 @@ const stream = await prisma.payroll.create({
 
 console.log(stream.zkProofHash);
 // → 0x3f8a...c7d2 (verified on-chain)`}</pre>
+          </div>
+        </div>
+
+        <div className="devapi-split" style={{ marginTop: '80px' }}>
+          <div className="code-pane">
+            <div className="code-pane__header">
+              <div className="mac-dots"><span/><span/><span/></div>
+              <span className="code-pane__filename">Terminal — Midnight Compile & Deploy</span>
+            </div>
+            <img src="/screenshot/compile.png" alt="Contract Compile Execution" style={{ width: '100%', height: 'auto', display: 'block', borderRadius: '0 0 12px 12px' }} />
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+            <h2 className="devapi__title">Deterministic Deployments</h2>
+            <p className="devapi__desc" style={{ marginTop: '12px' }}>
+              Compile your Compact circuits locally and deploy them to the Midnight Preview or Preprod network seamlessly. The compiler automatically provisions typed bindings for immediate front-end integration.
+            </p>
           </div>
         </div>
       </section>
