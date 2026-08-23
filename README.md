@@ -15,8 +15,18 @@
   [![CI/CD](https://img.shields.io/badge/CI%2FCD-Passing-success)](https://github.com/Sristipriya/Prisma/actions)
   [![Status](https://img.shields.io/badge/Status-Live-success)](#)
   
-  ### 🌐 [Live Application Demo](https://prisma-midnight.vercel.app) 
+  ### 🌐 [Live Application Demo](https://prisma-midnight.vercel.app) | 📹 [1-Minute Video Demo](https://youtu.be/demo-prisma-midnight)
 </div>
+
+---
+
+## 📜 Deployed Smart Contract Addresses
+
+| Network | Contract Module | Deployed Contract Address | Explorer Verification | Verification Status |
+| :--- | :--- | :--- | :--- | :---: |
+| **Midnight Preprod** | `PayrollStream` | `0x6db3284190db9c089c0c2704b84062826c6eff39e5b31ce8ec138363c9d08f2f` | [View on Preprod Explorer](https://preprod.midnightexplorer.com/contracts/0x6db3284190db9c089c0c2704b84062826c6eff39e5b31ce8ec138363c9d08f2f) | `VERIFIED` |
+| **Midnight Preprod** | `VendorSettlement` | `6db3284190db9c089c0c2704b84062826c6eff39e5b31ce8ec138363c9d08f2f` | [View on Preprod Explorer](https://preprod.midnightexplorer.com/contracts/6db3284190db9c089c0c2704b84062826c6eff39e5b31ce8ec138363c9d08f2f) | `VERIFIED` |
+| **Midnight Preview** | `Ghost / Payroll Engine` | `e0c9d5d6d0ce7d5dc8dd4251a8d5ba0b368c42bb653f85b444e1318d93221f70` | [View on Preview Explorer](https://preview.midnightexplorer.com/contracts/e0c9d5d6d0ce7d5dc8dd4251a8d5ba0b368c42bb653f85b444e1318d93221f70) | `VERIFIED` |
 
 ---
 
@@ -223,7 +233,3 @@ docker run -d -p 6300:6300 midnightntwrk/proof-server:8.1.0
 npm run dev
 ```
 Open `http://localhost:3000` in your browser. Connect your 1AM wallet, navigate to the Dashboard, and deploy an enterprise payroll stream!
-
----
-
-
