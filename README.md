@@ -25,8 +25,8 @@
 | Network | Contract Module | Deployed Contract Address | Explorer Verification | Verification Status |
 | :--- | :--- | :--- | :--- | :---: |
 | **Midnight Preprod** | `PayrollStream` | `0x6db3284190db9c089c0c2704b84062826c6eff39e5b31ce8ec138363c9d08f2f` | [View on Preprod Explorer](https://preprod.midnightexplorer.com/contracts/0x6db3284190db9c089c0c2704b84062826c6eff39e5b31ce8ec138363c9d08f2f) | `VERIFIED` |
-| **Midnight Preprod** | `VendorSettlement` | `6db3284190db9c089c0c2704b84062826c6eff39e5b31ce8ec138363c9d08f2f` | [View on Preprod Explorer](https://preprod.midnightexplorer.com/contracts/6db3284190db9c089c0c2704b84062826c6eff39e5b31ce8ec138363c9d08f2f) | `VERIFIED` |
-| **Midnight Preview** | `Ghost / Payroll Engine` | `e0c9d5d6d0ce7d5dc8dd4251a8d5ba0b368c42bb653f85b444e1318d93221f70` | [View on Preview Explorer](https://preview.midnightexplorer.com/contracts/e0c9d5d6d0ce7d5dc8dd4251a8d5ba0b368c42bb653f85b444e1318d93221f70) | `VERIFIED` |
+| **Midnight Preprod** | `VendorSettlement` | `e0c9d5d6d0ce7d5dc8dd4251a8d5ba0b368c42bb653f85b444e1318d93221f70` | [View on Preprod Explorer](https://preview.midnightexplorer.com/contracts/e0c9d5d6d0ce7d5dc8dd4251a8d5ba0b368c42bb653f85b444e1318d93221f70)| `VERIFIED` |
+
 
 ---
 
