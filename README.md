@@ -15,7 +15,7 @@
   [![CI/CD](https://img.shields.io/badge/CI%2FCD-Passing-success)](https://github.com/Sristipriya/Prisma/actions)
   [![Status](https://img.shields.io/badge/Status-Live-success)](#)
   
-  ### 🌐 [Live Application Demo](https://prisma-midnight.vercel.app) | 📹 [1-Minute Video Demo](https://youtu.be/demo-prisma-midnight)
+  ### 🌐 [Live Application Demo](https://prisma-midnight.vercel.app) | 
 </div>
 
 ---
