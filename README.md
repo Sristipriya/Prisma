@@ -15,7 +15,7 @@
   [![CI/CD](https://img.shields.io/badge/CI%2FCD-Passing-success)](https://github.com/Sristipriya/Prisma/actions)
   [![Status](https://img.shields.io/badge/Status-Live-success)](#)
   
-  ### 🌐 [Live Application Demo](https://prisma-midnight.vercel.app) | 
+  ### 🌐 [Live Application Demo](https://prisma-midnight.vercel.app) | 📄 [Level 4–6 Product Proposal](./PROPOSAL.md)
 </div>
 
 ---
@@ -27,12 +27,13 @@
 | **Midnight Preprod** | `PayrollStream` | `0x6db3284190db9c089c0c2704b84062826c6eff39e5b31ce8ec138363c9d08f2f` | [View on Preprod Explorer](https://preprod.midnightexplorer.com/contracts/0x6db3284190db9c089c0c2704b84062826c6eff39e5b31ce8ec138363c9d08f2f) | `VERIFIED` |
 | **Midnight Preview** | `VendorSettlement` | `e0c9d5d6d0ce7d5dc8dd4251a8d5ba0b368c42bb653f85b444e1318d93221f70` | [View on Preview Explorer](https://preview.midnightexplorer.com/contracts/e0c9d5d6d0ce7d5dc8dd4251a8d5ba0b368c42bb653f85b444e1318d93221f70)| `VERIFIED` |
 
-
 ---
 
 ## 💡 Initial Product Idea & Vision
 
 **Prisma** is a decentralized, privacy-first financial streaming and B2B vendor settlement layer built natively on the **Midnight Privacy Blockchain**. It allows corporations to stream salaries in real-time and settle commercial invoices with absolute confidentiality. By leveraging client-side Zero-Knowledge (ZK) proofs, Prisma mathematically proves that payroll constraints and invoice spending limits are strictly enforced, while keeping employee compensation, recipient identities, and corporate treasury balances completely shielded from public ledger surveillance.
+
+> 📄 **Official Submission Document:** For the complete Level 4–6 architecture, dual-state data model, and Mainnet feasibility roadmap, please review [PROPOSAL.md](./PROPOSAL.md).
 
 ---
 
