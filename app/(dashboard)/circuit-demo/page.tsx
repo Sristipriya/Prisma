@@ -106,7 +106,7 @@ export default function CircuitDemoPage() {
       <div className="dp-header card glass-heavy">
         <div>
           <div className="dp-eyebrow">Live Midnight Network</div>
-          <h1 className="dp-title">ZK Circuit Demo</h1>
+          <h1 className="dp-title">ZK Circuit</h1>
           <p className="dp-subtitle">
             Executes the <code>spend()</code> circuit on the deployed Preprod
             contract in real-time. Generates a ZK proof and submits a live

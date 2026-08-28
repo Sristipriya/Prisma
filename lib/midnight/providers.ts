@@ -76,8 +76,9 @@ async function setupProviders(api: any) {
 
   const privateStateProvider = inMemoryPrivateStateProvider();
 
-  // FetchZkConfigProvider fetches /payroll/keys/spend.prover from origin (used for local key serving)
-  const zkConfigProvider = new FetchZkConfigProvider(window.location.origin, fetch.bind(window));
+  // FetchZkConfigProvider appends /keys/${circuitName}.prover, so we pass origin + /payroll
+  // to fetch from public/payroll/keys/
+  const zkConfigProvider = new FetchZkConfigProvider(window.location.origin + '/payroll', fetch.bind(window));
 
   // When 1AM PROOFSTATION is active, the wallet's balanceUnsealedTransaction handles proof generation
   // internally — no separate proof server call needed. We still instantiate the provider for
