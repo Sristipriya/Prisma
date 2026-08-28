@@ -21,8 +21,10 @@ export const PREPROD_CONTRACT_ADDRESS =
   '6db3284190db9c089c0c2704b84062826c6eff39e5b31ce8ec138363c9d08f2f';
 
 function inMemoryPrivateStateProvider() {
+  let contractAddress: any = null;
   const signingKeys = new Map();
   return {
+    setContractAddress(address: any) { contractAddress = address; },
     get: async () => null,
     set: async () => {},
     remove: async () => {},
