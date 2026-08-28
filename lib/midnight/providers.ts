@@ -1,12 +1,11 @@
 import { Contract } from '../../contracts/managed/payroll/contract/index.js';
 import { FetchZkConfigProvider } from '@midnight-ntwrk/midnight-js-fetch-zk-config-provider';
-import { httpClientProofProvider } from '@midnight-ntwrk/midnight-js-http-client-proof-provider';
 import { indexerPublicDataProvider } from '@midnight-ntwrk/midnight-js-indexer-public-data-provider';
 import { setNetworkId } from '@midnight-ntwrk/midnight-js-network-id';
 import { FinalizedTransaction, Transaction, SignatureEnabled, Proof, Binding } from '@midnight-ntwrk/midnight-js-protocol/ledger';
 import { toHex, fromHex } from '@midnight-ntwrk/midnight-js-protocol/compact-runtime';
 import { UnboundTransaction } from '@midnight-ntwrk/midnight-js-types';
-import { deployContract, findDeployedContract } from '@midnight-ntwrk/midnight-js-contracts';
+import { deployContract, findDeployedContract, createCircuitCallTxInterface } from '@midnight-ntwrk/midnight-js-contracts';
 import { CompiledContract } from '@midnight-ntwrk/midnight-js-protocol/compact-js';
 
 setNetworkId('preprod');
@@ -99,13 +98,44 @@ async function setupProviders(api: any) {
   // FetchZkConfigProvider appends /keys/${circuitName}.prover, so we pass origin + /payroll
   const zkConfigProvider = new FetchZkConfigProvider(window.location.origin + '/payroll', { fetch: fetch.bind(window) } as any);
 
-  // When 1AM PROOFSTATION is active, the wallet's balanceUnsealedTransaction handles proof generation
-  // internally — no separate proof server call needed. We still instantiate the provider for
-  // deployContract/findDeployedContract compatibility, using wallet's config URL if present.
-  const proofProvider = httpClientProofProvider(
-    config.proverServerUri || 'https://api-preprod.1am.xyz/proof',
-    zkConfigProvider
-  );
+  // WALLET-DELEGATED proof provider:
+  // Instead of calling the external HTTP /check endpoint (which has a v4/v5 payload mismatch),
+  // we delegate proof generation to the 1AM wallet's built-in Proofstation.
+  // The wallet internally calls its own version-aligned prover for us.
+  const proofProvider = {
+    async proveTx(unprovenTx: any, _config?: any) {
+      // Serialize the unproven tx
+      const serializedTx = toHex(unprovenTx.serialize());
+      // Try proveTransaction first (1AM DApp connector method)
+      const proveFn =
+        api.proveTransaction ||
+        api.prove ||
+        api.proveUnsealedTransaction;
+      if (typeof proveFn === 'function') {
+        const received = await proveFn.call(api, serializedTx);
+        const rawTx =
+          typeof received === 'string'
+            ? received
+            : received?.tx || received?.serializedTx || serializedTx;
+        return Transaction.deserialize<SignatureEnabled, Proof, Binding>(
+          'signature', 'proof', 'binding', fromHex(rawTx)
+        );
+      }
+      // Fallback: try balanceUnsealedTransaction which some wallet versions combine prove+balance
+      const balanceFn = api.balanceUnsealedTransaction || api.balanceTransaction;
+      if (typeof balanceFn === 'function') {
+        const received = await balanceFn.call(api, serializedTx);
+        const rawTx =
+          typeof received === 'string'
+            ? received
+            : received?.tx || received?.serializedTx || serializedTx;
+        return Transaction.deserialize<SignatureEnabled, Proof, Binding>(
+          'signature', 'proof', 'binding', fromHex(rawTx)
+        );
+      }
+      throw new Error('1AM Wallet does not expose a proveTransaction/balanceUnsealedTransaction method. Make sure the 1AM wallet extension is installed and unlocked.');
+    },
+  } as any;
 
   const publicDataProvider = indexerPublicDataProvider(
     config.indexerUri || 'https://api-preprod.1am.xyz/api/v4/graphql',
@@ -173,22 +203,25 @@ export async function callPayrollCircuit(
   log('Setting up Midnight SDK providers…');
   const providers = await setupProviders(api);
 
-  // Initialize the local in-memory private state since we are just a caller 
-  // and didn't deploy the contract in this session
+  // Initialize the local in-memory private state
   providers.privateStateProvider.setContractAddress(PREPROD_CONTRACT_ADDRESS);
   await providers.privateStateProvider.set('payroll-spend-demo', {});
 
-  log(`Locating deployed contract at ${PREPROD_CONTRACT_ADDRESS.slice(0, 18)}…`);
-  const deployedContract = await findDeployedContract(providers as any, {
-    contractAddress: PREPROD_CONTRACT_ADDRESS,
-    compiledContract: compiledPayrollContract as any,
-    privateStateId: 'payroll-spend-demo',
-    initialPrivateState: {} as any,
-  });
+  // Use createCircuitCallTxInterface directly instead of findDeployedContract.
+  // findDeployedContract calls watchForDeployTxData() which fetches and parses the deployment
+  // transaction from the indexer — causing a v9 vs v12 Transaction version mismatch.
+  // createCircuitCallTxInterface skips that and gives us the callTx interface directly.
+  log(`Connecting to deployed contract at ${PREPROD_CONTRACT_ADDRESS.slice(0, 18)}…`);
+  const callTx = createCircuitCallTxInterface(
+    providers as any,
+    compiledPayrollContract as any,
+    PREPROD_CONTRACT_ADDRESS,
+    'payroll-spend-demo',
+  ) as any;
 
   const spendAmount = BigInt(Math.max(1, Math.floor(amount)));
   log(`Building ZK transaction for spend(${spendAmount})…`);
-  const txResult = await deployedContract.callTx.spend(spendAmount);
+  const txResult = await callTx.spend(spendAmount);
 
   const txHash: string = (txResult?.public as any)?.txHash ?? 'unknown';
   log(`ZK proof accepted. Transaction hash: ${txHash}`);
