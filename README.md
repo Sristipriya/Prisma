@@ -15,8 +15,18 @@
   [![CI/CD](https://img.shields.io/badge/CI%2FCD-Passing-success)](https://github.com/Sristipriya/Prisma/actions)
   [![Status](https://img.shields.io/badge/Status-Live-success)](#)
   
-  ### 🌐 [Live Application Demo](https://prisma-pi-steel.vercel.app) | 📄 [Level 4–6 Product Proposal](./PROPOSAL.md)
+  ### 🌐 [Live Application Demo](https://prisma-pi-steel.vercel.app) | 🎥 [YouTube Demo Video](https://youtu.be/uBQMuiqCU8A) | 📄 [Level 4–6 Product Proposal](./PROPOSAL.md)
 </div>
+
+---
+
+## 🎥 Video Demonstration & Walkthrough
+
+Watch the complete live walkthrough demonstrating **1AM Wallet connection**, shielded payroll stream creation, real-time Zero-Knowledge circuit execution, and on-chain verification on Midnight Preprod:
+
+[![Prisma Demo Video](https://img.youtube.com/vi/uBQMuiqCU8A/maxresdefault.jpg)](https://youtu.be/uBQMuiqCU8A)
+
+> 📺 **Direct Link:** [https://youtu.be/uBQMuiqCU8A](https://youtu.be/uBQMuiqCU8A)
 
 ---
 
