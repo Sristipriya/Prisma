@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { PrismaLogo } from '@/components/glowinn/icons';
+import { DarkGradientBg } from '@/components/ui/elegant-dark-pattern';
 
 type Mode = 'signin' | 'signup';
 
@@ -47,12 +48,9 @@ export default function LoginPage() {
         
         userId = signUpData.user?.id || '';
         
-        // Immediately sign in after signup
         const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
         if (signInError) throw signInError;
         
-        // Wait for profile row to be available (inserted by trigger, or we insert it manually)
-        // Since we didn't add a trigger, we insert it manually:
         if (userId) {
           await supabase.from('profiles').upsert([{ 
             id: userId, 
@@ -84,30 +82,16 @@ export default function LoginPage() {
   };
 
   return (
-    <div style={{
-      minHeight: '100vh',
-      background: '#050a07',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      padding: '24px',
-      position: 'relative',
-      fontFamily: "'Jost', sans-serif",
-      overflow: 'hidden',
-    }}>
-      {/* Background glow orbs */}
+    <DarkGradientBg>
       <div style={{
-        position: 'absolute', top: '-20%', right: '-10%',
-        width: '600px', height: '600px', borderRadius: '50%',
-        background: 'radial-gradient(circle, rgba(110,231,183,0.04) 0%, transparent 70%)',
-        pointerEvents: 'none',
-      }} />
-      <div style={{
-        position: 'absolute', bottom: '-20%', left: '-10%',
-        width: '500px', height: '500px', borderRadius: '50%',
-        background: 'radial-gradient(circle, rgba(110,231,183,0.03) 0%, transparent 70%)',
-        pointerEvents: 'none',
-      }} />
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '24px',
+        fontFamily: "'Jost', sans-serif",
+      }}>
+
 
       <div style={{ width: '100%', maxWidth: '420px', position: 'relative', zIndex: 10 }}>
         {/* Brand */}
@@ -124,14 +108,15 @@ export default function LoginPage() {
           </p>
         </div>
 
-        {/* Card */}
+        {/* Card — liquid glass */}
         <div style={{
-          background: 'rgba(8, 14, 10, 0.6)',
+          background: 'rgba(255,255,255,0.04)',
           border: '1px solid rgba(255,255,255,0.1)',
           borderRadius: '20px',
-          backdropFilter: 'blur(40px) saturate(150%)',
+          backdropFilter: 'blur(60px) saturate(180%)',
+          WebkitBackdropFilter: 'blur(60px) saturate(180%)',
           padding: '36px',
-          boxShadow: '0 2px 0 rgba(255,255,255,0.05) inset, 0 24px 60px rgba(0,0,0,0.6)',
+          boxShadow: '0 1px 0 rgba(255,255,255,0.08) inset, 0 0 0 1px rgba(0,207,255,0.06) inset, 0 24px 80px rgba(0,0,0,0.7)',
         }}>
           {/* Mode Toggle */}
           <div style={{
@@ -331,7 +316,8 @@ export default function LoginPage() {
           Protected by zero-knowledge cryptography · Midnight Network
         </p>
       </div>
-    </div>
+      </div>
+    </DarkGradientBg>
   );
 }
 
@@ -341,7 +327,7 @@ const labelStyle: React.CSSProperties = {
   fontWeight: 600,
   letterSpacing: '0.1em',
   textTransform: 'uppercase',
-  color: 'rgba(255,255,255,0.35)',
+  color: 'rgba(255,255,255,0.4)',
   marginBottom: '8px',
   fontFamily: 'monospace',
 };
@@ -350,18 +336,20 @@ const inputStyle: React.CSSProperties = {
   width: '100%',
   boxSizing: 'border-box',
   padding: '11px 14px',
-  background: 'rgba(0,0,0,0.35)',
+  background: 'rgba(255,255,255,0.04)',
   border: '1px solid rgba(255,255,255,0.1)',
   borderRadius: '10px',
   color: '#fff',
   fontSize: '14px',
   fontFamily: "'Jost', sans-serif",
   outline: 'none',
-  transition: 'border-color 0.2s ease',
+  transition: 'border-color 0.2s ease, box-shadow 0.2s ease',
+  backdropFilter: 'blur(8px)',
 };
 
 const inputFocusStyle: React.CSSProperties = {
   ...inputStyle,
-  borderColor: 'rgba(110,231,183,0.4)',
-  boxShadow: '0 0 0 3px rgba(110,231,183,0.06)',
+  borderColor: 'rgba(0,207,255,0.45)',
+  boxShadow: '0 0 0 3px rgba(0,207,255,0.08)',
 };
+

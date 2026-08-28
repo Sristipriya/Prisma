@@ -5,6 +5,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useWallet } from '@/components/WalletContext';
 import { supabase } from '@/lib/supabase';
 import { PrismaLogo } from '@/components/glowinn/icons';
+import { DarkGradientBg } from '@/components/ui/elegant-dark-pattern';
 import './dashboard.css';
 
 const NAV_ITEMS = [
@@ -70,6 +71,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   }
 
   return (
+    <DarkGradientBg>
     <div className="db-root">
       {/* ── SIDEBAR ── */}
       <aside className="db-sidebar">
@@ -211,5 +213,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </footer>
       </div>
     </div>
+    </DarkGradientBg>
   );
 }

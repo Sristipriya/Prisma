@@ -199,33 +199,37 @@
 /* ─── Glass Surfaces ─────────────────────────────────────────────────────── */
 @layer utilities {
   .glass {
-    background: rgba(10,10,10,0.65);
-    backdrop-filter: blur(24px) saturate(140%);
-    -webkit-backdrop-filter: blur(24px) saturate(140%);
-    border: 1px solid var(--color-ghost-border);
+    background: rgba(255,255,255,0.04);
+    backdrop-filter: blur(32px) saturate(160%);
+    -webkit-backdrop-filter: blur(32px) saturate(160%);
+    border: 1px solid rgba(255,255,255,0.09);
   }
 
   .glass-sm {
-    background: rgba(12,12,12,0.55);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border: 1px solid var(--color-ghost-border);
+    background: rgba(255,255,255,0.03);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255,255,255,0.07);
   }
 
+  /* Premium liquid glass — the primary card surface */
   .glass-heavy {
-    background: rgba(5,5,5,0.60);
-    backdrop-filter: blur(48px) saturate(180%);
-    -webkit-backdrop-filter: blur(48px) saturate(180%);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    box-shadow: 0 10px 40px rgba(0,0,0,0.8), inset 0 1px 0 rgba(255,255,255,0.05);
+    background: rgba(255,255,255,0.04);
+    backdrop-filter: blur(60px) saturate(200%);
+    -webkit-backdrop-filter: blur(60px) saturate(200%);
+    border: 1px solid rgba(255,255,255,0.09);
+    box-shadow:
+      0 1px 0 rgba(255,255,255,0.08) inset,
+      0 0 0 1px rgba(0,207,255,0.04) inset,
+      0 16px 48px rgba(0,0,0,0.6);
   }
 
   .liquid-glass-bar {
-    background: rgba(5, 5, 5, 0.45);
-    backdrop-filter: blur(40px) saturate(200%);
-    -webkit-backdrop-filter: blur(40px) saturate(200%);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-    box-shadow: 0 1px 0 rgba(255,255,255,0.03) inset, 0 4px 20px rgba(0,0,0,0.4);
+    background: rgba(255,255,255,0.04);
+    backdrop-filter: blur(48px) saturate(200%);
+    -webkit-backdrop-filter: blur(48px) saturate(200%);
+    border-bottom: 1px solid rgba(255,255,255,0.07);
+    box-shadow: 0 1px 0 rgba(0,207,255,0.04) inset, 0 4px 20px rgba(0,0,0,0.4);
   }
 
   .glass-hover {
@@ -233,9 +237,12 @@
   }
 
   .glass-hover:hover {
-    border-color: var(--color-ghost-border-mid);
-    box-shadow: 0 8px 40px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.04);
-    background: rgba(14,14,14,0.7);
+    border-color: rgba(0,207,255,0.2);
+    box-shadow:
+      0 1px 0 rgba(255,255,255,0.1) inset,
+      0 0 0 1px rgba(0,207,255,0.08) inset,
+      0 12px 40px rgba(0,0,0,0.5);
+    background: rgba(255,255,255,0.06);
   }
 
   /* ── Buttons ── */
@@ -308,17 +315,17 @@
     border-color: rgba(239,68,68,0.35);
   }
 
-  /* ── Cards ── */
+  /* ── Cards — liquid glass base ── */
   .card {
-    background: var(--color-ghost-card);
-    border: 1px solid var(--color-ghost-border);
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.08);
     border-radius: 10px;
     transition: border-color 0.2s ease, box-shadow 0.2s ease;
   }
 
   .card-hover:hover {
-    border-color: var(--color-ghost-border-mid);
-    box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+    border-color: rgba(0,207,255,0.18);
+    box-shadow: 0 0 0 1px rgba(0,207,255,0.06) inset, 0 4px 20px rgba(0,0,0,0.4);
   }
 
   /* ── Inputs ── */
