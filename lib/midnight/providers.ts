@@ -5,7 +5,7 @@ import { setNetworkId } from '@midnight-ntwrk/midnight-js-network-id';
 import { FinalizedTransaction, Transaction, SignatureEnabled, Proof, Binding } from '@midnight-ntwrk/midnight-js-protocol/ledger';
 import { toHex, fromHex } from '@midnight-ntwrk/midnight-js-protocol/compact-runtime';
 import { UnboundTransaction } from '@midnight-ntwrk/midnight-js-types';
-import { deployContract, findDeployedContract, createCircuitCallTxInterface } from '@midnight-ntwrk/midnight-js-contracts';
+import { deployContract, findDeployedContract, createCircuitCallTxInterface, createCallTxOptions, createUnprovenCallTx } from '@midnight-ntwrk/midnight-js-contracts';
 import { CompiledContract } from '@midnight-ntwrk/midnight-js-protocol/compact-js';
 
 setNetworkId('preprod');
@@ -207,24 +207,60 @@ export async function callPayrollCircuit(
   providers.privateStateProvider.setContractAddress(PREPROD_CONTRACT_ADDRESS);
   await providers.privateStateProvider.set('payroll-spend-demo', {});
 
-  // Use createCircuitCallTxInterface directly instead of findDeployedContract.
-  // findDeployedContract calls watchForDeployTxData() which fetches and parses the deployment
-  // transaction from the indexer — causing a v9 vs v12 Transaction version mismatch.
-  // createCircuitCallTxInterface skips that and gives us the callTx interface directly.
   log(`Connecting to deployed contract at ${PREPROD_CONTRACT_ADDRESS.slice(0, 18)}…`);
-  const callTx = createCircuitCallTxInterface(
-    providers as any,
-    compiledPayrollContract as any,
-    PREPROD_CONTRACT_ADDRESS,
-    'payroll-spend-demo',
-  ) as any;
 
   const spendAmount = BigInt(Math.max(1, Math.floor(amount)));
-  log(`Building ZK transaction for spend(${spendAmount})…`);
-  const txResult = await callTx.spend(spendAmount);
 
-  const txHash: string = (txResult?.public as any)?.txHash ?? 'unknown';
-  log(`ZK proof accepted. Transaction hash: ${txHash}`);
+  // Build the unproven call transaction directly (no indexer fetch needed)
+  const callOptions = createCallTxOptions(
+    compiledPayrollContract as any,
+    'spend',
+    PREPROD_CONTRACT_ADDRESS,
+    'payroll-spend-demo',
+    undefined,
+    [spendAmount]
+  );
+  log(`Building ZK transaction for spend(${spendAmount})…`);
+  const unprovenTx = await createUnprovenCallTx(providers as any, callOptions as any);
+
+  // Serialize the unproven tx to hex
+  const hexUnproven = toHex((unprovenTx as any).serialize());
+
+  // The 1AM wallet's balanceUnsealedTransaction handles BOTH:
+  //   1. ZK proof generation via built-in Proofstation (takes ~25 seconds)
+  //   2. Coin balancing (adding tDUST to cover fees)
+  // This is ONE call — do NOT call proofProvider.proveTx separately.
+  log('Sending to 1AM Proofstation for ZK proof + balancing…');
+  const balanceFn =
+    api.balanceUnsealedTransaction ||
+    api.balanceTransaction ||
+    api.balanceTx;
+
+  if (typeof balanceFn !== 'function') {
+    throw new Error('1AM wallet does not expose balanceUnsealedTransaction. Make sure the wallet extension is installed and unlocked.');
+  }
+
+  const balancedRaw = await balanceFn.call(api, hexUnproven);
+  const hexBalanced =
+    typeof balancedRaw === 'string'
+      ? balancedRaw
+      : balancedRaw?.tx || balancedRaw?.serializedTx;
+
+  if (!hexBalanced) {
+    throw new Error('Wallet balanceUnsealedTransaction returned an unexpected result: ' + JSON.stringify(balancedRaw));
+  }
+
+  // Submit the proven+balanced transaction
+  log('Submitting proven transaction to Preprod network…');
+  const submitResult = await api.submitTransaction(hexBalanced);
+
+  // Extract txHash from the submission result
+  const txHash: string =
+    typeof submitResult === 'string'
+      ? submitResult
+      : submitResult?.txHash || submitResult?.id || submitResult?.transactionId || hexBalanced.slice(0, 64);
+
+  log(`Transaction submitted! Hash: ${txHash}`);
   return { txHash };
 }
 
