@@ -96,7 +96,7 @@ async function setupProviders(api: any) {
   const privateStateProvider = inMemoryPrivateStateProvider();
 
   // FetchZkConfigProvider appends /keys/${circuitName}.prover, so we pass origin + /payroll
-  const zkConfigProvider = new FetchZkConfigProvider(window.location.origin + '/payroll', { fetch: fetch.bind(window) } as any);
+  const zkConfigProvider = new FetchZkConfigProvider(window.location.origin + '/payroll', fetch.bind(window) as any);
 
   // WALLET-DELEGATED proof provider:
   // Instead of calling the external HTTP /check endpoint (which has a v4/v5 payload mismatch),
@@ -221,10 +221,11 @@ export async function callPayrollCircuit(
     [spendAmount]
   );
   log(`Building ZK transaction for spend(${spendAmount})…`);
-  const unprovenTx = await createUnprovenCallTx(providers as any, callOptions as any);
+  const txData = await createUnprovenCallTx(providers as any, callOptions as any);
 
   // Serialize the unproven tx to hex
-  const hexUnproven = toHex((unprovenTx as any).serialize());
+  const actualUnprovenTx = (txData as any).private.unprovenTx;
+  const hexUnproven = toHex(actualUnprovenTx.serialize());
 
   // The 1AM wallet's balanceUnsealedTransaction handles BOTH:
   //   1. ZK proof generation via built-in Proofstation (takes ~25 seconds)
