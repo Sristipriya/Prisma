@@ -99,14 +99,17 @@ async function setupProviders(api: any) {
   const zkConfigProvider = new FetchZkConfigProvider(window.location.origin + '/payroll', fetch.bind(window) as any);
 
   // Build the proof provider using the wallet's built-in Proofstation.
-  // The 1AM wallet exposes `getProvingProvider()` which returns a ProvingProvider
-  // with `check` and `prove` methods that talk to the 1AM cloud prover.
+  // Pass our zkConfigProvider so the wallet knows where to fetch the ZK IR and prover keys from.
+  // (The 1AM wallet's check/prove functions call zkConfigProvider.getZKIR() internally.)
   const rawProvingProvider = typeof api.getProvingProvider === 'function'
-    ? await Promise.resolve(api.getProvingProvider())  // await in case it's a Promise
+    ? await Promise.resolve(api.getProvingProvider(zkConfigProvider))
     : null;
 
-  console.log('[Prisma ZK] provingProvider keys:', rawProvingProvider ? Object.keys(rawProvingProvider) : 'null');
+  if (!rawProvingProvider) {
+    throw new Error('1AM Wallet did not return a ProvingProvider from getProvingProvider().');
+  }
 
+  console.log('[Prisma ZK] provingProvider keys:', Object.keys(rawProvingProvider));
   const proofProvider = createProofProvider(rawProvingProvider as any);
 
   const publicDataProvider = indexerPublicDataProvider(
