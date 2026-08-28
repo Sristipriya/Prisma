@@ -16,9 +16,9 @@ const compiledPayrollContract = CompiledContract.make('payroll', Contract as any
   CompiledContract.withWitnesses({} as never)
 );
 
-// Deployed Preprod contract address
+// Deployed Preprod contract address — Midnight SDK requires NO 0x prefix
 export const PREPROD_CONTRACT_ADDRESS =
-  '0x6db3284190db9c089c0c2704b84062826c6eff39e5b31ce8ec138363c9d08f2f';
+  '6db3284190db9c089c0c2704b84062826c6eff39e5b31ce8ec138363c9d08f2f';
 
 function inMemoryPrivateStateProvider() {
   const signingKeys = new Map();
