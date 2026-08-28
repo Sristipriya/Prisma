@@ -98,14 +98,16 @@ async function setupProviders(api: any) {
   // FetchZkConfigProvider appends /keys/${circuitName}.prover, so we pass origin + /payroll
   const zkConfigProvider = new FetchZkConfigProvider(window.location.origin + '/payroll', fetch.bind(window) as any);
 
-  // WALLET-DELEGATED proof provider:
-  // We use the 1AM wallet's standard DApp connector getProvingProvider() to do proofs in the cloud,
-  // bypassing the v4/v5 mismatched HTTP endpoint.
-  if (typeof api.getProvingProvider !== 'function') {
-    throw new Error('1AM Wallet does not expose getProvingProvider().');
-  }
-  const provingProvider = api.getProvingProvider();
-  const proofProvider = createProofProvider(provingProvider);
+  // Build the proof provider using the wallet's built-in Proofstation.
+  // The 1AM wallet exposes `getProvingProvider()` which returns a ProvingProvider
+  // with `check` and `prove` methods that talk to the 1AM cloud prover.
+  const rawProvingProvider = typeof api.getProvingProvider === 'function'
+    ? await Promise.resolve(api.getProvingProvider())  // await in case it's a Promise
+    : null;
+
+  console.log('[Prisma ZK] provingProvider keys:', rawProvingProvider ? Object.keys(rawProvingProvider) : 'null');
+
+  const proofProvider = createProofProvider(rawProvingProvider as any);
 
   const publicDataProvider = indexerPublicDataProvider(
     config.indexerUri || 'https://api-preprod.1am.xyz/api/v4/graphql',
