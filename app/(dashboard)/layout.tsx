@@ -47,6 +47,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         { name: 'Payroll Streams', href: '/payroll', desc: 'Shielded salary distribution' },
         { name: 'Vendor Settlements', href: '/vendor', desc: 'ZK invoice payments' },
         { name: 'ZK Analytics', href: '/analytics', desc: 'Live proof telemetry' },
+        { name: 'ZK Circuit Demo', href: '/circuit-demo', desc: 'Live circuit call on Preprod' },
       ];
 
   const handleConnect = async () => {
