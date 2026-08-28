@@ -267,15 +267,15 @@ export async function withdrawFromPayrollContract(
   providers.privateStateProvider.setContractAddress(contractAddress);
   await providers.privateStateProvider.set('payroll-withdraw', {});
 
-  const deployedContract = await findDeployedContract(providers as any, {
+  const callTx = createCircuitCallTxInterface(
+    providers as any,
+    compiledPayrollContract as any,
     contractAddress,
-    compiledContract: compiledPayrollContract as any,
-    privateStateId: 'payroll-withdraw',
-    initialPrivateState: {} as any,
-  });
+    'payroll-withdraw',
+  ) as any;
 
   const spendAmount = BigInt(Math.max(1, Math.floor(amount)));
-  const txResult = await deployedContract.callTx.spend(spendAmount);
+  const txResult = await callTx.spend(spendAmount);
   const txHash: string = (txResult?.public as any)?.txHash ?? 'unknown';
   return { txHash };
 }
