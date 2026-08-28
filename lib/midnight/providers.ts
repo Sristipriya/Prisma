@@ -21,18 +21,38 @@ export const PREPROD_CONTRACT_ADDRESS =
   '6db3284190db9c089c0c2704b84062826c6eff39e5b31ce8ec138363c9d08f2f';
 
 function inMemoryPrivateStateProvider() {
-  let contractAddress: any = null;
-  const signingKeys = new Map();
+  let contractAddress: string = '';
+  const store = new Map<string, any>();     // key: `${contractAddress}:${stateId}`
+  const signingKeys = new Map<string, any>();
+
+  const key = (id: string) => `${contractAddress}:${id}`;
+
   return {
-    setContractAddress(address: any) { contractAddress = address; },
-    get: async () => null,
-    set: async () => {},
-    remove: async () => {},
-    clear: async () => {},
-    setSigningKey: async (addr: any, key: any) => { signingKeys.set(addr, key); },
+    setContractAddress(address: any) {
+      contractAddress = address ?? '';
+    },
+    get: async (stateId: string) => {
+      const v = store.get(key(stateId));
+      return v !== undefined ? v : null;
+    },
+    set: async (stateId: string, state: any) => {
+      store.set(key(stateId), state);
+    },
+    remove: async (stateId: string) => {
+      store.delete(key(stateId));
+    },
+    clear: async () => {
+      store.clear();
+    },
+    setSigningKey: async (addr: any, k: any) => { signingKeys.set(addr, k); },
     getSigningKey: async (addr: any) => signingKeys.get(addr) ?? null,
     removeSigningKey: async (addr: any) => { signingKeys.delete(addr); },
     clearSigningKeys: async () => { signingKeys.clear(); },
+    // Export/import stubs (newer SDK versions may call these)
+    exportPrivateStates: async () => ({ states: [] } as any),
+    importPrivateStates: async () => ({ imported: 0, skipped: 0 } as any),
+    exportSigningKeys: async () => ({ keys: [] } as any),
+    importSigningKeys: async () => ({ imported: 0, skipped: 0 } as any),
   } as any;
 }
 
