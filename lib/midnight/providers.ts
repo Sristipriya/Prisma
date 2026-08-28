@@ -4,7 +4,7 @@ import { indexerPublicDataProvider } from '@midnight-ntwrk/midnight-js-indexer-p
 import { setNetworkId } from '@midnight-ntwrk/midnight-js-network-id';
 import { FinalizedTransaction, Transaction, SignatureEnabled, Proof, Binding } from '@midnight-ntwrk/midnight-js-protocol/ledger';
 import { toHex, fromHex } from '@midnight-ntwrk/midnight-js-protocol/compact-runtime';
-import { UnboundTransaction } from '@midnight-ntwrk/midnight-js-types';
+import { UnboundTransaction, createProofProvider } from '@midnight-ntwrk/midnight-js-types';
 import { deployContract, findDeployedContract, createCircuitCallTxInterface } from '@midnight-ntwrk/midnight-js-contracts';
 import { CompiledContract } from '@midnight-ntwrk/midnight-js-protocol/compact-js';
 
@@ -96,37 +96,16 @@ async function setupProviders(api: any) {
   const privateStateProvider = inMemoryPrivateStateProvider();
 
   // FetchZkConfigProvider appends /keys/${circuitName}.prover, so we pass origin + /payroll
-  const zkConfigProvider = new FetchZkConfigProvider(window.location.origin + '/payroll', { fetch: fetch.bind(window) } as any);
+  const zkConfigProvider = new FetchZkConfigProvider(window.location.origin + '/payroll', fetch.bind(window) as any);
 
   // WALLET-DELEGATED proof provider:
-  // Instead of calling the external HTTP /check endpoint (which has a v4/v5 payload mismatch),
-  // we delegate proof generation to the 1AM wallet's built-in Proofstation.
-  // The wallet internally calls its own version-aligned prover for us.
-  const proofProvider = {
-    async proveTx(unprovenTx: any, _config?: any) {
-      console.log('[Prisma ZK] Wallet API methods available:', Object.keys(api));
-      // Serialize the unproven tx
-      const serializedTx = toHex(unprovenTx.serialize());
-      // Try proveTransaction first (1AM DApp connector method)
-      const proveFn =
-        api.proveTransaction ||
-        api.prove ||
-        api.proveUnsealedTransaction;
-      if (typeof proveFn === 'function') {
-        console.log('[Prisma ZK] Using wallet prover method.');
-        const received = await proveFn.call(api, serializedTx);
-        const rawTx =
-          typeof received === 'string'
-            ? received
-            : received?.tx || received?.serializedTx || serializedTx;
-        // An un-balanced proven tx uses 'pre-binding'
-        return Transaction.deserialize<any, any, any>(
-          'signature', 'proof', 'pre-binding', fromHex(rawTx)
-        );
-      }
-      throw new Error('1AM Wallet does not expose a proveTransaction method. Cannot generate ZK proofs natively.');
-    },
-  } as any;
+  // We use the 1AM wallet's standard DApp connector getProvingProvider() to do proofs in the cloud,
+  // bypassing the v4/v5 mismatched HTTP endpoint.
+  if (typeof api.getProvingProvider !== 'function') {
+    throw new Error('1AM Wallet does not expose getProvingProvider().');
+  }
+  const provingProvider = api.getProvingProvider();
+  const proofProvider = createProofProvider(provingProvider);
 
   const publicDataProvider = indexerPublicDataProvider(
     config.indexerUri || 'https://api-preprod.1am.xyz/api/v4/graphql',
