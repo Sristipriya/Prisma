@@ -15,7 +15,7 @@
   [![CI/CD](https://img.shields.io/badge/CI%2FCD-Passing-success)](https://github.com/Sristipriya/Prisma/actions)
   [![Status](https://img.shields.io/badge/Status-Live-success)](#)
   
-  ### 🌐 [Live Application Demo](https://prisma-midnight.vercel.app) | 📄 [Level 4–6 Product Proposal](./PROPOSAL.md)
+  ### 🌐 [Live Application Demo](https://prisma-pi-steel.vercel.app) | 📄 [Level 4–6 Product Proposal](./PROPOSAL.md)
 </div>
 
 ---
