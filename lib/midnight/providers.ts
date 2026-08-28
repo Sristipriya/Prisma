@@ -154,6 +154,11 @@ export async function callPayrollCircuit(
   log('Setting up Midnight SDK providers…');
   const providers = await setupProviders(api);
 
+  // Initialize the local in-memory private state since we are just a caller 
+  // and didn't deploy the contract in this session
+  providers.privateStateProvider.setContractAddress(PREPROD_CONTRACT_ADDRESS);
+  await providers.privateStateProvider.set('payroll-spend-demo', {});
+
   log(`Locating deployed contract at ${PREPROD_CONTRACT_ADDRESS.slice(0, 18)}…`);
   const deployedContract = await findDeployedContract(providers as any, {
     contractAddress: PREPROD_CONTRACT_ADDRESS,
@@ -231,6 +236,9 @@ export async function withdrawFromPayrollContract(
   amount: number
 ): Promise<{ txHash: string }> {
   const providers = await setupProviders(api);
+
+  providers.privateStateProvider.setContractAddress(contractAddress);
+  await providers.privateStateProvider.set('payroll-withdraw', {});
 
   const deployedContract = await findDeployedContract(providers as any, {
     contractAddress,
