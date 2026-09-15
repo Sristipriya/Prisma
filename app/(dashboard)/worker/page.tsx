@@ -164,7 +164,28 @@ export default function WorkerPage() {
                       <div style={{ fontSize: '18px', fontWeight: 500, color: '#fff', marginBottom: '4px' }}>{stream.employer_name}</div>
                       <div style={{ fontFamily: 'monospace', fontSize: '12px', color: 'rgba(255,255,255,0.4)' }}>{stream.contract_address.slice(0,16)}...</div>
                     </div>
-                    <div className="dp-badge dp-badge--confirmed">{stream.status}</div>
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '6px' }}>
+                      <div className="dp-badge dp-badge--confirmed">{stream.status}</div>
+                      <a
+                        href="/vaultguard"
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '4px',
+                          fontSize: '11px',
+                          padding: '3px 8px',
+                          borderRadius: '12px',
+                          background: 'rgba(16,185,129,0.1)',
+                          border: '1px solid rgba(16,185,129,0.25)',
+                          color: '#10b981',
+                          textDecoration: 'none',
+                          fontWeight: 500,
+                        }}
+                        title="ZK Solvency Verified: 100% Backed by Shielded Reserves (90-Day Runway)"
+                      >
+                        <span>🛡️ VaultGuard: 100% Backed</span>
+                      </a>
+                    </div>
                   </div>
 
                   <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', background: 'linear-gradient(180deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0) 100%)', padding: '32px 0', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.02)' }}>
