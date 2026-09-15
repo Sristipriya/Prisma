@@ -166,25 +166,46 @@ export default function WorkerPage() {
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '6px' }}>
                       <div className="dp-badge dp-badge--confirmed">{stream.status}</div>
-                      <a
-                        href="/vaultguard"
-                        style={{
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: '4px',
-                          fontSize: '11px',
-                          padding: '3px 8px',
-                          borderRadius: '12px',
-                          background: 'rgba(16,185,129,0.1)',
-                          border: '1px solid rgba(16,185,129,0.25)',
-                          color: '#10b981',
-                          textDecoration: 'none',
-                          fontWeight: 500,
-                        }}
-                        title="ZK Solvency Verified: 100% Backed by Shielded Reserves (90-Day Runway)"
-                      >
-                        <span>🛡️ VaultGuard: 100% Backed</span>
-                      </a>
+                      <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+                        <a
+                          href="/vaultguard"
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                            fontSize: '11px',
+                            padding: '3px 8px',
+                            borderRadius: '12px',
+                            background: 'rgba(16,185,129,0.1)',
+                            border: '1px solid rgba(16,185,129,0.25)',
+                            color: '#10b981',
+                            textDecoration: 'none',
+                            fontWeight: 500,
+                          }}
+                          title="ZK Solvency Verified: 100% Backed by Shielded Reserves (90-Day Runway)"
+                        >
+                          <span>🛡️ VaultGuard</span>
+                        </a>
+                        <a
+                          href="/flowsplit"
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                            fontSize: '11px',
+                            padding: '3px 8px',
+                            borderRadius: '12px',
+                            background: 'rgba(103,232,249,0.1)',
+                            border: '1px solid rgba(103,232,249,0.25)',
+                            color: '#67e8f9',
+                            textDecoration: 'none',
+                            fontWeight: 500,
+                          }}
+                          title="Autonomous ZK Stream Routing Active (4 Vaults)"
+                        >
+                          <span>🔀 FlowSplit</span>
+                        </a>
+                      </div>
                     </div>
                   </div>
 
@@ -218,6 +239,23 @@ export default function WorkerPage() {
                     >
                       Withdraw Funds to 1AM
                     </button>
+                    <a
+                      href="/flowsplit"
+                      className="dp-action-btn"
+                      style={{
+                        padding: '12px 14px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '6px',
+                        textDecoration: 'none',
+                        fontSize: '13px',
+                        whiteSpace: 'nowrap',
+                      }}
+                      title="Configure Autonomous ZK Vault Routing"
+                    >
+                      <span>🔀 FlowSplit</span>
+                    </a>
                     <a
                       href="/auditpass"
                       className="dp-action-btn"
