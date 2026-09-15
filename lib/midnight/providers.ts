@@ -62,15 +62,12 @@ async function setupProviders(api: any) {
     if (typeof api?.getConfiguration === 'function') config = await api.getConfiguration();
   } catch (e) {}
 
-  // Fallback: 1AM Preprod API endpoints (matches wallet screenshot)
-  // 1AM PROOFSTATION is active inside the wallet — proof generation is handled
-  // automatically when calling balanceUnsealedTransaction, no separate proof server needed.
+  // Fallback: Official Midnight Preprod API endpoints
   if (!config) {
     config = {
-      indexerUri: 'https://api-preprod.1am.xyz/api/v4/graphql',
-      indexerWsUri: 'wss://api-preprod.1am.xyz/api/v4/graphql/ws',
+      indexerUri: 'https://indexer.preprod.midnight.network/api/v4/graphql',
+      indexerWsUri: 'wss://indexer.preprod.midnight.network/api/v4/graphql/ws',
       nodeUri: 'wss://rpc.preprod.midnight.network',
-      // proverServerUri is intentionally omitted — 1AM Proofstation runs inside the wallet
     };
   }
 
@@ -112,9 +109,22 @@ async function setupProviders(api: any) {
   console.log('[Prisma ZK] provingProvider keys:', Object.keys(rawProvingProvider));
   const proofProvider = createProofProvider(rawProvingProvider as any);
 
+  // Official Midnight Preprod Indexer endpoints.
+  // Note: https://api-preprod.1am.xyz/api/v4/graphql requires private session authentication (HTTP 401 Unauthorized).
+  // The official Midnight preprod indexer is open, unauthenticated, and reliable.
+  const indexerUri = (config?.indexerUri && !config.indexerUri.includes('1am.xyz'))
+    ? config.indexerUri
+    : 'https://indexer.preprod.midnight.network/api/v4/graphql';
+
+  const indexerWsUri = (config?.indexerWsUri && !config.indexerWsUri.includes('1am.xyz'))
+    ? config.indexerWsUri
+    : 'wss://indexer.preprod.midnight.network/api/v4/graphql/ws';
+
+  console.log('[Prisma ZK] Using indexer URI:', indexerUri);
+
   const publicDataProvider = indexerPublicDataProvider(
-    config.indexerUri || 'https://api-preprod.1am.xyz/api/v4/graphql',
-    config.indexerWsUri || 'wss://api-preprod.1am.xyz/api/v4/graphql/ws',
+    indexerUri,
+    indexerWsUri,
     window.WebSocket as any
   );
 
