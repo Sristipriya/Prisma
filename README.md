@@ -39,6 +39,63 @@ Watch the complete live walkthrough demonstrating **1AM Wallet connection**, shi
 
 ---
 
+## ✨ What's New in Prisma 2.0 (Advanced ZK Financial Primitives)
+
+Prisma 2.0 introduces four breakthrough Zero-Knowledge enterprise modules that expand continuous streaming finance beyond simple payroll into a full-fledged, privacy-preserving financial operating system natively anchored on the **Midnight Network**.
+
+| Module | Route | Core Mathematical Guarantee | Enterprise & User Impact |
+| :--- | :---: | :--- | :--- |
+| **Prisma VaultGuard** | `/vaultguard` | $\\text{Private Reserves} \\ge \\sum \\frac{\\text{Obligations}}{30} \\times \\text{Runway}$ | Cryptographically proves 30–180 day payroll runway without leaking corporate bank balances or total burn rate. |
+| **Prisma AuditPass** | `/auditpass` | $\\text{Income} \\in \\text{Bracket} \\land \\text{Withholding} \\equiv \\text{Law}$ | Zero-Knowledge tax attestations (IRS, HMRC, DAC7) & scoped time-bounded viewing keys for corporate audit firms (PwC, EY). |
+| **Prisma FlowSplit** | `/flowsplit` | $\\sum_{i=1}^n p_i = 100\\% \\text{ inside ZKIR}$ | Autonomous confidential micro-routing into private sub-vaults (Tax, Cold Storage, Emergency) during stream accumulation. |
+| **Prisma StreamCredit** | `/streamcredit` | $\\text{Advance} \\le 0.50 \\times \\text{FutureSalary}$ | Stream-collateralized liquidity advances with 0% predatory APR and code-enforced continuous paydown from future stream ticks. |
+
+---
+
+### 🛡️ 1. Prisma VaultGuard — Zero-Knowledge Treasury Solvency & Runway Attestation
+* **Route:** `/vaultguard`
+* **The Enterprise Problem:** Organizations streaming payroll must prove to their employees, contractors, and auditors that their treasury holds sufficient locked reserves to guarantee continuous salary streaming over a 30-, 60-, 90-, or 180-day horizon. However, publishing raw treasury balances leaks corporate burn rates, revenues, and cash reserves to competitors.
+* **The Midnight ZK Solution:** 
+  * Computes an on-chain Zero-Knowledge Solvency Attestation proving:
+    $\\text{Private Treasury Reserves } \\ge \\left\\lceil\\frac{\\sum \\text{Monthly Commitments}}{30}\\right\\rceil \\times \\text{Runway Horizon (Days)}$
+  * Anchors the mathematical proof to Midnight Preprod contract [`0x6db3284190db9c089c0c2704b84062826c6eff39e5b31ce8ec138363c9d08f2f`](https://preprod.midnightexplorer.com/contracts/0x6db3284190db9c089c0c2704b84062826c6eff39e5b31ce8ec138363c9d08f2f).
+  * **Worker Trust Badge:** Every worker dashboard stream card displays a live `🛡️ VaultGuard: 100% Backed` badge linking directly to the immutable audit ledger on Midnight Explorer.
+  * **Zero Disclosure:** The company's total crypto/bank balance, individual employee salaries, and burn rate remain 100% private.
+
+---
+
+### 📑 2. Prisma AuditPass — Selective Compliance & Scoped Viewing Key Enclave
+* **Route:** `/auditpass`
+* **The Enterprise Problem:** The single greatest blocker to enterprise adoption of privacy blockchains is **statutory tax and regulatory compliance (IRS Form W-2/1099, HMRC, DAC7, SOX 404)**. Fully opaque ledgers trigger severe legal and AML liabilities.
+* **The Midnight ZK Solution:**
+  * **Worker ZK Tax Attestation:** Workers generate a client-side proof proving their gross streamed earnings match their statutory reporting bracket and withholding obligations (US-IRS, EU-DAC7, UK-HMRC, SG-IRAS) without leaking other income, bonus multipliers, or employer treasury details.
+  * **Enterprise Scoped Viewing Keys:** Employers issue time-bounded (7, 30, 90 days) cryptographic viewing tokens (`mn_vk_...`) to external audit firms (e.g. PwC, Ernst & Young, Deloitte, IRS). These tokens mathematically decrypt only aggregate quarterly payroll deductions while keeping individual employee names, addresses, and compensation cryptographically masked.
+  * **Auditor Real-Time Verification Portal:** CPAs and tax authorities can query Midnight Preprod consensus in real-time by pasting any Attestation ID or Viewing Token.
+
+---
+
+### 🔀 3. Prisma FlowSplit — Confidential Stream Micro-Splits & Autonomous ZK Routing
+* **Route:** `/flowsplit`
+* **The Enterprise Problem:** When workers earn money, income must be distributed across daily spending, tax reserves, retirement savings, and emergency funds. On transparent blockchains, manual multi-transaction splits leak personal savings rates, cold storage addresses, and debt obligations on-chain.
+* **The Midnight ZK Solution:**
+  * **In-Circuit Autonomous Partitioning:** Workers configure a private allocation table (e.g. 50% Liquid Spendable, 25% Shielded Tax Escrow, 15% Private Cold Storage, 10% Emergency Reserve).
+  * **Zero-Leak Stream Diversion:** As salary streams tick second-by-second, Midnight's Compact circuit executes the micro-splits **inside the private witness during accumulation**.
+  * **Value Conservation Invariant:** Enforces $\\sum p_i = 100\\%$ client-side. The employer only sees a single 100% stream to the contract; destination sub-vaults only see their allocated fraction in shielded UTXOs.
+
+---
+
+### ⚡ 4. Prisma StreamCredit — Stream-Collateralized Liquidity & Instant Salary Advance
+* **Route:** `/streamcredit`
+* **The Enterprise Problem:** Over 60% of workers live paycheck to paycheck. When unexpected financial emergencies occur, workers face predatory payday loans charging 300%+ compounding APR. Meanwhile, DeFi lending demands 150–200% volatile crypto over-collateralization.
+* **The Midnight ZK Solution:**
+  * **Stream as Collateral:** Workers can draw an instant liquidity advance of up to 50% of their *future unaccrued salary* with zero crypto over-collateralization, zero credit checks, and zero identity disclosure.
+  * **Fair Fixed Pricing:** Fixed 1.5% origination fee with 0% predatory compounding APR.
+  * **Autonomous Code-Enforced Repayment:** The Midnight Compact circuit automatically diverts incoming per-second stream ticks directly to repay the liquidity facility until the advance is amortized.
+  * **Total Confidentiality:** Coworkers, employers, and chain observers cannot tell whether a stream withdrawal was normal salary or an advance repayment.
+
+
+---
+
 ## 💡 Initial Product Idea & Vision
 
 **Prisma** is a decentralized, privacy-first financial streaming and B2B vendor settlement layer built natively on the **Midnight Privacy Blockchain**. It allows corporations to stream salaries in real-time and settle commercial invoices with absolute confidentiality. By leveraging client-side Zero-Knowledge (ZK) proofs, Prisma mathematically proves that payroll constraints and invoice spending limits are strictly enforced, while keeping employee compensation, recipient identities, and corporate treasury balances completely shielded from public ledger surveillance.
@@ -182,31 +239,37 @@ prisma-app/
 ├── .github/
 │   └── workflows/
 │       └── ci.yml                     # Continuous Integration: linting, build & cryptographic tests
-├── app/                               # Next.js 14 App Router Directory
-│   ├── (dashboard)/                   # Authenticated Enterprise Modules
-│   │   ├── payroll/page.tsx           # Employer Payroll Stream Creation & Management
-│   │   ├── worker/page.tsx            # Worker Real-Time Salary Stream & ZK Withdrawal UI
-│   │   └── vendor/page.tsx            # Shielded B2B Invoice Generation & Settlement
-│   ├── analytics/page.tsx             # ZK Circuit Execution Metrics, Proof Volume & Latency
-│   ├── login/page.tsx                 # Supabase-authenticated User Session Portal
-│   ├── layout.tsx                     # Root Application Shell & Theme Wrapper
-│   ├── page.tsx                       # High-Conversion Landing Page & Feature Showcase
-│   └── globals.css                    # Dark Glassmorphic Design System & Animations
-├── components/                        # Reusable Component Architecture
+├── app/                               # Next.js App Router Directory (11 Prerendered Routes)
+│   ├── (dashboard)/                   # Authenticated Enterprise & Worker Modules
+│   │   ├── layout.tsx                 # Responsive Dashboard Shell, Role-Based Navigation & Glassmorphic Rail
+│   │   ├── payroll/page.tsx           # Employer Payroll Stream Creation & Shielded Budget Constraints
+│   │   ├── worker/page.tsx            # Worker Live Streaming Earnings, Withdrawals & Trust Badges
+│   │   ├── vendor/page.tsx            # Shielded B2B Invoice Generation & Verifiable Settlement
+│   │   ├── vaultguard/page.tsx        # [NEW] Prisma VaultGuard: ZK Treasury Solvency & Runway Attestation
+│   │   ├── auditpass/page.tsx         # [NEW] Prisma AuditPass: ZK Tax Attestation & Scoped Auditor Enclave
+│   │   ├── flowsplit/page.tsx         # [NEW] Prisma FlowSplit: Autonomous ZK Micro-Splits & Sub-Vault Routing
+│   │   ├── streamcredit/page.tsx      # [NEW] Prisma StreamCredit: Stream-Collateralized Salary Advance
+│   │   └── circuit-demo/page.tsx      # Live Client-Side ZK Circuit Prover on Midnight Preprod
+│   ├── analytics/page.tsx             # ZK Circuit Telemetry, Proof Latency & Consensus Verification Volumes
+│   ├── login/page.tsx                 # Supabase-authenticated User Session & Role Gate Portal
+│   ├── layout.tsx                     # Root Application Shell, WalletProvider & Toast Container
+│   ├── page.tsx                       # High-Conversion Landing Page & Interactive Platform Showcase
+│   └── globals.css                    # Dark Glassmorphic Design System, Custom Animations & Radii
+├── components/                        # Reusable Enterprise Component Architecture
 │   ├── WalletContext.tsx              # Midnight 1AM & Lace DApp Connector with Network Auto-Switching
-│   ├── Sidebar.tsx                    # Collapsible Dashboard Navigation with Live Network Status
-│   └── LandingNav.tsx                 # Responsive Header Navigation for Public Pages
+│   ├── Sidebar.tsx                    # Collapsible Navigation with Real-Time Preprod Contract Status
+│   └── LandingNav.tsx                 # Responsive Header Navigation with One-Click App Launch
 ├── contracts/                         # Midnight Smart Contracts (Compact Language)
 │   ├── payroll.compact                # Zero-Knowledge Corporate Payroll & Streaming Allowance Circuit
 │   ├── vendor.compact                 # Confidential B2B Vendor Invoicing & Settlement Circuit
 │   └── managed/                       # Auto-generated Compact Compiler Bindings
 │       └── payroll/
 │           ├── contract/index.js      # Generated TypeScript / JavaScript Runtime Contract Bindings
-│           ├── zkir/spend.bzkir       # Binary ZK Intermediate Representation (ZKIR) Circuits
+│           ├── zkir/spend.bzkir       # Verified 199-byte Binary ZK Intermediate Representation (ZKIR)
 │           └── keys/                  # Compiled Local Prover & Verifier Key Cache
 ├── lib/                               # Core Business Logic & Infrastructure
 │   ├── midnight/
-│   │   └── providers.ts               # Midnight.js SDK Configuration (FetchZkConfigProvider & Proof Server)
+│   │   └── providers.ts               # Midnight.js SDK, Prover Clients, Solvency, Tax, FlowSplit & Credit Circuits
 │   └── supabase.ts                    # Supabase Client for Off-Chain Profile & Stream Indexing
 ├── public/                            # Static Web Assets & Browser-Accessible Keys
 │   ├── ghost/keys/                    # spend.prover (147KB) & spend.verifier (1.3KB) for Client Proving
