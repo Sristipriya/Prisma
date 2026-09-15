@@ -20,6 +20,20 @@ interface PayrollStream {
   withdrawn_amount: number;
 }
 
+const VERIFIED_PAYROLL_CONTRACT = '0x6db3284190db9c089c0c2704b84062826c6eff39e5b31ce8ec138363c9d08f2f';
+const VERIFIED_PAYROLL_EXPLORER_URL = `https://preprod.midnightexplorer.com/contracts/${VERIFIED_PAYROLL_CONTRACT}`;
+
+const getPayrollExplorerUrl = (contractAddress?: string, proofHash?: string) => {
+  if (proofHash && proofHash.length >= 64 && !proofHash.includes('...')) {
+    return `https://preprod.midnightexplorer.com/transactions/${proofHash}`;
+  }
+  if (contractAddress && contractAddress.length >= 60 && !contractAddress.startsWith('mn_')) {
+    const cleanAddr = contractAddress.startsWith('0x') ? contractAddress : `0x${contractAddress}`;
+    return `https://preprod.midnightexplorer.com/contracts/${cleanAddr}`;
+  }
+  return VERIFIED_PAYROLL_EXPLORER_URL;
+};
+
 export default function PayrollPage() {
   const { isConnected, connect } = useWallet();
   const [amount, setAmount] = useState('');
@@ -152,7 +166,29 @@ export default function PayrollPage() {
       {/* Header card */}
       <div className="dp-header card glass-heavy">
         <div>
-          <div className="dp-eyebrow">Zero-Knowledge Stream Protocol</div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap', marginBottom: '8px' }}>
+            <div className="dp-eyebrow" style={{ margin: 0 }}>Zero-Knowledge Stream Protocol</div>
+            <a
+              href={VERIFIED_PAYROLL_EXPLORER_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="dp-eyebrow"
+              style={{
+                margin: 0,
+                color: '#6ee7b7',
+                borderColor: 'rgba(110,231,183,0.3)',
+                background: 'rgba(110,231,183,0.06)',
+                textDecoration: 'none',
+                cursor: 'pointer',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '5px',
+              }}
+              title="View verified contract on Midnight Explorer"
+            >
+              ✓ Verified Contract: {VERIFIED_PAYROLL_CONTRACT.slice(0, 10)}…{VERIFIED_PAYROLL_CONTRACT.slice(-6)} ↗
+            </a>
+          </div>
           <h1 className="dp-title">Payroll Streams</h1>
           <p className="dp-subtitle">Deploy shielded payroll on Midnight. Amounts verified by ZK proofs — invisible to the network.</p>
         </div>
@@ -285,14 +321,33 @@ export default function PayrollPage() {
                     <span style={{ color: 'rgba(255,255,255,0.3)', fontSize: '11px' }}>
                       Started: {new Date(stream.start_time).toLocaleDateString()}
                     </span>
-                    <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
-                      <span style={{ fontFamily: 'monospace', fontSize: '10px', color: 'rgba(255,255,255,0.25)' }}>Tx: {stream.proof_hash}</span>
-                      <button
-                        onClick={() => toast.success(`ZK Proof Verified: ${stream.proof_hash}`, { description: `Contract: ${stream.contract_address}` })}
-                        className="dp-text-link"
+                    <div style={{ display: 'flex', gap: '14px', alignItems: 'center', flexWrap: 'wrap' }}>
+                      <a
+                        href={getPayrollExplorerUrl(stream.contract_address, stream.proof_hash)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{ fontFamily: 'monospace', fontSize: '11px', color: 'rgba(255,255,255,0.4)', textDecoration: 'none' }}
+                        title="Inspect transaction on Midnight Explorer"
                       >
-                        Verify Proof →
-                      </button>
+                        Tx: {stream.proof_hash}
+                      </a>
+                      <a
+                        href={getPayrollExplorerUrl(stream.contract_address, stream.proof_hash)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="dp-text-link"
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '4px',
+                          color: '#6ee7b7',
+                          fontWeight: 500,
+                          textDecoration: 'none',
+                        }}
+                        title="Verify Zero-Knowledge proof and contract on Midnight Explorer"
+                      >
+                        Verify on Explorer ↗
+                      </a>
                     </div>
                   </div>
                 </div>

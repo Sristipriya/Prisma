@@ -17,6 +17,20 @@ interface VendorInvoice {
   created_at: string;
 }
 
+const VERIFIED_VENDOR_CONTRACT = 'e0c9d5d6d0ce7d5dc8dd4251a8d5ba0b368c42bb653f85b444e1318d93221f70';
+const VERIFIED_VENDOR_EXPLORER_URL = `https://preview.midnightexplorer.com/contracts/${VERIFIED_VENDOR_CONTRACT}`;
+
+const getVendorExplorerUrl = (contractAddress?: string, proofHash?: string) => {
+  if (proofHash && proofHash.length >= 64 && !proofHash.includes('...')) {
+    return `https://preview.midnightexplorer.com/transactions/${proofHash}`;
+  }
+  if (contractAddress && contractAddress.length >= 60 && !contractAddress.startsWith('mn_')) {
+    const cleanAddr = contractAddress.startsWith('0x') ? contractAddress : `0x${contractAddress}`;
+    return `https://preview.midnightexplorer.com/contracts/${cleanAddr}`;
+  }
+  return VERIFIED_VENDOR_EXPLORER_URL;
+};
+
 export default function VendorPage() {
   const { isConnected, connect } = useWallet();
   const [invoices, setInvoices] = useState<VendorInvoice[]>([]);
@@ -110,7 +124,29 @@ export default function VendorPage() {
       {/* Header */}
       <div className="dp-header card glass-heavy">
         <div>
-          <div className="dp-eyebrow">Shielded Vendor Settlement Protocol</div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap', marginBottom: '8px' }}>
+            <div className="dp-eyebrow" style={{ margin: 0 }}>Shielded Vendor Settlement Protocol</div>
+            <a
+              href={VERIFIED_VENDOR_EXPLORER_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="dp-eyebrow"
+              style={{
+                margin: 0,
+                color: '#6ee7b7',
+                borderColor: 'rgba(110,231,183,0.3)',
+                background: 'rgba(110,231,183,0.06)',
+                textDecoration: 'none',
+                cursor: 'pointer',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '5px',
+              }}
+              title="View verified contract on Midnight Explorer"
+            >
+              ✓ Verified Contract: {VERIFIED_VENDOR_CONTRACT.slice(0, 10)}…{VERIFIED_VENDOR_CONTRACT.slice(-6)} ↗
+            </a>
+          </div>
           <h1 className="dp-title">Vendor Invoices</h1>
           <p className="dp-subtitle">Settle vendor invoices with ZK proof of payment. Transaction terms remain private on Midnight.</p>
         </div>
@@ -222,14 +258,33 @@ export default function VendorPage() {
                   <span style={{ color: 'rgba(255,255,255,0.3)', fontSize: '11px', fontFamily: 'monospace' }}>
                     {new Date(inv.created_at).toLocaleDateString()}
                   </span>
-                  <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
-                    <span style={{ fontFamily: 'monospace', fontSize: '10px', color: 'rgba(255,255,255,0.25)' }}>Tx: {inv.proof_hash}</span>
-                    <button
-                      onClick={() => toast.success('ZK Proof Verified', { description: `Invoice: ${inv.invoice_id} · Contract: ${inv.contract_address}` })}
-                      className="dp-text-link"
+                  <div style={{ display: 'flex', gap: '14px', alignItems: 'center', flexWrap: 'wrap' }}>
+                    <a
+                      href={getVendorExplorerUrl(inv.contract_address, inv.proof_hash)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{ fontFamily: 'monospace', fontSize: '11px', color: 'rgba(255,255,255,0.4)', textDecoration: 'none' }}
+                      title="Inspect transaction on Midnight Explorer"
                     >
-                      Inspect Proof →
-                    </button>
+                      Tx: {inv.proof_hash}
+                    </a>
+                    <a
+                      href={getVendorExplorerUrl(inv.contract_address, inv.proof_hash)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="dp-text-link"
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '4px',
+                        color: '#6ee7b7',
+                        fontWeight: 500,
+                        textDecoration: 'none',
+                      }}
+                      title="Verify Zero-Knowledge proof and contract on Midnight Explorer"
+                    >
+                      Verify on Explorer ↗
+                    </a>
                   </div>
                 </div>
               </div>
