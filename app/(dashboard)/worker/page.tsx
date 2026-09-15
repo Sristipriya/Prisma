@@ -209,14 +209,33 @@ export default function WorkerPage() {
                     </div>
                   </div>
 
-                  <button 
-                    onClick={() => handleWithdraw(stream, unlocked)}
-                    disabled={unlocked <= 0 || stream.status === 'Revoked'}
-                    className="dp-primary-btn"
-                    style={{ width: '100%', padding: '12px', marginTop: '4px' }}
-                  >
-                    Withdraw Funds to 1AM
-                  </button>
+                  <div style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
+                    <button 
+                      onClick={() => handleWithdraw(stream, unlocked)}
+                      disabled={unlocked <= 0 || stream.status === 'Revoked'}
+                      className="dp-primary-btn"
+                      style={{ flex: 1, padding: '12px' }}
+                    >
+                      Withdraw Funds to 1AM
+                    </button>
+                    <a
+                      href="/auditpass"
+                      className="dp-action-btn"
+                      style={{
+                        padding: '12px 14px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '6px',
+                        textDecoration: 'none',
+                        fontSize: '13px',
+                        whiteSpace: 'nowrap',
+                      }}
+                      title="Generate ZK Tax Attestation & Compliance Certificate"
+                    >
+                      <span>📑 Tax Proof</span>
+                    </a>
+                  </div>
                 </div>
               );
             })}
