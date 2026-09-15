@@ -12,6 +12,7 @@ const NAV_ITEMS = [
   { name: 'Payroll Streams', href: '/payroll', desc: 'Shielded salary distribution' },
   { name: 'Vendor Settlements', href: '/vendor', desc: 'ZK invoice payments' },
   { name: 'VaultGuard', href: '/vaultguard', desc: 'ZK Treasury Solvency' },
+  { name: 'StreamCredit', href: '/streamcredit', desc: 'ZK Salary Advance' },
   { name: 'FlowSplit', href: '/flowsplit', desc: 'ZK Stream Routing' },
   { name: 'AuditPass', href: '/auditpass', desc: 'ZK Tax & Scoped Audit' },
   { name: 'ZK Analytics', href: '/analytics', desc: 'Live proof telemetry' },
@@ -48,6 +49,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const navItems = userRole === 'employee' 
     ? [
         { name: 'My Portal', href: '/worker', desc: 'Manage your salary streams' },
+        { name: 'StreamCredit', href: '/streamcredit', desc: 'ZK Salary Advance' },
         { name: 'FlowSplit', href: '/flowsplit', desc: 'ZK Stream Routing' },
         { name: 'AuditPass', href: '/auditpass', desc: 'ZK Tax & Scoped Audit' },
       ]
@@ -55,6 +57,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         { name: 'Payroll Streams', href: '/payroll', desc: 'Shielded salary distribution' },
         { name: 'Vendor Settlements', href: '/vendor', desc: 'ZK invoice payments' },
         { name: 'VaultGuard', href: '/vaultguard', desc: 'ZK Treasury Solvency' },
+        { name: 'StreamCredit', href: '/streamcredit', desc: 'ZK Salary Advance' },
         { name: 'FlowSplit', href: '/flowsplit', desc: 'ZK Stream Routing' },
         { name: 'AuditPass', href: '/auditpass', desc: 'ZK Tax & Scoped Audit' },
         { name: 'ZK Analytics', href: '/analytics', desc: 'Live proof telemetry' },

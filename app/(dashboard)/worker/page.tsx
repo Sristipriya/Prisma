@@ -205,6 +205,25 @@ export default function WorkerPage() {
                         >
                           <span>🔀 FlowSplit</span>
                         </a>
+                        <a
+                          href="/streamcredit"
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                            fontSize: '11px',
+                            padding: '3px 8px',
+                            borderRadius: '12px',
+                            background: 'rgba(245,158,11,0.1)',
+                            border: '1px solid rgba(245,158,11,0.25)',
+                            color: '#f59e0b',
+                            textDecoration: 'none',
+                            fontWeight: 500,
+                          }}
+                          title="Instant Salary Advance Available (Up to 50% Future Earnings)"
+                        >
+                          <span>⚡ Advance</span>
+                        </a>
                       </div>
                     </div>
                   </div>
@@ -230,15 +249,34 @@ export default function WorkerPage() {
                     </div>
                   </div>
 
-                  <div style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
+                  <div style={{ display: 'flex', gap: '8px', marginTop: '4px', flexWrap: 'wrap' }}>
                     <button 
                       onClick={() => handleWithdraw(stream, unlocked)}
                       disabled={unlocked <= 0 || stream.status === 'Revoked'}
                       className="dp-primary-btn"
-                      style={{ flex: 1, padding: '12px' }}
+                      style={{ flex: 1, minWidth: '160px', padding: '12px' }}
                     >
-                      Withdraw Funds to 1AM
+                      Withdraw to 1AM
                     </button>
+                    <a
+                      href="/streamcredit"
+                      className="dp-action-btn"
+                      style={{
+                        padding: '12px 14px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '6px',
+                        textDecoration: 'none',
+                        fontSize: '13px',
+                        whiteSpace: 'nowrap',
+                        color: '#f59e0b',
+                        borderColor: 'rgba(245,158,11,0.3)',
+                      }}
+                      title="Request Instant ZK Salary Advance"
+                    >
+                      <span>⚡ Advance</span>
+                    </a>
                     <a
                       href="/flowsplit"
                       className="dp-action-btn"
