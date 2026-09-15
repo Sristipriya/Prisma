@@ -52,15 +52,18 @@ export default function PayrollPage() {
       if (!session) return;
       
       const [streamsRes, employeesRes] = await Promise.all([
-        supabase.from('payroll_streams').select('*, profiles!payroll_streams_employee_id_fkey(full_name)').order('start_time', { ascending: false }),
+        supabase.from('payroll_streams').select('*').order('created_at', { ascending: false }),
         supabase.from('profiles').select('*').eq('role', 'employee')
       ]);
       
-      if (streamsRes.error) throw streamsRes.error;
+      const empMap = (employeesRes.data || []).reduce((acc: any, e: any) => {
+        acc[e.id] = e.full_name;
+        return acc;
+      }, {});
       
-      const mappedStreams = (streamsRes.data as any[]).map(s => ({
+      const mappedStreams = (streamsRes.data || []).map((s: any) => ({
         ...s,
-        employee_name: s.profiles?.full_name || s.employee_name || 'Unknown',
+        employee_name: empMap[s.employee_id] || s.employee_name || 'Employee',
       }));
       setStreams(mappedStreams);
       
@@ -71,7 +74,7 @@ export default function PayrollPage() {
         }
       }
     } catch (err: any) {
-      toast.error('Failed to load data: ' + err.message);
+      console.warn('Failed to load payroll streams:', err.message);
     } finally {
       setIsLoading(false);
     }

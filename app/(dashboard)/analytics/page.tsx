@@ -26,8 +26,8 @@ export default function AnalyticsPage() {
       if (!session) return;
 
       const { data: payrollData } = await supabase.from('payroll_streams')
-        .select('amount, proof_hash, contract_address, start_time, created_at, profiles!payroll_streams_employee_id_fkey(full_name)')
-        .order('start_time', { ascending: false });
+        .select('amount, employee_name, proof_hash, contract_address, start_time, created_at')
+        .order('created_at', { ascending: false });
 
       if (payrollData) {
         setPayrollTotal(payrollData.reduce((a, r) => a + Number(r.amount), 0));
@@ -44,8 +44,8 @@ export default function AnalyticsPage() {
       }
 
       const payrollEntries: AuditEntry[] = (payrollData || []).map((r: any) => ({
-        id: r.created_at + 'p', type: 'payroll',
-        description: `Payroll stream — ${Array.isArray(r.profiles) ? r.profiles[0]?.full_name : r.profiles?.full_name || 'Unknown'}`,
+        id: (r.created_at || Date.now()) + 'p', type: 'payroll',
+        description: `Payroll stream — ${r.employee_name || 'Employee'}`,
         amount: r.amount, proof_hash: r.proof_hash, created_at: r.start_time || r.created_at,
       }));
       const vendorEntries: AuditEntry[] = (vendorData || []).map(r => ({
