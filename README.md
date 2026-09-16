@@ -12,7 +12,7 @@
   [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
   [![Midnight Network](https://img.shields.io/badge/Midnight-Preprod-blueviolet)](https://midnight.network/)
   [![Next.js](https://img.shields.io/badge/Next.js-14-black)](https://nextjs.org/)
-  [![CI/CD](https://img.shields.io/badge/CI%2FCD-Passing-success)](https://github.com/Sristipriya/Prisma/actions)
+  [![CI/CD Pipeline](https://github.com/Sristipriya/Prisma/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/Sristipriya/Prisma/actions/workflows/ci.yml)
   [![Status](https://img.shields.io/badge/Status-Live-success)](#)
   
   ### 🌐 [Live Application Demo](https://prisma-pi-steel.vercel.app) | 🎥 [YouTube Demo Video](https://youtu.be/uBQMuiqCU8A) | 📄 [Level 4–6 Product Proposal](./PROPOSAL.md)
@@ -281,6 +281,29 @@ prisma-app/
     ├── payroll.test.ts                # Vitest Functional Circuit Verification & State Assertion Tests
     └── vendor.test.ts                 # Vitest Vendor Settlement & Proof Verification Tests
 ```
+
+---
+
+## ⚙️ Continuous Integration & Automated Verification (CI/CD)
+
+Prisma maintains an automated continuous integration and testing pipeline via GitHub Actions ([`.github/workflows/ci.yml`](./.github/workflows/ci.yml)) on every push and pull request to the `main` branch.
+
+[![CI/CD Pipeline](https://github.com/Sristipriya/Prisma/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/Sristipriya/Prisma/actions/workflows/ci.yml)
+
+### Automated Pipeline Jobs:
+- **Unit & ZK Simulation Tests (`test`):**
+  - Executes comprehensive Vitest suites (`payroll.test.ts` & `vendor.test.ts`).
+  - Verifies zero-knowledge budget limits and spending assertions without leaking sensitive amounts.
+  - Run command: `npm run test`
+- **Compact Contract Verification (`contract`):**
+  - Validates Compact circuit compilation bindings for Midnight.
+  - Run command: `npm run compact`
+- **Typecheck & Production Build (`build`):**
+  - Cryptographically verifies TypeScript types and strict typesafety across all contracts and UI components (`tsc --noEmit`).
+  - Pre-renders all 11 enterprise routes into an optimized production bundle (`next build --webpack`).
+  - Run command: `npm run typecheck && npm run build`
+
+> 🚀 **Live CI Status:** All latest pipeline runs are actively monitored and passing on [GitHub Actions](https://github.com/Sristipriya/Prisma/actions/workflows/ci.yml).
 
 ---
 
