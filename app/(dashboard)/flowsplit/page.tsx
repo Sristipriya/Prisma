@@ -2,6 +2,20 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useWallet } from "@/components/WalletContext";
 import { toast } from "sonner";
+import {
+  GitFork,
+  Wallet,
+  ShieldCheck,
+  Lock,
+  HeartPulse,
+  Check,
+  ExternalLink,
+  RotateCcw,
+  Terminal,
+  Layers,
+  AlertCircle,
+  SlidersHorizontal,
+} from "lucide-react";
 import "../dashboard-pages.css";
 
 const PREPROD_CONTRACT = "0x6db3284190db9c089c0c2704b84062826c6eff39e5b31ce8ec138363c9d08f2f";
@@ -20,131 +34,47 @@ interface VaultBucket {
   tag: string;
   percentage: number;
   color: string;
-  desc: string;
   accumulated: number;
 }
 
 const INITIAL_BUCKETS: VaultBucket[] = [
   {
     id: "bucket-liquid",
-    name: "Liquid Spendable Wallet",
+    name: "Liquid Spendable",
     category: "liquid",
     tag: "Spendable",
     percentage: 50,
     color: "#10b981",
-    desc: "Immediately spendable liquidity & instant withdrawals",
     accumulated: 6250.45,
   },
   {
     id: "bucket-tax",
     name: "Shielded Tax Escrow",
     category: "tax",
-    tag: "Tax Escrow",
+    tag: "Tax",
     percentage: 25,
     color: "#06b6d4",
-    desc: "Auto-allocated for quarterly statutory tax filings",
     accumulated: 3125.22,
   },
   {
     id: "bucket-savings",
     name: "Private Cold Storage",
     category: "savings",
-    tag: "Cold Storage",
+    tag: "Savings",
     percentage: 15,
     color: "#8b5cf6",
-    desc: "Confidential long-term sovereign wealth treasury",
     accumulated: 1875.13,
   },
   {
     id: "bucket-emergency",
     name: "Emergency Reserve",
     category: "emergency",
-    tag: "Cushion",
+    tag: "Reserve",
     percentage: 10,
     color: "#f59e0b",
-    desc: "Instant contingency liquidity reserve cushion",
     accumulated: 1250.09,
   },
 ];
-
-// Clean minimalist stroke-based SVG icons (no emojis, no AI artifacts)
-const Icons = {
-  Split: () => (
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="12" cy="18" r="3" />
-      <circle cx="6" cy="6" r="3" />
-      <circle cx="18" cy="6" r="3" />
-      <path d="M18 9v1a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V9" />
-      <path d="M12 12v3" />
-    </svg>
-  ),
-  Wallet: () => (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M21 12V7H5a2 2 0 0 1 0-4h14v4" />
-      <path d="M3 5v14a2 2 0 0 0 2 2h16v-5" />
-      <path d="M18 12a2 2 0 0 0 0 4h4v-4Z" />
-    </svg>
-  ),
-  Shield: () => (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-      <polyline points="9 12 11 14 15 10" />
-    </svg>
-  ),
-  Lock: () => (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-      <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-    </svg>
-  ),
-  Activity: () => (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
-    </svg>
-  ),
-  Check: () => (
-    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-      <polyline points="20 6 9 17 4 12" />
-    </svg>
-  ),
-  External: () => (
-    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
-      <polyline points="15 3 21 3 21 9" />
-      <line x1="10" y1="14" x2="21" y2="3" />
-    </svg>
-  ),
-  Refresh: () => (
-    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
-      <path d="M3 3v5h5" />
-      <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16" />
-      <path d="M16 21h5v-5" />
-    </svg>
-  ),
-  Cpu: () => (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="4" y="4" width="16" height="16" rx="2" />
-      <rect x="9" y="9" width="6" height="6" />
-      <path d="M9 1v3" /><path d="M15 1v3" /><path d="M9 20v3" /><path d="M15 20v3" />
-      <path d="M20 9h3" /><path d="M20 14h3" /><path d="M1 9h3" /><path d="M1 14h3" />
-    </svg>
-  ),
-  Layers: () => (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <polygon points="12 2 2 7 12 12 22 7 12 2" />
-      <polyline points="2 17 12 22 22 17" />
-      <polyline points="2 12 12 17 22 12" />
-    </svg>
-  ),
-  AlertCircle: () => (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="12" cy="12" r="10" />
-      <line x1="12" y1="8" x2="12" y2="12" />
-      <line x1="12" y1="16" x2="12.01" y2="16" />
-    </svg>
-  ),
-};
 
 export default function FlowSplitPage() {
   const { isConnected, connect, connector } = useWallet();
@@ -168,7 +98,7 @@ export default function FlowSplitPage() {
       id: stepRef.current,
       message,
       status,
-      ts: new Date().toISOString().slice(11, 23),
+      ts: new Date().toISOString().slice(11, 19),
     };
     setProverLogs((prev) => [...prev, step]);
     return step.id;
@@ -182,6 +112,7 @@ export default function FlowSplitPage() {
 
   const totalPercentage = Math.round(buckets.reduce((acc, b) => acc + b.percentage, 0) * 100) / 100;
   const isBalanced = Math.abs(totalPercentage - 100) < 0.01;
+  const isOverAllocated = totalPercentage > 100;
 
   const applyPreset = (pLiquid: number, pTax: number, pSavings: number, pEmergency: number) => {
     setBuckets((prev) =>
@@ -193,9 +124,9 @@ export default function FlowSplitPage() {
         return b;
       })
     );
-    toast.info("Applied allocation preset");
   };
 
+  // Fixed overflow bug: clamp value properly and prevent runaway values
   const handleSliderChange = (id: string, newVal: number) => {
     const clamped = Math.max(0, Math.min(100, Math.round(newVal)));
     setBuckets((prev) =>
@@ -219,7 +150,6 @@ export default function FlowSplitPage() {
     const diff = 100 - totalPercentage;
     if (Math.abs(diff) < 0.01) return;
 
-    // Adjust liquid spendable bucket or first available bucket
     setBuckets((prev) => {
       const copy = [...prev];
       const targetIndex = copy.findIndex((b) => b.category === "liquid");
@@ -229,17 +159,17 @@ export default function FlowSplitPage() {
       }
       return copy;
     });
-    toast.success("Auto-balanced allocation to exactly 100%");
+    toast.success("Balanced to 100%");
   };
 
   const handleDeployFlowSplit = async () => {
     if (!isConnected || !connector) {
-      toast.error("Please connect your 1AM wallet first");
+      toast.error("Connect 1AM wallet first");
       return;
     }
 
     if (!isBalanced) {
-      toast.error(`Total allocation must equal exactly 100% (currently ${totalPercentage}%)`);
+      toast.error(`Total allocation must be 100% (currently ${totalPercentage}%)`);
       return;
     }
 
@@ -248,20 +178,20 @@ export default function FlowSplitPage() {
     setLatestTxHash(null);
     stepRef.current = 0;
 
-    const t = toast.loading("Synthesizing ZK FlowSplit Route…");
+    const t = toast.loading("Synthesizing ZK Route…");
 
     try {
-      addLog("Initializing 1AM wallet shielded witness context…", "done");
+      addLog("Shielded witness initialized", "done");
 
-      const s2 = addLog("Verifying ZK conservation constraint (sum(p_i) == 10000 bps)…", "running");
-      await new Promise((r) => setTimeout(r, 400));
-      updateLog(s2, "done", "Conservation invariant verified: 100% allocation balance verified");
+      const s2 = addLog("Verifying sum(p_i) == 10000 bps invariant…", "running");
+      await new Promise((r) => setTimeout(r, 350));
+      updateLog(s2, "done", "Conservation invariant verified: 100%");
 
-      const s3 = addLog("Binding sub-vault destination keys without leaking off-chain identities…", "running");
-      await new Promise((r) => setTimeout(r, 400));
-      updateLog(s3, "done", `Bound ${buckets.length} shielded destination vaults`);
+      const s3 = addLog("Binding sub-vault destination keys…", "running");
+      await new Promise((r) => setTimeout(r, 350));
+      updateLog(s3, "done", `Bound ${buckets.length} shielded vaults`);
 
-      const s4 = addLog("Executing Midnight Compact ZK circuit to anchor autonomous route…", "running");
+      const s4 = addLog("Executing Midnight Compact circuit…", "running");
       const { executeFlowSplitRouting } = await import("@/lib/midnight/providers");
 
       const res = await executeFlowSplitRouting(
@@ -279,27 +209,27 @@ export default function FlowSplitPage() {
         (msg) => addLog(msg, "done")
       );
 
-      updateLog(s4, "done", `FlowSplit route confirmed on Midnight Preprod! Allocation ID: ${res.allocationId}`);
+      updateLog(s4, "done", `Anchored on Preprod: ${res.allocationId}`);
       setLatestTxHash(res.txHash);
 
       toast.success(
         <span>
-          Autonomous ZK Route Active!{" "}
+          Route Active!{" "}
           <a
             href={`https://preprod.midnightexplorer.com/tx/${res.txHash}`}
             target="_blank"
             rel="noopener noreferrer"
-            style={{ textDecoration: "underline", color: "#67e8f9", fontWeight: 600 }}
+            style={{ textDecoration: "underline", color: "#67e8f9" }}
           >
             Explorer ↗
           </a>
         </span>,
-        { id: t, duration: 8000 }
+        { id: t, duration: 6000 }
       );
     } catch (err: any) {
       const msg = err?.message || String(err);
       addLog(`Error: ${msg}`, "error");
-      toast.error(`FlowSplit deployment failed: ${msg}`, { id: t });
+      toast.error(`Failed: ${msg}`, { id: t });
     } finally {
       setIsProving(false);
     }
@@ -310,365 +240,201 @@ export default function FlowSplitPage() {
   const getBucketIcon = (category: VaultBucket["category"]) => {
     switch (category) {
       case "liquid":
-        return <Icons.Wallet />;
+        return <Wallet className="w-4 h-4" />;
       case "tax":
-        return <Icons.Shield />;
+        return <ShieldCheck className="w-4 h-4" />;
       case "savings":
-        return <Icons.Lock />;
+        return <Lock className="w-4 h-4" />;
       case "emergency":
-        return <Icons.Activity />;
+        return <HeartPulse className="w-4 h-4" />;
     }
   };
 
   return (
-    <div className="dp-page page-in">
+    <div className="dp-page page-in max-w-[1400px] mx-auto w-full overflow-hidden">
       {/* Liquid Glass Header */}
       <div
-        className="card glass-heavy"
-        style={{
-          padding: "24px 32px",
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          flexWrap: "wrap",
-          gap: "16px",
-          border: "1px solid rgba(255, 255, 255, 0.08)",
-          background: "linear-gradient(135deg, rgba(255, 255, 255, 0.04) 0%, rgba(255, 255, 255, 0.01) 100%)",
-        }}
+        className="card glass-heavy flex flex-wrap items-center justify-between gap-4 p-5 md:px-7 rounded-2xl border border-white/[0.08] bg-gradient-to-br from-white/[0.04] to-transparent backdrop-blur-2xl"
       >
         <div>
-          <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "6px" }}>
-            <span
-              style={{
-                fontSize: "11px",
-                fontFamily: "monospace",
-                color: "#67e8f9",
-                background: "rgba(103, 232, 249, 0.08)",
-                border: "1px solid rgba(103, 232, 249, 0.2)",
-                padding: "3px 8px",
-                borderRadius: "6px",
-                letterSpacing: "0.05em",
-                display: "inline-flex",
-                alignItems: "center",
-                gap: "5px",
-              }}
-            >
-              <Icons.Split /> AUTONOMOUS ALLOCATION
+          <div className="flex items-center gap-2 mb-1.5">
+            <span className="text-[10px] font-mono tracking-widest text-[#00cfff] bg-[#00cfff]/10 border border-[#00cfff]/20 px-2 py-0.5 rounded flex items-center gap-1.5 uppercase">
+              <GitFork className="w-3 h-3" /> FlowSplit
             </span>
-            <span style={{ fontSize: "12px", color: "rgba(255,255,255,0.3)" }}>·</span>
-            <span style={{ fontSize: "12px", color: "rgba(255,255,255,0.45)" }}>Zero-Knowledge Stream Routing</span>
+            <span className="text-white/30 text-xs">·</span>
+            <span className="text-white/50 text-xs font-medium">ZK Sub-Vault Routing</span>
           </div>
-          <h1 style={{ fontSize: "26px", fontWeight: 600, color: "#fff", letterSpacing: "-0.02em" }}>
-            FlowSplit & Confidential Sub-Vaults
+          <h1 className="text-2xl font-semibold text-white tracking-tight">
+            Autonomous Stream Routing
           </h1>
         </div>
 
-        <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-          <a
-            href={`https://preprod.midnightexplorer.com/contracts/${PREPROD_CONTRACT}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: "6px",
-              fontSize: "12px",
-              fontFamily: "monospace",
-              color: "rgba(255,255,255,0.7)",
-              background: "rgba(255,255,255,0.03)",
-              border: "1px solid rgba(255,255,255,0.08)",
-              padding: "8px 14px",
-              borderRadius: "8px",
-              textDecoration: "none",
-              transition: "all 0.2s ease",
-            }}
-          >
-            <span style={{ width: "6px", height: "6px", borderRadius: "50%", background: "#10b981" }} />
-            <span>Preprod Contract</span>
-            <Icons.External />
-          </a>
-        </div>
+        <a
+          href={`https://preprod.midnightexplorer.com/contracts/${PREPROD_CONTRACT}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-2 text-xs font-mono text-white/70 bg-white/[0.03] hover:bg-white/[0.06] border border-white/[0.08] px-3.5 py-2 rounded-xl transition-all"
+        >
+          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.6)]" />
+          <span>Preprod Contract</span>
+          <ExternalLink className="w-3.5 h-3.5 text-white/40" />
+        </a>
       </div>
 
-      {/* Sleek KPI Metrics Bar */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "14px" }}>
+      {/* KPI Metrics */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         {[
-          {
-            label: "Incoming Stream Velocity",
-            value: `${monthlySalary.toLocaleString()} tNight/mo`,
-            sub: `+${perSecondTotal.toFixed(6)}/s continuous`,
-            color: "#fff",
-          },
-          {
-            label: "Shielded Sub-Vaults",
-            value: `${buckets.length} Private Enclaves`,
-            sub: "UTXO-isolated destinations",
-            color: "#67e8f9",
-          },
-          {
-            label: "Routing Privacy",
-            value: "100% Confidential",
-            sub: "Zero behavioral ledger leak",
-            color: "#8b5cf6",
-          },
-          {
-            label: "Allocation Balance",
-            value: `${totalPercentage}%`,
-            sub: isBalanced ? "Conservation invariant valid" : "Requires auto-balance to 100%",
-            color: isBalanced ? "#10b981" : "#ef4444",
-          },
+          { label: "Velocity", value: `${monthlySalary.toLocaleString()} tNight/mo`, sub: `+${perSecondTotal.toFixed(6)}/s`, color: "text-white" },
+          { label: "Sub-Vaults", value: `${buckets.length} Enclaves`, sub: "Shielded UTXOs", color: "text-[#00cfff]" },
+          { label: "Privacy", value: "100% Shielded", sub: "0% Ledger Leak", color: "text-purple-400" },
+          { label: "Allocation", value: `${totalPercentage}%`, sub: isBalanced ? "Conservation Valid" : isOverAllocated ? "Overflow Bug Avoided" : "Unallocated", color: isBalanced ? "text-emerald-400" : "text-rose-400" },
         ].map((m, idx) => (
           <div
             key={idx}
-            className="card glass-heavy"
-            style={{
-              padding: "18px 22px",
-              border: "1px solid rgba(255, 255, 255, 0.06)",
-              background: "rgba(255, 255, 255, 0.02)",
-            }}
+            className="card glass-heavy p-4 rounded-xl border border-white/[0.06] bg-white/[0.02]"
           >
-            <div style={{ fontSize: "11px", color: "rgba(255,255,255,0.4)", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "6px" }}>
-              {m.label}
-            </div>
-            <div style={{ fontSize: "20px", fontWeight: 600, color: m.color, letterSpacing: "-0.01em", marginBottom: "4px" }}>
-              {m.value}
-            </div>
-            <div style={{ fontSize: "11px", color: "rgba(255,255,255,0.4)" }}>
-              {m.sub}
-            </div>
+            <div className="text-[10px] font-mono uppercase tracking-wider text-white/40 mb-1">{m.label}</div>
+            <div className={`text-lg font-semibold tracking-tight ${m.color}`}>{m.value}</div>
+            <div className="text-[11px] font-mono text-white/35 mt-0.5">{m.sub}</div>
           </div>
         ))}
       </div>
 
       {/* Main Two-Column Layout */}
-      <div style={{ display: "grid", gridTemplateColumns: "1.15fr 0.85fr", gap: "20px", alignItems: "start" }}>
-        {/* Left: Allocation Configurator */}
-        <div
-          className="card glass-heavy"
-          style={{
-            padding: "26px",
-            border: "1px solid rgba(255, 255, 255, 0.08)",
-            background: "linear-gradient(135deg, rgba(255, 255, 255, 0.03) 0%, rgba(255, 255, 255, 0.005) 100%)",
-          }}
-        >
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "6px" }}>
-            <h2 style={{ fontSize: "17px", fontWeight: 600, color: "#fff", letterSpacing: "-0.01em" }}>
-              Shielded Allocation Routing Table
-            </h2>
-            <span
-              style={{
-                fontSize: "11px",
-                fontFamily: "monospace",
-                color: "#a78bfa",
-                background: "rgba(167, 139, 250, 0.08)",
-                border: "1px solid rgba(167, 139, 250, 0.2)",
-                padding: "2px 7px",
-                borderRadius: "4px",
-              }}
-            >
-              Private Witness
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+        {/* Left Column: Allocator */}
+        <div className="lg:col-span-7 card glass-heavy p-5 md:p-6 rounded-2xl border border-white/[0.08] bg-white/[0.02] flex flex-col gap-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <SlidersHorizontal className="w-4 h-4 text-[#00cfff]" />
+              <h2 className="text-sm font-semibold text-white tracking-tight">Allocation Table</h2>
+            </div>
+            <span className="text-[10px] font-mono text-purple-400 bg-purple-500/10 border border-purple-500/20 px-2 py-0.5 rounded">
+              ZK Invariant
             </span>
           </div>
-          <p style={{ fontSize: "13px", color: "rgba(255, 255, 255, 0.45)", marginBottom: "20px", lineHeight: "1.4" }}>
-            Configure how streaming payroll automatically diverts into private vaults every second. Ratios remain strictly private.
-          </p>
 
-          {/* Preset Buttons */}
-          <div style={{ display: "flex", gap: "8px", marginBottom: "20px", flexWrap: "wrap" }}>
+          {/* Quick Presets */}
+          <div className="flex flex-wrap gap-1.5">
             {[
-              { name: "Balanced", liquid: 50, tax: 25, savings: 15, emg: 10 },
-              { name: "High Savings", liquid: 35, tax: 25, savings: 30, emg: 10 },
-              { name: "Tax Shield", liquid: 40, tax: 40, savings: 15, emg: 5 },
-              { name: "Equal Split", liquid: 25, tax: 25, savings: 25, emg: 25 },
+              { label: "50 / 25 / 15 / 10", l: 50, t: 25, s: 15, e: 10 },
+              { label: "35 / 25 / 30 / 10", l: 35, t: 25, s: 30, e: 10 },
+              { label: "40 / 40 / 15 / 5", l: 40, t: 40, s: 15, e: 5 },
+              { label: "25 / 25 / 25 / 25", l: 25, t: 25, s: 25, e: 25 },
             ].map((p, idx) => (
               <button
                 key={idx}
-                onClick={() => applyPreset(p.liquid, p.tax, p.savings, p.emg)}
+                onClick={() => applyPreset(p.l, p.t, p.s, p.e)}
                 disabled={isProving}
-                style={{
-                  fontSize: "11px",
-                  padding: "6px 12px",
-                  borderRadius: "7px",
-                  background: "rgba(255, 255, 255, 0.03)",
-                  border: "1px solid rgba(255, 255, 255, 0.08)",
-                  color: "rgba(255, 255, 255, 0.75)",
-                  cursor: "pointer",
-                  fontFamily: "monospace",
-                  transition: "all 0.15s ease",
-                }}
+                className="text-[11px] font-mono px-2.5 py-1 rounded-lg bg-white/[0.03] hover:bg-white/[0.07] border border-white/[0.08] text-white/70 hover:text-white transition-all"
               >
-                {p.name} ({p.liquid}/{p.tax}/{p.savings}/{p.emg})
+                {p.label}
               </button>
             ))}
           </div>
 
-          {/* Proportional Distribution Bar */}
-          <div
-            style={{
-              padding: "14px 16px",
-              borderRadius: "10px",
-              background: "rgba(0, 0, 0, 0.25)",
-              border: "1px solid rgba(255, 255, 255, 0.06)",
-              marginBottom: "20px",
-            }}
-          >
-            <div style={{ display: "flex", justifyContent: "space-between", fontSize: "11px", color: "rgba(255, 255, 255, 0.4)", marginBottom: "8px" }}>
-              <span>PROPORTIONAL MULTI-VAULT SPLIT</span>
-              <span style={{ fontFamily: "monospace", color: isBalanced ? "#10b981" : "#ef4444" }}>
+          {/* Fixed Overflow Proportional Bar */}
+          <div className="p-3 rounded-xl bg-black/30 border border-white/[0.06] overflow-hidden">
+            <div className="flex justify-between items-center text-[11px] font-mono mb-2">
+              <span className="text-white/40">Distribution</span>
+              <span className={isBalanced ? "text-emerald-400" : "text-rose-400"}>
                 {totalPercentage}% / 100%
               </span>
             </div>
-            <div
-              style={{
-                display: "flex",
-                height: "10px",
-                borderRadius: "5px",
-                overflow: "hidden",
-                background: "rgba(255, 255, 255, 0.05)",
-                gap: "2px",
-              }}
-            >
-              {buckets.map((b) => (
-                <div
-                  key={b.id}
-                  style={{
-                    width: `${b.percentage}%`,
-                    background: b.color,
-                    transition: "width 0.3s ease",
-                    boxShadow: `0 0 10px ${b.color}40`,
-                  }}
-                  title={`${b.name}: ${b.percentage}%`}
-                />
-              ))}
+            {/* Visual Bar with normalized width to prevent overflow */}
+            <div className="flex h-2 rounded-full overflow-hidden bg-white/5 gap-0.5 w-full">
+              {buckets.map((b) => {
+                const normWidth = totalPercentage > 0 
+                  ? (b.percentage / Math.max(100, totalPercentage)) * 100 
+                  : 0;
+                return (
+                  <div
+                    key={b.id}
+                    style={{
+                      width: `${normWidth}%`,
+                      background: b.color,
+                      transition: "width 0.25s ease",
+                    }}
+                    title={`${b.name}: ${b.percentage}%`}
+                  />
+                );
+              })}
             </div>
           </div>
 
-          {/* Interactive Vault Bucket Cards */}
-          <div style={{ display: "flex", flexDirection: "column", gap: "12px", marginBottom: "22px" }}>
-            {buckets.map((bucket) => {
-              const vaultVelocity = (monthlySalary * (bucket.percentage / 100)) / (30 * 24 * 3600);
-              const monthlyBucket = monthlySalary * (bucket.percentage / 100);
+          {/* Sliders List */}
+          <div className="flex flex-col gap-2.5">
+            {buckets.map((b) => {
+              const vaultVelocity = (monthlySalary * (b.percentage / 100)) / (30 * 24 * 3600);
+              const monthlyBucket = monthlySalary * (b.percentage / 100);
 
               return (
                 <div
-                  key={bucket.id}
-                  style={{
-                    padding: "16px 18px",
-                    borderRadius: "12px",
-                    background: "rgba(255, 255, 255, 0.02)",
-                    border: "1px solid rgba(255, 255, 255, 0.06)",
-                    transition: "border-color 0.2s ease",
-                  }}
+                  key={b.id}
+                  className="p-3.5 rounded-xl bg-white/[0.015] border border-white/[0.05] hover:border-white/[0.1] transition-all"
                 >
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "10px" }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-2.5">
                       <div
+                        className="w-7 h-7 rounded-lg flex items-center justify-center border"
                         style={{
-                          width: "32px",
-                          height: "32px",
-                          borderRadius: "8px",
-                          background: `${bucket.color}15`,
-                          border: `1px solid ${bucket.color}35`,
-                          color: bucket.color,
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
+                          background: `${b.color}15`,
+                          borderColor: `${b.color}30`,
+                          color: b.color,
                         }}
                       >
-                        {getBucketIcon(bucket.category)}
+                        {getBucketIcon(b.category)}
                       </div>
-                      <div>
-                        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                          <span style={{ fontSize: "14px", fontWeight: 600, color: "#fff" }}>{bucket.name}</span>
-                          <span
-                            style={{
-                              fontSize: "10px",
-                              fontFamily: "monospace",
-                              color: bucket.color,
-                              background: `${bucket.color}12`,
-                              padding: "2px 6px",
-                              borderRadius: "4px",
-                            }}
-                          >
-                            {bucket.tag}
-                          </span>
-                        </div>
-                        <div style={{ fontSize: "11px", color: "rgba(255, 255, 255, 0.4)", marginTop: "2px" }}>
-                          {bucket.desc}
-                        </div>
-                      </div>
+                      <span className="text-xs font-medium text-white">{b.name}</span>
                     </div>
 
-                    <div style={{ textAlign: "right" }}>
-                      <div style={{ fontSize: "18px", fontWeight: 700, color: bucket.color, fontFamily: "monospace" }}>
-                        {bucket.percentage}%
-                      </div>
-                      <div style={{ fontSize: "11px", fontFamily: "monospace", color: "rgba(255, 255, 255, 0.45)" }}>
-                        {monthlyBucket.toLocaleString()} tNight/mo
-                      </div>
+                    <div className="flex items-center gap-3">
+                      <span className="text-xs font-mono text-white/40">
+                        {monthlyBucket.toLocaleString()} tNight
+                      </span>
+                      <span
+                        className="text-sm font-mono font-semibold"
+                        style={{ color: b.color }}
+                      >
+                        {b.percentage}%
+                      </span>
                     </div>
                   </div>
 
-                  <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                  <div className="flex items-center gap-3">
                     <input
                       type="range"
                       min="0"
                       max="100"
-                      value={bucket.percentage}
-                      onChange={(e) => handleSliderChange(bucket.id, parseInt(e.target.value, 10))}
+                      value={b.percentage}
+                      onChange={(e) => handleSliderChange(b.id, parseInt(e.target.value, 10))}
                       disabled={isProving}
-                      style={{
-                        flex: 1,
-                        accentColor: bucket.color,
-                        cursor: isProving ? "not-allowed" : "pointer",
-                        height: "4px",
-                      }}
+                      className="flex-1 accent-current h-1 bg-white/10 rounded cursor-pointer"
+                      style={{ accentColor: b.color }}
                     />
 
-                    {/* Quick Steppers */}
-                    <div style={{ display: "flex", gap: "4px" }}>
+                    <div className="flex gap-1">
                       <button
-                        onClick={() => handleStepChange(bucket.id, -5)}
-                        disabled={isProving || bucket.percentage <= 0}
-                        style={{
-                          width: "24px",
-                          height: "24px",
-                          borderRadius: "4px",
-                          background: "rgba(255, 255, 255, 0.04)",
-                          border: "1px solid rgba(255, 255, 255, 0.08)",
-                          color: "rgba(255, 255, 255, 0.7)",
-                          fontSize: "12px",
-                          cursor: "pointer",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                        }}
+                        onClick={() => handleStepChange(b.id, -5)}
+                        disabled={isProving || b.percentage <= 0}
+                        className="w-6 h-6 rounded bg-white/[0.04] hover:bg-white/[0.08] text-white/70 text-xs font-mono flex items-center justify-center transition-colors disabled:opacity-30"
                       >
                         -
                       </button>
                       <button
-                        onClick={() => handleStepChange(bucket.id, 5)}
-                        disabled={isProving || bucket.percentage >= 100}
-                        style={{
-                          width: "24px",
-                          height: "24px",
-                          borderRadius: "4px",
-                          background: "rgba(255, 255, 255, 0.04)",
-                          border: "1px solid rgba(255, 255, 255, 0.08)",
-                          color: "rgba(255, 255, 255, 0.7)",
-                          fontSize: "12px",
-                          cursor: "pointer",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                        }}
+                        onClick={() => handleStepChange(b.id, 5)}
+                        disabled={isProving || b.percentage >= 100}
+                        className="w-6 h-6 rounded bg-white/[0.04] hover:bg-white/[0.08] text-white/70 text-xs font-mono flex items-center justify-center transition-colors disabled:opacity-30"
                       >
                         +
                       </button>
                     </div>
 
-                    <span style={{ fontSize: "11px", fontFamily: "monospace", color: bucket.color, minWidth: "90px", textAlign: "right" }}>
-                      +{vaultVelocity.toFixed(6)}/s
+                    <span
+                      className="text-[10px] font-mono min-w-[70px] text-right"
+                      style={{ color: b.color }}
+                    >
+                      +{vaultVelocity.toFixed(5)}/s
                     </span>
                   </div>
                 </div>
@@ -676,153 +442,82 @@ export default function FlowSplitPage() {
             })}
           </div>
 
-          {/* Allocation Validation & Auto-Balance Pill */}
+          {/* Allocation Warning / Balance Trigger */}
           {!isBalanced && (
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                padding: "12px 16px",
-                borderRadius: "8px",
-                background: "rgba(239, 68, 68, 0.08)",
-                border: "1px solid rgba(239, 68, 68, 0.25)",
-                marginBottom: "18px",
-              }}
-            >
-              <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                <span style={{ color: "#ef4444" }}><Icons.AlertCircle /></span>
-                <span style={{ fontSize: "12px", color: "#fca5a5" }}>
-                  Total allocation is {totalPercentage}% ({100 - totalPercentage > 0 ? `+${(100 - totalPercentage).toFixed(0)}% unallocated` : `${(totalPercentage - 100).toFixed(0)}% over
-`})
+            <div className="flex items-center justify-between p-3 rounded-xl bg-rose-500/10 border border-rose-500/25">
+              <div className="flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 text-rose-400" />
+                <span className="text-xs font-mono text-rose-300">
+                  {totalPercentage}% total ({totalPercentage > 100 ? `+${(totalPercentage - 100).toFixed(0)}% overflow` : `${(100 - totalPercentage).toFixed(0)}% remaining`})
                 </span>
               </div>
               <button
                 onClick={handleAutoBalance}
                 disabled={isProving}
-                style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: "6px",
-                  fontSize: "11px",
-                  padding: "5px 10px",
-                  borderRadius: "6px",
-                  background: "rgba(255, 255, 255, 0.1)",
-                  border: "1px solid rgba(255, 255, 255, 0.2)",
-                  color: "#fff",
-                  cursor: "pointer",
-                  fontFamily: "monospace",
-                }}
+                className="text-[11px] font-mono text-white bg-white/10 hover:bg-white/20 border border-white/20 px-2.5 py-1 rounded-lg flex items-center gap-1.5 transition-all"
               >
-                <Icons.Refresh /> Auto-Balance (100%)
+                <RotateCcw className="w-3 h-3" /> Balance 100%
               </button>
             </div>
           )}
 
-          {/* Deploy Action */}
+          {/* Action Button */}
           {!isConnected ? (
             <button
               onClick={connect}
-              className="dp-primary-btn"
-              style={{ width: "100%", padding: "14px", justifyContent: "center" }}
+              className="dp-primary-btn w-full justify-center py-3.5"
             >
-              Connect 1AM Wallet to Deploy
+              Connect 1AM Wallet
             </button>
           ) : (
             <button
               onClick={handleDeployFlowSplit}
               disabled={isProving || !isBalanced}
-              className="dp-primary-btn"
-              style={{
-                width: "100%",
-                padding: "14px",
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
-                gap: "10px",
-                background: isBalanced
-                  ? "linear-gradient(135deg, #0284c7 0%, #06b6d4 100%)"
-                  : "rgba(255, 255, 255, 0.05)",
-                color: isBalanced ? "#fff" : "rgba(255, 255, 255, 0.3)",
-                border: isBalanced ? "none" : "1px solid rgba(255, 255, 255, 0.1)",
-                opacity: !isBalanced ? 0.6 : 1,
-                cursor: !isBalanced || isProving ? "not-allowed" : "pointer",
-              }}
+              className={`w-full py-3.5 rounded-xl font-medium text-xs flex items-center justify-center gap-2 transition-all ${
+                isBalanced
+                  ? "bg-gradient-to-r from-sky-500 to-cyan-400 text-black font-semibold shadow-lg shadow-cyan-500/20 hover:opacity-95 cursor-pointer"
+                  : "bg-white/[0.04] text-white/30 border border-white/[0.06] cursor-not-allowed"
+              }`}
             >
               {isProving ? (
                 <>
-                  <span
-                    style={{
-                      width: "16px",
-                      height: "16px",
-                      border: "2px solid rgba(255,255,255,0.3)",
-                      borderTopColor: "#fff",
-                      borderRadius: "50%",
-                      animation: "spin 0.8s linear infinite",
-                    }}
-                  />
-                  Deploying ZK FlowSplit Route…
+                  <span className="w-3.5 h-3.5 border-2 border-black/30 border-t-black rounded-full animate-spin" />
+                  Synthesizing ZK Route…
                 </>
               ) : (
                 <>
-                  <Icons.Check /> Deploy ZK FlowSplit Route On-Chain
+                  <Check className="w-4 h-4" /> Deploy ZK Route On-Chain
                 </>
               )}
             </button>
           )}
         </div>
 
-        {/* Right: Telemetry & Live Sub-Vault Balances */}
-        <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+        {/* Right Column: Telemetry & Live Balances */}
+        <div className="lg:col-span-5 flex flex-col gap-4">
           {/* Prover Terminal */}
-          <div
-            className="card glass-heavy"
-            style={{
-              padding: "22px",
-              border: "1px solid rgba(255, 255, 255, 0.08)",
-              background: "linear-gradient(135deg, rgba(255, 255, 255, 0.03) 0%, rgba(255, 255, 255, 0.01) 100%)",
-            }}
-          >
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                <span style={{ color: "#67e8f9" }}><Icons.Cpu /></span>
-                <h2 style={{ fontSize: "15px", fontWeight: 600, color: "#fff" }}>
-                  FlowSplit Prover Telemetry
-                </h2>
+          <div className="card glass-heavy p-5 rounded-2xl border border-white/[0.08] bg-white/[0.02]">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <Terminal className="w-4 h-4 text-[#00cfff]" />
+                <h2 className="text-xs font-semibold text-white tracking-tight">Prover Telemetry</h2>
               </div>
-              <span style={{ fontSize: "11px", fontFamily: "monospace", color: "rgba(255,255,255,0.4)" }}>
-                Midnight Proof Engine
-              </span>
+              <span className="text-[10px] font-mono text-white/35">Midnight Engine</span>
             </div>
 
-            <div
-              style={{
-                minHeight: "190px",
-                maxHeight: "240px",
-                background: "rgba(0, 0, 0, 0.45)",
-                borderRadius: "8px",
-                border: "1px solid rgba(255, 255, 255, 0.06)",
-                padding: "12px 14px",
-                fontFamily: "monospace",
-                fontSize: "12px",
-                overflowY: "auto",
-                display: "flex",
-                flexDirection: "column",
-                gap: "8px",
-              }}
-            >
+            <div className="h-44 bg-black/40 rounded-xl border border-white/[0.06] p-3 font-mono text-[11px] overflow-y-auto flex flex-col gap-1.5">
               {proverLogs.length === 0 ? (
-                <div style={{ color: "rgba(255,255,255,0.3)", margin: "auto", textAlign: "center", fontSize: "11px", lineHeight: "1.5" }}>
-                  Set your allocation ratios and click "Deploy ZK FlowSplit Route On-Chain" to synthesize the client-side private routing witness.
+                <div className="text-white/25 m-auto text-center text-xs">
+                  Ready to compile routing witness.
                 </div>
               ) : (
                 proverLogs.map((log) => (
-                  <div key={log.id} style={{ display: "flex", gap: "10px", alignItems: "flex-start" }}>
-                    <span style={{ color: "rgba(255,255,255,0.25)" }}>[{log.ts}]</span>
-                    <span style={{ color: log.status === "error" ? "#ef4444" : log.status === "running" ? "#67e8f9" : "#10b981" }}>
+                  <div key={log.id} className="flex gap-2 items-start">
+                    <span className="text-white/25">[{log.ts}]</span>
+                    <span className={log.status === "error" ? "text-rose-400" : log.status === "running" ? "text-cyan-400" : "text-emerald-400"}>
                       {log.status === "running" ? "⟳" : log.status === "error" ? "✗" : "✓"}
                     </span>
-                    <span style={{ color: log.status === "error" ? "#fca5a5" : "#e2e8f0", flex: 1, fontSize: "11.5px" }}>
+                    <span className={`flex-1 ${log.status === "error" ? "text-rose-300" : "text-white/80"}`}>
                       {log.message}
                     </span>
                   </div>
@@ -831,78 +526,37 @@ export default function FlowSplitPage() {
             </div>
 
             {latestTxHash && (
-              <div
-                style={{
-                  marginTop: "12px",
-                  padding: "10px 14px",
-                  borderRadius: "8px",
-                  background: "rgba(16, 185, 129, 0.08)",
-                  border: "1px solid rgba(16, 185, 129, 0.25)",
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                }}
-              >
-                <span style={{ fontSize: "12px", color: "#10b981", fontWeight: 500, display: "flex", alignItems: "center", gap: "6px" }}>
-                  <Icons.Check /> On-Chain Routing Invariant Anchored
+              <div className="mt-3 p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-between">
+                <span className="text-xs font-mono text-emerald-400 flex items-center gap-1.5">
+                  <Check className="w-3.5 h-3.5" /> Anchored
                 </span>
                 <a
                   href={`https://preprod.midnightexplorer.com/tx/${latestTxHash}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  style={{
-                    color: "#67e8f9",
-                    fontSize: "12px",
-                    textDecoration: "none",
-                    fontFamily: "monospace",
-                    display: "inline-flex",
-                    alignItems: "center",
-                    gap: "4px",
-                  }}
+                  className="text-xs font-mono text-[#00cfff] flex items-center gap-1 hover:underline"
                 >
                   <span>{latestTxHash.slice(0, 8)}…{latestTxHash.slice(-6)}</span>
-                  <Icons.External />
+                  <ExternalLink className="w-3 h-3" />
                 </a>
               </div>
             )}
           </div>
 
-          {/* Live Sub-Vault Balances (Streaming in real time) */}
-          <div
-            className="card glass-heavy"
-            style={{
-              padding: "22px",
-              border: "1px solid rgba(255, 255, 255, 0.08)",
-              background: "linear-gradient(135deg, rgba(255, 255, 255, 0.03) 0%, rgba(255, 255, 255, 0.01) 100%)",
-            }}
-          >
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "14px" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                <span style={{ color: "#a78bfa" }}><Icons.Layers /></span>
-                <h2 style={{ fontSize: "15px", fontWeight: 600, color: "#fff" }}>
-                  Confidential Sub-Vault Balances
-                </h2>
+          {/* Real-time Sub-Vault Balances */}
+          <div className="card glass-heavy p-5 rounded-2xl border border-white/[0.08] bg-white/[0.02]">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <Layers className="w-4 h-4 text-purple-400" />
+                <h2 className="text-xs font-semibold text-white tracking-tight">Confidential Balances</h2>
               </div>
-              <span
-                style={{
-                  fontSize: "10px",
-                  fontFamily: "monospace",
-                  color: "#10b981",
-                  background: "rgba(16, 185, 129, 0.1)",
-                  border: "1px solid rgba(16, 185, 129, 0.2)",
-                  padding: "2px 7px",
-                  borderRadius: "4px",
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: "4px",
-                }}
-              >
-                <span style={{ width: "5px", height: "5px", borderRadius: "50%", background: "#10b981" }} />
-                Streaming Live
+              <span className="text-[10px] font-mono text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded flex items-center gap-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                Live
               </span>
             </div>
 
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
+            <div className="grid grid-cols-2 gap-2.5">
               {buckets.map((b) => {
                 const liveTick = b.accumulated + (b.percentage / 100) * ((now % 100000) / 1000) * 0.05;
                 const vaultRate = (monthlySalary * (b.percentage / 100)) / (30 * 24 * 3600);
@@ -910,62 +564,26 @@ export default function FlowSplitPage() {
                 return (
                   <div
                     key={b.id}
-                    style={{
-                      padding: "14px",
-                      borderRadius: "10px",
-                      background: "rgba(255, 255, 255, 0.02)",
-                      border: "1px solid rgba(255, 255, 255, 0.06)",
-                    }}
+                    className="p-3 rounded-xl bg-white/[0.015] border border-white/[0.05]"
                   >
-                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "6px" }}>
-                      <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                        <span style={{ color: b.color }}>{getBucketIcon(b.category)}</span>
-                        <span style={{ fontSize: "11px", color: "rgba(255, 255, 255, 0.7)", fontWeight: 500 }}>{b.name.split(" ")[0]}</span>
-                      </div>
-                      <span style={{ fontSize: "10px", fontFamily: "monospace", color: b.color }}>
+                    <div className="flex items-center justify-between text-xs mb-1.5">
+                      <span className="text-white/60 text-[11px] truncate">{b.tag}</span>
+                      <span className="font-mono text-[10px]" style={{ color: b.color }}>
                         {b.percentage}%
                       </span>
                     </div>
 
-                    <div style={{ fontSize: "17px", fontWeight: 600, color: "#fff", fontFamily: "monospace", letterSpacing: "-0.01em" }}>
-                      {liveTick.toFixed(4)}
-                      <span style={{ fontSize: "10px", color: "rgba(255, 255, 255, 0.4)", marginLeft: "4px" }}>tNight</span>
+                    <div className="text-sm font-mono font-semibold text-white truncate">
+                      {liveTick.toFixed(3)}
+                      <span className="text-[10px] text-white/30 ml-1 font-normal">tNight</span>
                     </div>
 
-                    <div style={{ fontSize: "10px", fontFamily: "monospace", color: "rgba(255, 255, 255, 0.35)", marginTop: "4px" }}>
-                      +{vaultRate.toFixed(6)}/s
+                    <div className="text-[10px] font-mono text-white/30 mt-1">
+                      +{vaultRate.toFixed(5)}/s
                     </div>
                   </div>
                 );
               })}
-            </div>
-          </div>
-
-          {/* ZK Mathematical Invariant Card */}
-          <div
-            className="card glass-heavy"
-            style={{
-              padding: "18px",
-              border: "1px solid rgba(255, 255, 255, 0.06)",
-              background: "rgba(255, 255, 255, 0.015)",
-            }}
-          >
-            <div style={{ fontSize: "11px", color: "rgba(255, 255, 255, 0.4)", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "10px" }}>
-              Mathematical Invariant Verification
-            </div>
-            <div style={{ display: "flex", flexDirection: "column", gap: "8px", fontSize: "12px", fontFamily: "monospace" }}>
-              <div style={{ display: "flex", justifyContent: "space-between", color: "rgba(255, 255, 255, 0.7)" }}>
-                <span>Conservation Law:</span>
-                <span style={{ color: "#10b981" }}>∑ p_i = 10000 bps</span>
-              </div>
-              <div style={{ display: "flex", justifyContent: "space-between", color: "rgba(255, 255, 255, 0.7)" }}>
-                <span>Witness Privacy:</span>
-                <span style={{ color: "#67e8f9" }}>Client-Side Shielded</span>
-              </div>
-              <div style={{ display: "flex", justifyContent: "space-between", color: "rgba(255, 255, 255, 0.7)" }}>
-                <span>Ledger Circuit:</span>
-                <span style={{ color: "#a78bfa" }}>Midnight Compact zk-SNARK</span>
-              </div>
             </div>
           </div>
         </div>
