@@ -493,9 +493,17 @@ export async function executeFlowSplitRouting(
   log('Initializing 1AM wallet shielded keys for FlowSplit routing circuit…');
   const providers = await setupProviders(api);
 
-  const sumPercent = config.buckets.reduce((acc, b) => acc + b.percentage, 0);
-  if (sumPercent !== 100) {
+  // Verify strict ZK conservation invariant: sum(percentages) must equal 100% within basis-point precision
+  const sumPercent = Math.round(config.buckets.reduce((acc, b) => acc + b.percentage, 0) * 100) / 100;
+  if (Math.abs(sumPercent - 100) > 0.01) {
     throw new Error(`FlowSplit allocation percentages must sum to 100% (currently ${sumPercent}%)`);
+  }
+
+  // Verify non-negative constraint in ZK private witness to prevent underflow attacks
+  for (const b of config.buckets) {
+    if (b.percentage < 0 || isNaN(b.percentage)) {
+      throw new Error(`Invalid allocation for vault ${b.name}: ${b.percentage}% (must be non-negative)`);
+    }
   }
 
   log(`Compiling routing table: ${config.buckets.map(b => `${b.name} (${b.percentage}%)`).join(', ')}…`);
