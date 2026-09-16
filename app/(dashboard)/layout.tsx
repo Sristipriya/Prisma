@@ -3,20 +3,10 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useWallet } from '@/components/WalletContext';
-import { supabase } from '@/lib/supabase';
+import { supabase, getAuthenticatedUser, getUserProfile, isRouteAuthorized, UserRole } from '@/lib/supabase';
 import { PrismaLogo } from '@/components/glowinn/icons';
 import { DarkGradientBg } from '@/components/ui/elegant-dark-pattern';
 import './dashboard.css';
-
-const NAV_ITEMS = [
-  { name: 'Payroll Streams', href: '/payroll', desc: 'Shielded salary distribution' },
-  { name: 'Vendor Settlements', href: '/vendor', desc: 'ZK invoice payments' },
-  { name: 'VaultGuard', href: '/vaultguard', desc: 'ZK Treasury Solvency' },
-  { name: 'StreamCredit', href: '/streamcredit', desc: 'ZK Salary Advance' },
-  { name: 'FlowSplit', href: '/flowsplit', desc: 'ZK Stream Routing' },
-  { name: 'AuditPass', href: '/auditpass', desc: 'ZK Tax & Scoped Audit' },
-  { name: 'ZK Analytics', href: '/analytics', desc: 'Live proof telemetry' },
-];
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -26,25 +16,71 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [walletLoading, setWalletLoading] = useState(false);
 
-  const [userRole, setUserRole] = useState<'employer' | 'employee' | null>(null);
+  const [userRole, setUserRole] = useState<UserRole | null>(null);
+  const [userEmail, setUserEmail] = useState<string | null>(null);
 
   React.useEffect(() => {
-    const checkAuth = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        router.push('/login');
-      } else {
-        const { data: profile } = await supabase.from('profiles').select('role').eq('id', session.user.id).single();
-        if (profile) setUserRole(profile.role as 'employer' | 'employee');
-        setAuthChecking(false);
+    let isMounted = true;
+
+    const validateAuthAndAccess = async () => {
+      try {
+        // 1. Cryptographically validate JWT with Supabase Auth server
+        const user = await getAuthenticatedUser();
+        if (!user) {
+          if (isMounted) {
+            const safeRedirect = encodeURIComponent(pathname);
+            router.replace(`/login?redirect=${safeRedirect}`);
+          }
+          return;
+        }
+
+        if (isMounted) {
+          setUserEmail(user.email || null);
+        }
+
+        // 2. Fetch authenticated profile and role
+        const profile = await getUserProfile(user.id);
+        const role: UserRole = profile?.role === 'employee' ? 'employee' : 'employer';
+
+        if (isMounted) {
+          setUserRole(role);
+        }
+
+        // 3. Enforce strict Role-Based Access Control (RBAC)
+        const { authorized, redirectPath } = isRouteAuthorized(role, pathname);
+        if (!authorized && redirectPath) {
+          router.replace(redirectPath);
+          return;
+        }
+
+        if (isMounted) {
+          setAuthChecking(false);
+        }
+      } catch (err) {
+        console.error('[AuthGuard] Validation error:', err);
+        if (isMounted) {
+          router.replace('/login');
+        }
       }
     };
-    checkAuth();
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (!session) router.push('/login');
+
+    validateAuthAndAccess();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_OUT' || !session) {
+        setUserRole(null);
+        setUserEmail(null);
+        router.replace('/login');
+      } else if (event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED') {
+        validateAuthAndAccess();
+      }
     });
-    return () => subscription.unsubscribe();
-  }, [router]);
+
+    return () => {
+      isMounted = false;
+      subscription.unsubscribe();
+    };
+  }, [pathname, router]);
 
   const navItems = userRole === 'employee' 
     ? [
@@ -70,15 +106,22 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   };
 
   const handleSignOut = async () => {
-    await supabase.auth.signOut();
-    router.push('/login');
+    try {
+      await supabase.auth.signOut();
+    } catch (err) {
+      console.warn('Sign out error:', err);
+    } finally {
+      setUserRole(null);
+      setUserEmail(null);
+      router.replace('/login');
+    }
   };
 
   if (authChecking) {
     return (
       <div className="db-loading">
         <div className="db-loading__spinner" />
-        <span>Verifying session…</span>
+        <span>Verifying cryptographic session…</span>
       </div>
     );
   }
@@ -89,7 +132,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       {/* ── SIDEBAR (Tailwind Liquid Glass) ── */}
       <aside className="hidden md:flex w-64 min-w-[256px] flex-col h-screen sticky top-0 bg-white/[0.03] border-r border-white/5 backdrop-blur-[48px] saturate-150 shadow-[inset_1px_0_0_rgba(0,207,255,0.03)] z-40">
         {/* Brand */}
-        <div className="p-6">
+        <div className="p-6 pb-3">
           <Link href="/" className="flex items-center gap-3 transition-opacity hover:opacity-80">
             <PrismaLogo size={24} />
             <div className="flex flex-col">
@@ -97,6 +140,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               <span className="text-white/30 text-[10px] font-mono uppercase tracking-widest">dApp Dashboard</span>
             </div>
           </Link>
+          <div className="mt-3 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-white/[0.03] border border-white/10 text-[10px] font-mono">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#00cfff] shadow-[0_0_6px_rgba(0,207,255,0.6)]" />
+            <span className="text-white/60 capitalize font-medium">{userRole === 'employee' ? 'Worker Session' : 'Employer Session'}</span>
+          </div>
         </div>
 
         {/* Network chip */}
@@ -179,8 +226,19 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <span>{mobileNavOpen ? '✕' : '☰'}</span>
           </button>
 
-          <div className="text-[13px] font-medium tracking-wide text-white/90">
-            {navItems.find(n => n.href === pathname)?.name ?? 'Dashboard'}
+          <div className="flex items-center gap-2.5">
+            <div className="text-[13px] font-medium tracking-wide text-white/90">
+              {navItems.find(n => n.href === pathname)?.name ?? 'Dashboard'}
+            </div>
+            {userRole && (
+              <span className={`px-2 py-0.5 rounded text-[9px] font-mono uppercase tracking-wider ${
+                userRole === 'employee'
+                  ? 'bg-blue-500/10 text-blue-300 border border-blue-500/20'
+                  : 'bg-emerald-500/10 text-emerald-300 border border-emerald-500/20'
+              }`}>
+                {userRole === 'employee' ? 'Worker' : 'Employer'}
+              </span>
+            )}
           </div>
 
           <div className="flex items-center gap-3">

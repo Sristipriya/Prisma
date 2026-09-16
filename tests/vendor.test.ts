@@ -6,14 +6,14 @@ setNetworkId("undeployed");
 
 describe("Vendor Settlement Circuit Zero-Knowledge Validation", () => {
   it("settles invoice securely within vendor budget", () => {
-    const simulator = new VendorSimulator(100000n);
-    const updatedLedger = simulator.settleInvoice(45000n);
-    expect(updatedLedger.total_spent).toBe(45000n);
+    const simulator = new VendorSimulator(BigInt(100000));
+    const updatedLedger = simulator.settleInvoice(BigInt(45000));
+    expect(updatedLedger.total_spent).toBe(BigInt(45000));
   });
 
   it("blocks invoice settlement if it exceeds the vendor allocation budget", () => {
-    const simulator = new VendorSimulator(50000n);
-    simulator.settleInvoice(45000n);
-    expect(() => simulator.settleInvoice(6000n)).toThrow("failed assert: Spending limit exceeded");
+    const simulator = new VendorSimulator(BigInt(50000));
+    simulator.settleInvoice(BigInt(45000));
+    expect(() => simulator.settleInvoice(BigInt(6000))).toThrow("failed assert: Spending limit exceeded");
   });
 });

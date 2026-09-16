@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect } from 'react';
 import { useWallet } from '@/components/WalletContext';
-import { supabase } from '@/lib/supabase';
+import { supabase, getAuthenticatedUser } from '@/lib/supabase';
 import { toast } from 'sonner';
 import '../dashboard-pages.css';
 
@@ -48,8 +48,8 @@ export default function PayrollPage() {
 
   const fetchStreamsAndEmployees = async () => {
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) return;
+      const user = await getAuthenticatedUser();
+      if (!user) return;
       
       const [streamsRes, employeesRes] = await Promise.all([
         supabase.from('payroll_streams').select('*').order('created_at', { ascending: false }),
@@ -103,8 +103,8 @@ export default function PayrollPage() {
     setIsDeploying(true);
     const t = toast.loading('Initializing ZK circuit…');
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) throw new Error('Auth required');
+      const user = await getAuthenticatedUser();
+      if (!user) throw new Error('Cryptographically verified session required');
 
       const midnightWallets = (window as any).midnight || {};
       const midnightObj = midnightWallets['1am'] || midnightWallets.mnLace || Object.values(midnightWallets)[0];
@@ -121,7 +121,7 @@ export default function PayrollPage() {
       }
 
       const { data, error } = await supabase.from('payroll_streams').insert([{
-        user_id: session.user.id,
+        user_id: user.id,
         employee_id: selectedEmp.id,
         employee_name: selectedEmp.full_name,
         employee_address: selectedEmp.shielded_address || 'mn_shield_tbd',

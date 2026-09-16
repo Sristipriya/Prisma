@@ -1,16 +1,26 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { supabase } from '@/lib/supabase';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { 
+  supabase, 
+  getAuthenticatedUser, 
+  getUserProfile, 
+  sanitizeRedirectPath, 
+  isRouteAuthorized, 
+  UserRole 
+} from '@/lib/supabase';
 import { PrismaLogo } from '@/components/glowinn/icons';
 import { DarkGradientBg } from '@/components/ui/elegant-dark-pattern';
 
 type Mode = 'signin' | 'signup';
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const rawRedirect = searchParams.get('redirect');
+
   const [mode, setMode] = useState<Mode>('signin');
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -18,81 +28,170 @@ export default function LoginPage() {
   const [confirmPw, setConfirmPw] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [notice, setNotice] = useState('');
+  const [checkingSession, setCheckingSession] = useState(true);
 
-  const [role, setRole] = useState<'employer' | 'employee'>('employer');
+  const [role, setRole] = useState<UserRole>('employer');
+
+  // If user already holds a valid cryptographic session, navigate to their authorized route
+  useEffect(() => {
+    let isMounted = true;
+
+    const checkExistingAuth = async () => {
+      try {
+        const user = await getAuthenticatedUser();
+        if (user && isMounted) {
+          const profile = await getUserProfile(user.id);
+          const activeRole: UserRole = profile?.role === 'employee' ? 'employee' : 'employer';
+          const defaultDest = activeRole === 'employee' ? '/worker' : '/payroll';
+
+          if (rawRedirect) {
+            const safePath = sanitizeRedirectPath(rawRedirect, defaultDest);
+            const { authorized, redirectPath } = isRouteAuthorized(activeRole, safePath);
+            router.replace(authorized ? safePath : (redirectPath || defaultDest));
+          } else {
+            router.replace(defaultDest);
+          }
+          return;
+        }
+      } catch (err) {
+        console.warn('[Login] Session pre-check error:', err);
+      } finally {
+        if (isMounted) setCheckingSession(false);
+      }
+    };
+
+    checkExistingAuth();
+    return () => { isMounted = false; };
+  }, [rawRedirect, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setNotice('');
+
+    const cleanEmail = email.trim().toLowerCase();
+    const cleanPassword = password.trim();
+
+    // Input Validation
+    if (!cleanEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) {
+      setError('Please provide a valid corporate or work email address.');
+      return;
+    }
+
+    if (cleanPassword.length < 8) {
+      setError('Password must be at least 8 characters for cryptographic security.');
+      return;
+    }
+
     setLoading(true);
 
     try {
-      let userId = '';
       if (mode === 'signup') {
-        if (password !== confirmPw) {
-          setError('Passwords do not match.');
+        const cleanName = name.trim();
+        if (!cleanName || cleanName.length < 2) {
+          setError('Please provide your full legal name or organization name.');
           setLoading(false);
           return;
         }
-        if (password.length < 8) {
-          setError('Password must be at least 8 characters.');
+
+        if (cleanPassword !== confirmPw.trim()) {
+          setError('Passwords do not match. Please verify your password confirmation.');
           setLoading(false);
           return;
         }
+
+        // 1. Sign Up user with Supabase Auth
         const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
-          email,
-          password,
-          options: { data: { full_name: name } },
+          email: cleanEmail,
+          password: cleanPassword,
+          options: { 
+            data: { full_name: cleanName, role: role } 
+          },
         });
+
         if (signUpError) throw signUpError;
+
+        const userId = signUpData.user?.id;
         
-        userId = signUpData.user?.id || '';
-        
-        const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
-        if (signInError) throw signInError;
-        
-        if (userId) {
-          await supabase.from('profiles').upsert([{ 
-            id: userId, 
-            role: role, 
-            full_name: name 
-          }]);
-        }
-        
-        router.push(role === 'employer' ? '/payroll' : '/worker');
-      } else {
-        const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({ email, password });
-        if (signInError) throw signInError;
-        
-        userId = signInData.user?.id || '';
-        if (userId) {
-          const { data: profile } = await supabase.from('profiles').select('role').eq('id', userId).single();
-          if (profile?.role === 'employee') {
-            router.push('/worker');
-            return;
+        // Check if session was granted immediately (auto-confirm) or if confirmation email was sent
+        if (signUpData.session) {
+          if (userId) {
+            await supabase.from('profiles').upsert([{ 
+              id: userId, 
+              role: role, 
+              full_name: cleanName 
+            }]);
           }
+
+          const defaultDest = role === 'employee' ? '/worker' : '/payroll';
+          const safePath = sanitizeRedirectPath(rawRedirect, defaultDest);
+          const { authorized, redirectPath } = isRouteAuthorized(role, safePath);
+          router.replace(authorized ? safePath : (redirectPath || defaultDest));
+        } else {
+          // Email confirmation is enabled
+          setNotice('Account registered! If confirmation is required, please check your inbox before signing in.');
+          setMode('signin');
+          setPassword('');
+          setConfirmPw('');
         }
-        router.push('/payroll');
+      } else {
+        // 2. Sign In flow with cryptographic server authentication
+        const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({ 
+          email: cleanEmail, 
+          password: cleanPassword 
+        });
+
+        if (signInError) throw signInError;
+
+        const userId = signInData.user?.id;
+        if (!userId) throw new Error('Authentication returned an invalid user record.');
+
+        // Fetch user profile and RBAC role
+        const profile = await getUserProfile(userId);
+        const userRole: UserRole = profile?.role === 'employee' ? 'employee' : 'employer';
+
+        const defaultDest = userRole === 'employee' ? '/worker' : '/payroll';
+        const safePath = sanitizeRedirectPath(rawRedirect, defaultDest);
+        const { authorized, redirectPath } = isRouteAuthorized(userRole, safePath);
+        
+        router.replace(authorized ? safePath : (redirectPath || defaultDest));
       }
     } catch (err: any) {
-      setError(err.message || 'Authentication failed. Please try again.');
+      console.warn('[Login Error]', err);
+      const msg = err.message || '';
+      if (msg.toLowerCase().includes('invalid login credentials')) {
+        setError('Invalid email or password. Please verify your credentials and try again.');
+      } else if (msg.toLowerCase().includes('already registered')) {
+        setError('This email is already registered. Please sign in or reset your password.');
+      } else {
+        setError(msg || 'Authentication failed. Please verify your network and credentials.');
+      }
     } finally {
       setLoading(false);
     }
   };
 
+  if (checkingSession) {
+    return (
+      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ textAlign: 'center', color: 'rgba(255,255,255,0.6)', fontSize: '13px', fontFamily: "'Jost', sans-serif" }}>
+          <div className="db-loading__spinner" style={{ margin: '0 auto 16px' }} />
+          <span>Verifying existing session…</span>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <DarkGradientBg>
-      <div style={{
-        minHeight: '100vh',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: '24px',
-        fontFamily: "'Jost', sans-serif",
-      }}>
-
-
+    <div style={{
+      minHeight: '100vh',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: '24px',
+      fontFamily: "'Jost', sans-serif",
+    }}>
       <div style={{ width: '100%', maxWidth: '420px', position: 'relative', zIndex: 10 }}>
         {/* Brand */}
         <div style={{ textAlign: 'center', marginBottom: '32px' }}>
@@ -130,7 +229,7 @@ export default function LoginPage() {
             {(['signin', 'signup'] as Mode[]).map((m) => (
               <button
                 key={m}
-                onClick={() => { setMode(m); setError(''); }}
+                onClick={() => { setMode(m); setError(''); setNotice(''); }}
                 style={{
                   flex: 1,
                   padding: '9px 16px',
@@ -156,7 +255,7 @@ export default function LoginPage() {
             {/* Role selector — only for signup */}
             {mode === 'signup' && (
               <div>
-                <label style={labelStyle}>I am a...</label>
+                <label style={labelStyle}>Access Role</label>
                 <div style={{ display: 'flex', gap: '10px' }}>
                   <button
                     type="button"
@@ -193,13 +292,13 @@ export default function LoginPage() {
             {/* Name field — only for signup */}
             {mode === 'signup' && (
               <div>
-                <label style={labelStyle}>Full Name</label>
+                <label style={labelStyle}>Full Name / Organization</label>
                 <input
                   type="text"
                   value={name}
                   onChange={e => setName(e.target.value)}
                   required={mode === 'signup'}
-                  placeholder="Jane Smith"
+                  placeholder="Jane Smith or Apex Labs Inc."
                   style={inputStyle}
                   onFocus={e => Object.assign(e.target.style, inputFocusStyle)}
                   onBlur={e => Object.assign(e.target.style, inputStyle)}
@@ -228,7 +327,7 @@ export default function LoginPage() {
                 value={password}
                 onChange={e => setPassword(e.target.value)}
                 required
-                placeholder="••••••••"
+                placeholder="•••••••• (min 8 chars)"
                 style={inputStyle}
                 onFocus={e => Object.assign(e.target.style, inputFocusStyle)}
                 onBlur={e => Object.assign(e.target.style, inputStyle)}
@@ -251,7 +350,7 @@ export default function LoginPage() {
               </div>
             )}
 
-            {/* Error */}
+            {/* Error Message */}
             {error && (
               <div style={{
                 padding: '12px 16px',
@@ -263,6 +362,21 @@ export default function LoginPage() {
                 lineHeight: 1.5,
               }}>
                 {error}
+              </div>
+            )}
+
+            {/* Informational Notice */}
+            {notice && (
+              <div style={{
+                padding: '12px 16px',
+                borderRadius: '10px',
+                background: 'rgba(110,231,183,0.08)',
+                border: '1px solid rgba(110,231,183,0.2)',
+                color: '#6ee7b7',
+                fontSize: '13px',
+                lineHeight: 1.5,
+              }}>
+                {notice}
               </div>
             )}
 
@@ -287,7 +401,7 @@ export default function LoginPage() {
               }}
             >
               {loading
-                ? (mode === 'signin' ? 'Signing in...' : 'Creating account...')
+                ? (mode === 'signin' ? 'Authenticating…' : 'Provisioning Account…')
                 : (mode === 'signin' ? 'Sign In to Dashboard →' : 'Create Account & Launch →')}
             </button>
           </form>
@@ -297,7 +411,7 @@ export default function LoginPage() {
             <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.3)' }}>
               {mode === 'signin' ? "Don't have an account? " : 'Already have an account? '}
               <button
-                onClick={() => { setMode(mode === 'signin' ? 'signup' : 'signin'); setError(''); }}
+                onClick={() => { setMode(mode === 'signin' ? 'signup' : 'signin'); setError(''); setNotice(''); }}
                 style={{
                   background: 'none', border: 'none', color: '#6ee7b7',
                   cursor: 'pointer', fontSize: '12px', fontFamily: "'Jost', sans-serif",
@@ -316,7 +430,20 @@ export default function LoginPage() {
           Protected by zero-knowledge cryptography · Midnight Network
         </p>
       </div>
-      </div>
+    </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <DarkGradientBg>
+      <Suspense fallback={
+        <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div className="db-loading__spinner" />
+        </div>
+      }>
+        <LoginForm />
+      </Suspense>
     </DarkGradientBg>
   );
 }

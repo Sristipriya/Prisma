@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect, useCallback } from 'react';
-import { supabase } from '@/lib/supabase';
+import { supabase, getAuthenticatedUser } from '@/lib/supabase';
 import '../dashboard-pages.css';
 
 interface AuditEntry {
@@ -22,8 +22,8 @@ export default function AnalyticsPage() {
 
   const fetchStats = useCallback(async () => {
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) return;
+      const user = await getAuthenticatedUser();
+      if (!user) return;
 
       const { data: payrollData } = await supabase.from('payroll_streams')
         .select('amount, employee_name, proof_hash, contract_address, start_time, created_at')

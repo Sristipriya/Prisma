@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect } from 'react';
 import { useWallet } from '@/components/WalletContext';
-import { supabase } from '@/lib/supabase';
+import { supabase, getAuthenticatedUser } from '@/lib/supabase';
 import { toast } from 'sonner';
 import '../dashboard-pages.css';
 
@@ -44,8 +44,8 @@ export default function VendorPage() {
 
   const fetchInvoices = async () => {
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) return;
+      const user = await getAuthenticatedUser();
+      if (!user) return;
       const { data, error } = await supabase.from('vendor_invoices').select('*').order('created_at', { ascending: false });
       if (error) throw error;
       setInvoices((data as VendorInvoice[]) || []);
@@ -70,8 +70,8 @@ export default function VendorPage() {
     setIsPaying(true);
     const t = toast.loading('Initiating shielded settlement…');
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) throw new Error('Auth required');
+      const user = await getAuthenticatedUser();
+      if (!user) throw new Error('Cryptographically verified session required');
 
       const midnightWallets = (window as any).midnight || {};
       const midnightObj = midnightWallets['1am'] || midnightWallets.mnLace || Object.values(midnightWallets)[0];
@@ -87,7 +87,7 @@ export default function VendorPage() {
       }
 
       const { data, error } = await supabase.from('vendor_invoices').insert([{
-        user_id: session.user.id,
+        user_id: user.id,
         invoice_id: invoiceId,
         vendor_name: vendorName,
         vendor_address: vendorAddress,

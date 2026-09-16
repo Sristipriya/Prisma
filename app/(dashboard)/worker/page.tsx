@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect } from 'react';
 import { useWallet } from '@/components/WalletContext';
-import { supabase } from '@/lib/supabase';
+import { supabase, getAuthenticatedUser } from '@/lib/supabase';
 import { toast } from 'sonner';
 import '../dashboard-pages.css';
 
@@ -47,16 +47,16 @@ export default function WorkerPage() {
 
   const fetchStreams = async () => {
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) return;
+      const user = await getAuthenticatedUser();
+      if (!user) return;
       
-      const { data: profile } = await supabase.from('profiles').select('*').eq('id', session.user.id).single();
+      const { data: profile } = await supabase.from('profiles').select('*').eq('id', user.id).single();
       if (!profile) return;
 
       // Select all stream fields without forcing fragile PostgREST foreign key joins
       const { data, error } = await supabase.from('payroll_streams')
         .select('*')
-        .or(`employee_id.eq.${session.user.id},user_id.eq.${session.user.id}`)
+        .or(`employee_id.eq.${user.id},user_id.eq.${user.id}`)
         .order('created_at', { ascending: false });
 
       if (error) throw error;

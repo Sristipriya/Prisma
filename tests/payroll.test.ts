@@ -6,14 +6,14 @@ setNetworkId("undeployed");
 
 describe("Payroll Circuit Zero-Knowledge Validation", () => {
   it("processes payroll within total budget", () => {
-    const simulator = new PayrollSimulator(50000n);
-    const updatedLedger = simulator.payEmployee(15000n);
-    expect(updatedLedger.total_spent).toBe(15000n);
+    const simulator = new PayrollSimulator(BigInt(50000));
+    const updatedLedger = simulator.payEmployee(BigInt(15000));
+    expect(updatedLedger.total_spent).toBe(BigInt(15000));
   });
 
   it("halts payroll if total budget limit is exceeded without leaking individual salary", () => {
-    const simulator = new PayrollSimulator(20000n);
-    simulator.payEmployee(15000n);
-    expect(() => simulator.payEmployee(6000n)).toThrow("failed assert: Spending limit exceeded");
+    const simulator = new PayrollSimulator(BigInt(20000));
+    simulator.payEmployee(BigInt(15000));
+    expect(() => simulator.payEmployee(BigInt(6000))).toThrow("failed assert: Spending limit exceeded");
   });
 });
