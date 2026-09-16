@@ -216,7 +216,7 @@ export default function FlowSplitPage() {
         <span>
           Route Active!{" "}
           <a
-            href={`https://preprod.midnightexplorer.com/tx/${res.txHash}`}
+            href={`https://preprod.midnightexplorer.com/transactions/${res.txHash}`}
             target="_blank"
             rel="noopener noreferrer"
             style={{ textDecoration: "underline", color: "#67e8f9" }}
@@ -531,7 +531,7 @@ export default function FlowSplitPage() {
                   <Check className="w-3.5 h-3.5" /> Anchored
                 </span>
                 <a
-                  href={`https://preprod.midnightexplorer.com/tx/${latestTxHash}`}
+                  href={`https://preprod.midnightexplorer.com/transactions/${latestTxHash}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-xs font-mono text-[#00cfff] flex items-center gap-1 hover:underline"

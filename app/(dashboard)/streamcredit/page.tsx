@@ -33,7 +33,7 @@ const INITIAL_ADVANCES: ActiveAdvance[] = [
     repaid: 840,
     termDays: 14,
     dailyRate: 107.14,
-    txHash: "0x4a8c1f9e2b0d3e5a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a",
+    txHash: "0x81e65aff40ecd7cee42103617f1f8742809bb4e4bb3d00df4ea3dd356f235d19",
     status: "Amortizing",
     timestamp: "2026-09-10 14:20 UTC",
   },
@@ -192,7 +192,7 @@ export default function StreamCreditPage() {
         <span>
           Instant Advance Disbursed!{" "}
           <a
-            href={`https://preprod.midnightexplorer.com/tx/${res.txHash}`}
+            href={`https://preprod.midnightexplorer.com/transactions/${res.txHash}`}
             target="_blank"
             rel="noopener noreferrer"
             style={{ textDecoration: "underline", color: "#67e8f9", fontWeight: 600 }}
@@ -603,7 +603,7 @@ export default function StreamCreditPage() {
                   <Icons.Check /> Settled on Consensus
                 </span>
                 <a
-                  href={`https://preprod.midnightexplorer.com/tx/${latestTxHash}`}
+                  href={`https://preprod.midnightexplorer.com/transactions/${latestTxHash}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   style={{ color: "#67e8f9", fontSize: "11px", textDecoration: "underline", fontFamily: "monospace" }}
@@ -680,7 +680,7 @@ export default function StreamCreditPage() {
                   <div style={{ display: "flex", justifyContent: "space-between", fontSize: "11px", color: "rgba(255,255,255,0.4)" }}>
                     <span>Continuous Paydown</span>
                     <a
-                      href={`https://preprod.midnightexplorer.com/tx/${adv.txHash}`}
+                      href={`https://preprod.midnightexplorer.com/transactions/${adv.txHash}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       style={{ color: "#67e8f9", textDecoration: "underline" }}

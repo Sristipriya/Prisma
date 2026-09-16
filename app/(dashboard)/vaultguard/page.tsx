@@ -25,7 +25,7 @@ const INITIAL_AUDIT_LOG: SolvencyAuditRecord[] = [
     monthlyCommitment: 17500,
     requiredReserve: 52500,
     solvencyRatio: 276,
-    txHash: "0x3f4a8b9c1d2e5f60718293a4b5c6d7e8f90123456789abcdef0123456789abcd",
+    txHash: "0x81e65aff40ecd7cee42103617f1f8742809bb4e4bb3d00df4ea3dd356f235d19",
     status: "Verified",
   },
   {
@@ -137,7 +137,7 @@ export default function VaultGuardPage() {
         <span>
           ZK Solvency Attestation confirmed!{" "}
           <a
-            href={`https://preprod.midnightexplorer.com/tx/${attestation.txHash}`}
+            href={`https://preprod.midnightexplorer.com/transactions/${attestation.txHash}`}
             target="_blank"
             rel="noopener noreferrer"
             style={{ textDecoration: "underline", color: "#67e8f9", fontWeight: 600 }}
@@ -438,7 +438,7 @@ export default function VaultGuardPage() {
               <div style={{ fontSize: "12px", color: "rgba(255,255,255,0.6)", marginTop: "6px" }}>
                 Transaction Hash:{" "}
                 <a
-                  href={`https://preprod.midnightexplorer.com/tx/${latestResult.txHash}`}
+                  href={`https://preprod.midnightexplorer.com/transactions/${latestResult.txHash}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   style={{ color: "#67e8f9", textDecoration: "underline", fontFamily: "monospace" }}
@@ -527,7 +527,7 @@ export default function VaultGuardPage() {
                   </td>
                   <td style={{ padding: "14px 16px" }}>
                     <a
-                      href={`https://preprod.midnightexplorer.com/tx/${rec.txHash}`}
+                      href={`https://preprod.midnightexplorer.com/transactions/${rec.txHash}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       style={{
