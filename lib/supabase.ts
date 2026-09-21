@@ -64,11 +64,10 @@ export const EMPLOYER_ROUTES = [
   '/circuit-demo',
 ];
 
-export const EMPLOYEE_ROUTES = [
-  '/worker',
-];
+export const EMPLOYEE_ROUTES: string[] = [];
 
 export const SHARED_ROUTES = [
+  '/worker',
   '/streamcredit',
   '/flowsplit',
   '/auditpass',

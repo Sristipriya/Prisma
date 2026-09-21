@@ -91,6 +91,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       ]
     : [
         { name: 'Payroll Streams', href: '/payroll', desc: 'Shielded salary distribution' },
+        { name: 'Worker Portal', href: '/worker', desc: 'Live earnings & claims' },
         { name: 'Vendor Settlements', href: '/vendor', desc: 'ZK invoice payments' },
         { name: 'VaultGuard', href: '/vaultguard', desc: 'ZK Treasury Solvency' },
         { name: 'StreamCredit', href: '/streamcredit', desc: 'ZK Salary Advance' },
