@@ -14,8 +14,10 @@
   [![Next.js](https://img.shields.io/badge/Next.js-14-black)](https://nextjs.org/)
   [![CI/CD Pipeline](https://github.com/Sristipriya/Prisma/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/Sristipriya/Prisma/actions/workflows/ci.yml)
   [![Status](https://img.shields.io/badge/Status-Live-success)](#)
+  [![X Profile](https://img.shields.io/badge/X-@Prismacroe-000000?style=flat&logo=x&logoColor=white)](https://x.com/Prismacroe)
+  [![Official X Post](https://img.shields.io/badge/X-Official%20Announcement-1DA1F2?style=flat&logo=x&logoColor=white)](https://x.com/Prismacroe/status/2101976427503682040?s=20)
   
-  ### 🌐 [Live Application Demo](https://prisma-pi-steel.vercel.app) | 🎥 [YouTube Demo Video](https://youtu.be/uBQMuiqCU8A) | 📄 [Level 4–6 Product Proposal](./PROPOSAL.md)
+  ### 🌐 [Live Application Demo](https://prisma-pi-steel.vercel.app) | 𝕏 [Official X Profile](https://x.com/Prismacroe) | 📢 [Official X Post](https://x.com/Prismacroe/status/2101976427503682040?s=20) | 🎥 [YouTube Demo Video](https://youtu.be/uBQMuiqCU8A) | 📄 [Level 4–6 Product Proposal](./PROPOSAL.md)
 </div>
 
 ---
@@ -34,7 +36,7 @@ Watch the complete live walkthrough demonstrating **1AM Wallet connection**, shi
 
 | Network | Contract Module | Deployed Contract Address | Explorer Verification | Verification Status |
 | :--- | :--- | :--- | :--- | :---: |
-| **Midnight Preprod** | `PayrollStream` | `0x6db3284190db9c089c0c2704b84062826c6eff39e5b31ce8ec138363c9d08f2f` | [View on Preprod Explorer](https://preprod.midnightexplorer.com/contracts/0x6db3284190db9c089c0c2704b84062826c6eff39e5b31ce8ec138363c9d08f2f) | `VERIFIED` |
+| **Midnight Preprod** | `PayrollStream` | `0x6db3284190db9c089c0c2704b84062826c6eff39e5b31ce8ec138363c9d08f2f` | [View on Preprod Explorer](https://explorer.preprod.midnight.network/contracts/6db3284190db9c089c0c2704b84062826c6eff39e5b31ce8ec138363c9d08f2f) | `VERIFIED` |
 | **Midnight Preview** | `VendorSettlement` | `e0c9d5d6d0ce7d5dc8dd4251a8d5ba0b368c42bb653f85b444e1318d93221f70` | [View on Preview Explorer](https://preview.midnightexplorer.com/contracts/e0c9d5d6d0ce7d5dc8dd4251a8d5ba0b368c42bb653f85b444e1318d93221f70)| `VERIFIED` |
 
 ---
@@ -57,10 +59,14 @@ Prisma 2.0 introduces four breakthrough Zero-Knowledge enterprise modules that e
 * **The Enterprise Problem:** Organizations streaming payroll must prove to their employees, contractors, and auditors that their treasury holds sufficient locked reserves to guarantee continuous salary streaming over a 30-, 60-, 90-, or 180-day horizon. However, publishing raw treasury balances leaks corporate burn rates, revenues, and cash reserves to competitors.
 * **The Midnight ZK Solution:** 
   * Computes an on-chain Zero-Knowledge Solvency Attestation proving:
-    $\\text{Private Treasury Reserves } \\ge \\left\\lceil\\frac{\\sum \\text{Monthly Commitments}}{30}\\right\\rceil \\times \\text{Runway Horizon (Days)}$
-  * Anchors the mathematical proof to Midnight Preprod contract [`0x6db3284190db9c089c0c2704b84062826c6eff39e5b31ce8ec138363c9d08f2f`](https://preprod.midnightexplorer.com/contracts/0x6db3284190db9c089c0c2704b84062826c6eff39e5b31ce8ec138363c9d08f2f).
-  * **Worker Trust Badge:** Every worker dashboard stream card displays a live `🛡️ VaultGuard: 100% Backed` badge linking directly to the immutable audit ledger on Midnight Explorer.
+    $\text{Private Treasury Reserves } \ge \left\lceil\frac{\sum \text{Monthly Commitments}}{30}\right\rceil \times \text{Runway Horizon (Days)}$
+  * Anchors the mathematical proof to Midnight Preprod contract [`0x6db3284190db9c089c0c2704b84062826c6eff39e5b31ce8ec138363c9d08f2f`](https://explorer.preprod.midnight.network/contracts/6db3284190db9c089c0c2704b84062826c6eff39e5b31ce8ec138363c9d08f2f).
+  * **Worker Trust Badge:** Every worker dashboard stream card displays a live `VaultGuard: 100% Backed` badge linking directly to the immutable audit ledger on Midnight Explorer.
   * **Zero Disclosure:** The company's total crypto/bank balance, individual employee salaries, and burn rate remain 100% private.
+
+<div align="center">
+  <img src="./Screenshot/Vault%20Guard.png" alt="Prisma VaultGuard — ZK Treasury Solvency & Runway Attestation" width="100%">
+</div>
 
 ---
 
@@ -72,6 +78,10 @@ Prisma 2.0 introduces four breakthrough Zero-Knowledge enterprise modules that e
   * **Enterprise Scoped Viewing Keys:** Employers issue time-bounded (7, 30, 90 days) cryptographic viewing tokens (`mn_vk_...`) to external audit firms (e.g. PwC, Ernst & Young, Deloitte, IRS). These tokens mathematically decrypt only aggregate quarterly payroll deductions while keeping individual employee names, addresses, and compensation cryptographically masked.
   * **Auditor Real-Time Verification Portal:** CPAs and tax authorities can query Midnight Preprod consensus in real-time by pasting any Attestation ID or Viewing Token.
 
+<div align="center">
+  <img src="./Screenshot/Audit%20Pass.png" alt="Prisma AuditPass — Selective Compliance & Scoped Viewing Key Enclave" width="100%">
+</div>
+
 ---
 
 ### 🔀 3. Prisma FlowSplit — Confidential Stream Micro-Splits & Autonomous ZK Routing
@@ -80,7 +90,11 @@ Prisma 2.0 introduces four breakthrough Zero-Knowledge enterprise modules that e
 * **The Midnight ZK Solution:**
   * **In-Circuit Autonomous Partitioning:** Workers configure a private allocation table (e.g. 50% Liquid Spendable, 25% Shielded Tax Escrow, 15% Private Cold Storage, 10% Emergency Reserve).
   * **Zero-Leak Stream Diversion:** As salary streams tick second-by-second, Midnight's Compact circuit executes the micro-splits **inside the private witness during accumulation**.
-  * **Value Conservation Invariant:** Enforces $\\sum p_i = 100\\%$ client-side. The employer only sees a single 100% stream to the contract; destination sub-vaults only see their allocated fraction in shielded UTXOs.
+  * **Value Conservation Invariant:** Enforces $\sum p_i = 100\%$ client-side. The employer only sees a single 100% stream to the contract; destination sub-vaults only see their allocated fraction in shielded UTXOs.
+
+<div align="center">
+  <img src="./Screenshot/Autonomous%20Stream%20Routing.png" alt="Prisma FlowSplit — Confidential Stream Micro-Splits & Autonomous ZK Routing" width="100%">
+</div>
 
 ---
 
@@ -92,6 +106,10 @@ Prisma 2.0 introduces four breakthrough Zero-Knowledge enterprise modules that e
   * **Fair Fixed Pricing:** Fixed 1.5% origination fee with 0% predatory compounding APR.
   * **Autonomous Code-Enforced Repayment:** The Midnight Compact circuit automatically diverts incoming per-second stream ticks directly to repay the liquidity facility until the advance is amortized.
   * **Total Confidentiality:** Coworkers, employers, and chain observers cannot tell whether a stream withdrawal was normal salary or an advance repayment.
+
+<div align="center">
+  <img src="./Screenshot/Advance%20Stream.png" alt="Prisma StreamCredit — Stream-Collateralized Liquidity & Instant Salary Advance" width="100%">
+</div>
 
 
 ---
@@ -147,24 +165,40 @@ Here is the complete showcase of all components of the Prisma platform, from UI 
 *Monitor organization treasury, active payroll streams, and ZK proof generation metrics in real-time off-chain.*
 <img src="./Screenshot/Dashboard.png" alt="Dashboard" width="100%" />
 
-### 2. Real-Time Worker Earnings Portal
+### 2. Real-Time Worker Earnings Portal (Live Preprod Mode)
 *Workers watch their salary stream second-by-second and execute zero-knowledge withdrawals directly to their 1AM wallet.*
-<img src="./Screenshot/worker-dashboard.png" alt="Worker Dashboard" width="100%" />
+<img src="./Screenshot/worker%20portal.png" alt="Worker Earnings Portal" width="100%" />
 
-### 3. In-App Payroll Contract Deployment
+### 3. Prisma VaultGuard — ZK Treasury Solvency & Runway Attestation
+*Cryptographically proves 30–180 day payroll runway without leaking corporate bank balances or total burn rate.*
+<img src="./Screenshot/Vault%20Guard.png" alt="Prisma VaultGuard" width="100%" />
+
+### 4. Prisma AuditPass — ZK Tax Attestation & Scoped Auditor Enclave
+*Worker client-side tax attestations and time-bounded enterprise viewing keys for external audit firms.*
+<img src="./Screenshot/Audit%20Pass.png" alt="Prisma AuditPass" width="100%" />
+
+### 5. Prisma FlowSplit — Autonomous Stream Routing & Sub-Vaults
+*In-circuit autonomous micro-routing of streamed salary into private sub-vaults (Tax, Cold Storage, Emergency).*
+<img src="./Screenshot/Autonomous%20Stream%20Routing.png" alt="Prisma FlowSplit" width="100%" />
+
+### 6. Prisma StreamCredit — ZK Stream-Collateralized Salary Advance
+*Instant liquidity advances up to 50% of future earnings with 0% predatory APR and continuous automatic amortization.*
+<img src="./Screenshot/Advance%20Stream.png" alt="Prisma StreamCredit" width="100%" />
+
+### 7. In-App Payroll Contract Deployment
 *Deploy shielded payroll contracts directly from the UI to the Midnight network with custom spending constraints.*
 <img src="./Screenshot/payroll-contract.png" alt="Payroll Contract Deployment" width="100%" />
 
-### 4. Shielded Vendor Settlement Layer
+### 8. Shielded Vendor Settlement Layer
 *Execute confidential B2B vendor settlements with verifiable proof of payment without disclosing invoice metadata.*
 <img src="./Screenshot/vendor-invoice.png" alt="Vendor Invoice Settlement" width="100%" />
 <img src="./Screenshot/vendor-contract.png" alt="Vendor Contract Deployment" width="100%" />
 
-### 5. Client-Side Circuit Execution & Proof Verification
+### 9. Client-Side Circuit Execution & Proof Verification
 *Zero-Knowledge proofs are generated and verified entirely locally in the browser before being broadcasted.*
 <img src="./Screenshot/proof-verification.png" alt="Proof Verification" width="100%" />
 
-### 6. Zero-Knowledge Analytics & Circuit Health
+### 10. Zero-Knowledge Analytics & Circuit Health
 *Real-time visibility into client-side proving times, circuit execution throughput, and shielded balance states.*
 <img src="./Screenshot/zk-analysis.png" alt="ZK Analysis" width="100%" />
 
@@ -182,24 +216,24 @@ Prisma is fully integrated with the Midnight Network. It generates real zero-kno
 
 ### Real Transaction Hash
 *The user executed a transaction that was verified by our ZK circuit and permanently settled on the Midnight network.*
-* **Transaction Hash:** [`0xff6ea8c67cf45e64bc5bc6661e935bc0986631af8d6568ebfd4f27beb996e060`](https://preprod.midnightexplorer.com/transactions/0xff6ea8c67cf45e64bc5bc6661e935bc0986631af8d6568ebfd4f27beb996e060)
+* **Transaction Hash:** [`0x81e65aff40ecd7cee42103617f1f8742809bb4e4bb3d00df4ea3dd356f235d19`](https://explorer.preprod.midnight.network/transactions/0x81e65aff40ecd7cee42103617f1f8742809bb4e4bb3d00df4ea3dd356f235d19)
 * **Status:** `SUCCESS` (Verified via ZK Proof)
 <img src="./Screenshot/preprod-contract.png" alt="Transaction Execution" width="100%" />
 
 ### Verified Contract on Explorer
 *Our core ZK Payroll Engine is live and fully verifiable on the Midnight Blockchain Explorer.*
-* **Contract Address:** [`0x6db3284190db9c089c0c2704b84062826c6eff39e5b31ce8ec138363c9d08f2f`](https://preprod.midnightexplorer.com/contracts/0x6db3284190db9c089c0c2704b84062826c6eff39e5b31ce8ec138363c9d08f2f)
+* **Contract Address:** [`0x6db3284190db9c089c0c2704b84062826c6eff39e5b31ce8ec138363c9d08f2f`](https://explorer.preprod.midnight.network/contracts/6db3284190db9c089c0c2704b84062826c6eff39e5b31ce8ec138363c9d08f2f)
 <img src="./Screenshot/payroll-contract.png" alt="Contract On Chain" width="100%" />
 
-### 7. Compact Compiler Execution Output (Level 1 Verification)
+### 11. Compact Compiler Execution Output (Level 1 Verification)
 *Compact compiler successfully compiling `.compact` source files, generating WASM circuits, ZKIR equivalents, and proving keys.*
 <img src="./Screenshot/compile.png" alt="Compact Compiler Execution" width="100%" />
 
-### 8. Automated CI/CD Pipeline
+### 12. Automated CI/CD Pipeline
 *Automated GitHub Actions workflow validating contract compilation, linting, type-checking, and frontend builds.*
 <img src="./Screenshot/ci-cd.png" alt="CI CD Pipeline" width="100%" />
 
-### 9. Vitest Test Suite Execution (4 Passing Tests)
+### 13. Vitest Test Suite Execution (4 Passing Tests)
 *The test suite contains 4 dedicated automated tests executing locally to cryptographically verify circuit behavior:*
 1. **Circuit Logic:** Ensures the constructor and spend circuits correctly generate valid zero-knowledge proofs.
 2. **State Transitions:** Validates that the public ledger transitions correctly without exceeding spending limits.
