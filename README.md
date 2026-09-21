@@ -341,26 +341,71 @@ Prisma maintains an automated continuous integration and testing pipeline via Gi
 
 ---
 
-## 💻 Run Locally
+## 💻 Run Locally & Setup Guide
 
 ### Prerequisites
-1. **1AM Wallet or Midnight Lace:** Installed in your browser and switched to the Midnight Preprod network.
-2. **Node.js:** v20 or higher (v24 recommended).
-3. **Docker:** Required for the local proof server container.
+1. **1AM Wallet or Midnight Lace:** Installed as a browser extension and configured for Midnight Preprod network.
+2. **Node.js:** v20 or higher (v20+ / v24 LTS recommended).
+3. **Docker (Optional for Proof Server):** Required if running a dedicated local prover node.
 
 ### Quick Start
 ```bash
 # 1. Clone the repository
 git clone https://github.com/Sristipriya/Prisma.git
-cd Prisma/prisma-app
+cd Prisma
 
-# 2. Install dependencies
-npm install
+# 2. Configure Environment Variables
+cp .env.example .env.local
 
-# 3. Start the Midnight Proof Server (in Docker)
+# 3. Install Dependencies
+npm install --legacy-peer-deps
+
+# 4. Run Automated Test Suite
+npm test
+
+# 5. (Optional) Start Local Midnight Proof Server (in Docker)
 docker run -d -p 6300:6300 midnightntwrk/proof-server:8.1.0
 
-# 4. Start the development server
+# 6. Start the Development Server
 npm run dev
 ```
-Open `http://localhost:3000` in your browser. Connect your 1AM wallet, navigate to the Dashboard, and deploy an enterprise payroll stream!
+
+Open [http://localhost:3000](http://localhost:3000) in your browser.
+
+---
+
+## 📖 End-to-End User & Evaluator Usage Guide
+
+### 1. Connect 1AM Wallet
+* Launch the application and click **Connect Wallet** in the top navigation bar or sidebar.
+* The application automatically queries `api.getConfiguration()` to detect whether your wallet is connected to **Midnight Preprod** or **Midnight Preview**.
+
+### 2. Deploy a Shielded Payroll Stream (Employer Flow)
+* Navigate to `/payroll` from the sidebar.
+* Select an employee, specify the monthly allocation (e.g., `2500 tNight`), and click **Deploy via 1AM Wallet**.
+* The Midnight SDK compiles the private witness, calculates the employer hash commitment, balances the unsealed transaction with your wallet, and publishes the shielded stream to Midnight Preprod.
+
+### 3. Real-Time Earnings & ZK Claims (Worker Flow)
+* Navigate to `/worker` (Worker Portal).
+* Watch your unlocked salary balance tick upward second-by-second in high-precision monospace.
+* Click **Withdraw to 1AM**: The client-side Midnight prover generates a zero-knowledge proof proving your requested withdrawal amount is within accrued limits without disclosing your private salary balance.
+
+### 4. Verify Corporate Treasury Solvency (Prisma VaultGuard)
+* Navigate to `/vaultguard`.
+* Select a 30, 60, 90, or 180-day runway horizon and click **Generate ZK Solvency Attestation**.
+* Mathematically proves that locked corporate reserves cover upcoming payroll commitments ($\ge \sum \text{obligations}$) while keeping bank balances 100% private.
+
+### 5. Configure Autonomous Stream Routing (Prisma FlowSplit)
+* Navigate to `/flowsplit`.
+* Adjust the vault distribution sliders (e.g. 50% Liquid, 25% Tax Escrow, 15% Savings, 10% Emergency).
+* The Compact circuit verifies the $\sum p_i = 100\%$ value conservation constraint and splits incoming streams autonomously inside the private witness.
+
+### 6. Draw an Instant Salary Advance (Prisma StreamCredit)
+* Navigate to `/streamcredit`.
+* Request an advance of up to 50% of your future salary.
+* No credit checks, no crypto collateral liquidations, and 0% compounding APR. Incoming stream ticks automatically amortize the advance.
+
+### 7. Generate Compliance Attestations (Prisma AuditPass)
+* Navigate to `/auditpass`.
+* Workers can generate a client-side **ZK Tax Certificate** for IRS/HMRC reporting without exposing employer treasury size.
+* Employers can mint time-bounded **Scoped Viewing Tokens** for audit firms (PwC, EY, Deloitte).
