@@ -205,7 +205,7 @@ export default function AnalyticsPage() {
           {/* Config box */}
           <div className="dp-config-box">
             {[
-              ['[ZK-ENGINE]', 'rpc.preview.midnight.network'],
+              ['[ZK-ENGINE]', 'rpc.preprod.midnight.network'],
               ['[VERIFIER]', 'Zswap Parameters: Enabled (v8.1.0)'],
               ['[PROOF-SERVER]', '127.0.0.1:6300 (WASM / Native)'],
               ['[DATABASE]', 'Supabase — zvavbkbzdkmshslbswnu'],

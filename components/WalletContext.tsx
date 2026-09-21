@@ -68,11 +68,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
         }
       }
 
-      setAddress(addressStr || "Connected Wallet");
-      setIsConnected(true);
-      toast.success(`Connected to 1AM Wallet (${networkName})`);
-
-      // Try to determine network from API configuration or state
+      // Determine network from API configuration or state before toast notification
       let detectedNetwork = "Midnight Preprod"; // default fallback
       try {
         if (typeof api.getConfiguration === 'function') {
@@ -82,6 +78,10 @@ export function WalletProvider({ children }: { children: ReactNode }) {
         }
       } catch (e) {}
       setNetworkName(detectedNetwork);
+
+      setAddress(addressStr || "Connected Wallet");
+      setIsConnected(true);
+      toast.success(`Connected to 1AM Wallet (${detectedNetwork})`);
 
     } catch (err: any) {
       console.error("Wallet connection failed:", err);

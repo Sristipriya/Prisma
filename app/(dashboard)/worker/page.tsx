@@ -98,6 +98,13 @@ export default function WorkerPage() {
   useEffect(() => { fetchStreams(); }, []);
 
   useEffect(() => {
+    const channel = supabase.channel('worker_realtime')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'payroll_streams' }, fetchStreams)
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, []);
+
+  useEffect(() => {
     const timer = setInterval(() => setNow(Date.now()), 100); // Faster tick for visual flair
     return () => clearInterval(timer);
   }, []);
@@ -122,13 +129,18 @@ export default function WorkerPage() {
       await withdrawFromPayrollContract(api, stream.contract_address, unlockedAmount);
 
       const newWithdrawn = Number(stream.withdrawn_amount) + unlockedAmount;
+      const isCompleted = newWithdrawn >= Number(stream.amount);
+      const updateData: any = { withdrawn_amount: newWithdrawn };
+      if (isCompleted) {
+        updateData.status = 'Completed';
+      }
       const { error } = await supabase.from('payroll_streams')
-        .update({ withdrawn_amount: newWithdrawn })
+        .update(updateData)
         .eq('id', stream.id);
         
       if (error) throw error;
 
-      setStreams(prev => prev.map(s => s.id === stream.id ? { ...s, withdrawn_amount: newWithdrawn } : s));
+      setStreams(prev => prev.map(s => s.id === stream.id ? { ...s, withdrawn_amount: newWithdrawn, ...(isCompleted ? { status: 'Completed' } : {}) } : s));
       toast.success(`Successfully withdrew ${unlockedAmount.toFixed(2)} tNight`, { id: t });
     } catch (e: any) {
       toast.error('Withdrawal failed: ' + (e.message || String(e)), { id: t });
@@ -136,7 +148,7 @@ export default function WorkerPage() {
   };
 
   const calculateUnlocked = (stream: WorkerStream) => {
-    if (stream.status === 'Revoked') return 0;
+    if (stream.status === 'Revoked' || stream.status === 'Completed') return 0;
     
     const startMs = new Date(stream.start_time).getTime();
     const elapsedSec = Math.max(0, (now - startMs) / 1000);

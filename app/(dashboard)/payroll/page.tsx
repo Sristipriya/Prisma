@@ -146,6 +146,7 @@ export default function PayrollPage() {
   };
 
   const handleToggleStatus = async (stream: PayrollStream) => {
+    if (stream.status === 'Completed') return;
     const newStatus = stream.status === 'Streaming' ? 'Paused' : 'Streaming';
     const { error } = await supabase.from('payroll_streams').update({ status: newStatus }).eq('id', stream.id);
     if (error) { toast.error('Failed to update status'); return; }
@@ -286,7 +287,9 @@ export default function PayrollPage() {
               const startMs = new Date(stream.start_time).getTime();
               const elapsedSec = stream.status === 'Revoked' ? 0 : Math.max(0, Math.floor((now - startMs) / 1000));
               const durationSec = stream.duration_seconds || 2592000;
-              const unlockedAmount = Math.min(Number(stream.amount), (Number(stream.amount) * elapsedSec) / durationSec);
+              const unlockedAmount = stream.status === 'Completed'
+                ? Number(stream.amount)
+                : Math.min(Number(stream.amount), (Number(stream.amount) * elapsedSec) / durationSec);
               const pct = Math.min(100, (unlockedAmount / Number(stream.amount)) * 100);
               
               return (
@@ -301,9 +304,11 @@ export default function PayrollPage() {
                         {stream.status === 'Streaming' && <span className="dp-live-dot" />}
                         {stream.status}
                       </span>
-                      <button onClick={() => handleToggleStatus(stream)} className="dp-action-btn">
-                        {stream.status === 'Streaming' ? 'Pause' : 'Resume'}
-                      </button>
+                      {stream.status !== 'Completed' && (
+                        <button onClick={() => handleToggleStatus(stream)} className="dp-action-btn">
+                          {stream.status === 'Streaming' ? 'Pause' : 'Resume'}
+                        </button>
+                      )}
                       <button onClick={() => handleRevoke(stream.id)} className="dp-action-btn dp-action-btn--danger">
                         Revoke
                       </button>
