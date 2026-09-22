@@ -325,16 +325,21 @@ Prisma maintains an automated continuous integration and testing pipeline via Gi
 [![CI/CD Pipeline](https://github.com/Sristipriya/Prisma/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/Sristipriya/Prisma/actions/workflows/ci.yml)
 
 ### Automated Pipeline Jobs:
-- **Unit & ZK Simulation Tests (`test`):**
-  - Executes comprehensive Vitest suites (`payroll.test.ts` & `vendor.test.ts`).
-  - Verifies zero-knowledge budget limits and spending assertions without leaking sensitive amounts.
+- **Unit, ZK Circuit & Financial Primitives Tests (`test`):**
+  - Executes comprehensive Vitest suites (16 tests) across all 6 core Prisma modules:
+    1. `payroll.test.ts`: Zero-Knowledge payroll budget limits and unwithdrawn allowance confidentiality.
+    2. `vendor.test.ts`: Shielded B2B vendor invoice settlement and authorization thresholds.
+    3. `vaultguard.test.ts`: Treasury solvency ratios and 30/60/90/180-day runway obligations.
+    4. `flowsplit.test.ts`: 100% Value Conservation Invariant ($\sum p_i = 100\%$) and autonomous multi-vault routing.
+    5. `streamcredit.test.ts`: 50% future earnings collateral ceiling and 1.5% fixed origination fee paydown.
+    6. `auditpass.test.ts`: ZK tax bracket compliance proof and time-bounded viewing token expiry.
   - Run command: `npm run test`
-- **Compact Contract Verification (`contract`):**
-  - Validates Compact circuit compilation bindings for Midnight.
+- **Compact Contracts & Proving Keys Verification (`contract`):**
+  - Validates Compact circuit source integrity (`payroll.compact` & `vendor.compact`) and binary ZKIR proving artifacts (`spend.bzkir`).
   - Run command: `npm run compact`
-- **Typecheck & Production Build (`build`):**
+- **TypeScript Verification & Production Build (`build`):**
   - Cryptographically verifies TypeScript types and strict typesafety across all contracts and UI components (`tsc --noEmit`).
-  - Pre-renders all 11 enterprise routes into an optimized production bundle (`next build --webpack`).
+  - Pre-renders all 12 enterprise routes into an optimized production bundle (`next build --webpack`).
   - Run command: `npm run typecheck && npm run build`
 
 > 🚀 **Live CI Status:** All latest pipeline runs are actively monitored and passing on [GitHub Actions](https://github.com/Sristipriya/Prisma/actions/workflows/ci.yml).

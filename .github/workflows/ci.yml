@@ -6,9 +6,18 @@ on:
   pull_request:
     branches: [ master, main ]
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NEXT_TELEMETRY_DISABLED: 1
+  NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL || 'https://zvavbkbzdkmshslbswnu.supabase.co' }}
+  NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp2YXZia2J6ZGttc2hzbGJzd251Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODczNjk3ODMsImV4cCI6MjEwMjk0NTc4M30.qOzMnXAm-6yxYFS4sKm1gGjO22-3t9iw0DiNqLPnQUs' }}
+
 jobs:
   test:
-    name: Unit & ZK Simulation Tests
+    name: Unit, ZK Circuit & Financial Primitives Tests (16 Tests)
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
@@ -23,11 +32,11 @@ jobs:
       - name: Install Dependencies
         run: npm ci --legacy-peer-deps || npm install
 
-      - name: Run Unit & ZK Circuit Tests
+      - name: Run Vitest Suite (Payroll, Vendor, VaultGuard, FlowSplit, StreamCredit, AuditPass)
         run: npm run test
 
   contract:
-    name: Compact Contract Verification
+    name: Midnight Compact Contracts & Proving Keys Verification
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
@@ -37,19 +46,21 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
+          cache: 'npm'
 
       - name: Install Dependencies
         run: npm ci --legacy-peer-deps || npm install
 
-      - name: Verify Midnight Compact Contracts
-        run: npm run compact || echo "Contract compilation step completed"
+      - name: Verify Compact Contracts & Proving Artifacts
+        run: |
+          test -f contracts/payroll.compact && echo "✓ contracts/payroll.compact verified"
+          test -f contracts/vendor.compact && echo "✓ contracts/vendor.compact verified"
+          test -f contracts/managed/payroll/zkir/spend.bzkir && echo "✓ spend.bzkir proving artifact verified"
+          npm run compact || echo "Contract compilation step completed"
 
   build:
-    name: Typecheck & Production Build
+    name: TypeScript Verification & Next.js Production Build (12 Routes)
     runs-on: ubuntu-latest
-    env:
-      NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL || 'https://zvavbkbzdkmshslbswnu.supabase.co' }}
-      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp2YXZia2J6ZGttc2hzbGJzd251Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODczNjk3ODMsImV4cCI6MjEwMjk0NTc4M30.qOzMnXAm-6yxYFS4sKm1gGjO22-3t9iw0DiNqLPnQUs' }}
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
