@@ -17,7 +17,8 @@
   [![X Profile](https://img.shields.io/badge/X-@Prismacroe-000000?style=flat&logo=x&logoColor=white)](https://x.com/Prismacroe)
   [![Official X Post](https://img.shields.io/badge/X-Official%20Announcement-1DA1F2?style=flat&logo=x&logoColor=white)](https://x.com/Prismacroe/status/2101976427503682040?s=20)
   
-  ### 🌐 [Live Application Demo](https://prisma-pi-steel.vercel.app) | 𝕏 [Official X Profile](https://x.com/Prismacroe) | 📢 [Official X Post](https://x.com/Prismacroe/status/2101976427503682040?s=20) | 🎥 [YouTube Demo Video](https://youtu.be/uBQMuiqCU8A) | 📄 [Level 4–6 Product Proposal](./PROPOSAL.md)
+  ### 🌐 [Live Application Demo](https://prisma-pi-steel.vercel.app) | 𝕏 [Official X Profile](https://x.com/Prismacroe) | 📢 [Official X Post](https://x.com/Prismacroe/status/2101976427503682040?s=20) | 🎥 [YouTube Demo Video](https://youtu.be/uBQMuiqCU8A) | 📄 [Product Proposal](./PROPOSAL.md)
+### 📚 [Operational Guide](./docs/USAGE.md) | 🏛️ [Architecture & Security](./docs/ARCHITECTURE.md) | 🚀 [Deployment Verification](./docs/DEPLOYMENT.md) | 🔬 [ZK Circuits & Invariants](./docs/CIRCUITS.md)
 </div>
 
 ---
@@ -296,24 +297,45 @@ prisma-app/
 ├── contracts/                         # Midnight Smart Contracts (Compact Language)
 │   ├── payroll.compact                # Zero-Knowledge Corporate Payroll & Streaming Allowance Circuit
 │   ├── vendor.compact                 # Confidential B2B Vendor Invoicing & Settlement Circuit
-│   └── managed/                       # Auto-generated Compact Compiler Bindings
-│       └── payroll/
-│           ├── contract/index.js      # Generated TypeScript / JavaScript Runtime Contract Bindings
-│           ├── zkir/spend.bzkir       # Verified 199-byte Binary ZK Intermediate Representation (ZKIR)
-│           └── keys/                  # Compiled Local Prover & Verifier Key Cache
+│   ├── vaultguard.compact             # Zero-Knowledge Treasury Solvency & Runway Attestation Circuit
+│   ├── flowsplit.compact              # Autonomous Sub-Vault Stream Routing with 100% Value Conservation
+│   ├── streamcredit.compact           # Collateralized Salary Advances with 50% Collateral Ceiling
+│   ├── auditpass.compact              # Zero-Knowledge Tax Bracket Compliance & Viewing Grant Circuit
+│   └── managed/                       # Generated Compact TypeScript & Runtime Contract Bindings
+│       ├── payroll/                   # Payroll compiled contract, keys, and ZKIR
+│       ├── vendor/                    # Vendor settlement compiled contract, keys, and ZKIR
+│       ├── vaultguard/                # VaultGuard solvency compiled contract, keys, and ZKIR
+│       ├── flowsplit/                 # FlowSplit routing compiled contract, keys, and ZKIR
+│       ├── streamcredit/              # StreamCredit advance compiled contract, keys, and ZKIR
+│       └── auditpass/                 # AuditPass compliance compiled contract, keys, and ZKIR
+├── docs/                              # Comprehensive Technical Documentation
+│   ├── USAGE.md                       # End-to-End User & Operational Guide
+│   ├── ARCHITECTURE.md                # System Architecture, Hybrid Privacy Model & Replay Nullifiers
+│   ├── DEPLOYMENT.md                  # Preprod Deployment Verification & Network Endpoints
+│   └── CIRCUITS.md                    # Formal Zero-Knowledge Circuit Invariants & Assertions
 ├── lib/                               # Core Business Logic & Infrastructure
 │   ├── midnight/
 │   │   └── providers.ts               # Midnight.js SDK, Prover Clients, Solvency, Tax, FlowSplit & Credit Circuits
 │   └── supabase.ts                    # Supabase Client for Off-Chain Profile & Stream Indexing
 ├── public/                            # Static Web Assets & Browser-Accessible Keys
-│   ├── ghost/keys/                    # spend.prover (147KB) & spend.verifier (1.3KB) for Client Proving
 │   ├── payroll/                       # Public WASM binaries and circuit definitions
 │   ├── vendor/                        # Public vendor contract artifacts
+│   ├── vaultguard/                    # Public VaultGuard circuit artifacts
+│   ├── flowsplit/                     # Public FlowSplit circuit artifacts
+│   ├── streamcredit/                  # Public StreamCredit circuit artifacts
+│   ├── auditpass/                     # Public AuditPass circuit artifacts
 │   └── Screenshot/                    # Platform showcase visual documentation
 ├── Screenshot/                        # Root-level High-Resolution Screenshot Gallery for GitHub
-└── tests/                             # Cryptographic & Functional Test Suites
-    ├── payroll.test.ts                # Vitest Functional Circuit Verification & State Assertion Tests
-    └── vendor.test.ts                 # Vitest Vendor Settlement & Proof Verification Tests
+├── scripts/
+│   └── compile-compact.js             # Automated Compact Compiler & Runtime Code Generator
+└── tests/                             # Cryptographic & Functional Test Suites (21 Tests)
+    ├── test-context.ts                # Compact Circuit Context Factory
+    ├── payroll.test.ts                # Compiled Payroll Circuit Tests (5 tests)
+    ├── vendor.test.ts                 # Compiled Vendor Settlement Tests (4 tests)
+    ├── vaultguard.test.ts             # Compiled Treasury Solvency Tests (3 tests)
+    ├── flowsplit.test.ts              # Compiled Stream Routing Tests (3 tests)
+    ├── streamcredit.test.ts           # Compiled Collateralized Advance Tests (3 tests)
+    └── auditpass.test.ts              # Compiled Tax Compliance Tests (3 tests)
 ```
 
 ---
@@ -326,16 +348,16 @@ Prisma maintains an automated continuous integration and testing pipeline via Gi
 
 ### Automated Pipeline Jobs:
 - **Unit, ZK Circuit & Financial Primitives Tests (`test`):**
-  - Executes comprehensive Vitest suites (16 tests) across all 6 core Prisma modules:
-    1. `payroll.test.ts`: Zero-Knowledge payroll budget limits and unwithdrawn allowance confidentiality.
-    2. `vendor.test.ts`: Shielded B2B vendor invoice settlement and authorization thresholds.
-    3. `vaultguard.test.ts`: Treasury solvency ratios and 30/60/90/180-day runway obligations.
-    4. `flowsplit.test.ts`: 100% Value Conservation Invariant ($\sum p_i = 100\%$) and autonomous multi-vault routing.
-    5. `streamcredit.test.ts`: 50% future earnings collateral ceiling and 1.5% fixed origination fee paydown.
-    6. `auditpass.test.ts`: ZK tax bracket compliance proof and time-bounded viewing token expiry.
+  - Executes comprehensive Vitest suites (**21 tests across 6 test files**) executing real compiled Compact circuits via `@midnight-ntwrk/compact-runtime`:
+    1. `payroll.test.ts` (5 tests): Budget limit checks, streaming allocations, confidential withdrawals, and nullifier replay defenses.
+    2. `vendor.test.ts` (4 tests): Shielded invoice settlements, budget ceiling assertions, and invoice replay protection.
+    3. `vaultguard.test.ts` (3 tests): Runway obligations ($\ge \frac{\text{obligations}}{30} \times \text{runway}$), 60/90/180-day horizons, and insolvency detection.
+    4. `flowsplit.test.ts` (3 tests): 100% Value Conservation Invariant ($\sum p_i = 100\%$), discrete per-vault allocation arithmetic, and replay prevention.
+    5. `streamcredit.test.ts` (3 tests): 50% future earnings collateral ceiling, 1.5% fixed origination fee, and advance nullifiers.
+    6. `auditpass.test.ts` (3 tests): ZK tax bracket compliance range proofs, statutory withholding calculation, and attestation anchoring.
   - Run command: `npm run test`
 - **Compact Contracts & Proving Keys Verification (`contract`):**
-  - Validates Compact circuit source integrity (`payroll.compact` & `vendor.compact`) and binary ZKIR proving artifacts (`spend.bzkir`).
+  - Executes `npm run compact` via `scripts/compile-compact.js` compiling all 6 Compact contracts into managed TypeScript definitions, JavaScript runtime classes, binary ZKIR bytecode, and proving keys.
   - Run command: `npm run compact`
 - **TypeScript Verification & Production Build (`build`):**
   - Cryptographically verifies TypeScript types and strict typesafety across all contracts and UI components (`tsc --noEmit`).
