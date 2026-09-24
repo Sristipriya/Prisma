@@ -4,13 +4,13 @@ export class MidnightClient {
   private networkId: string;
   private proofProvider: any;
 
-  constructor(networkId: string = 'preview-testnet') {
+  constructor(networkId: string = 'preprod-testnet') {
     this.networkId = networkId;
   }
 
   async initialize(proofServerUrl: string) {
     console.log(`Initializing Midnight Client on ${this.networkId}...`);
-    // Setup connection to Midnight Preview Testnet
+    // Setup connection to Midnight Preprod Testnet
     // @ts-ignore
     this.proofProvider = httpClientProofProvider(proofServerUrl);
     console.log("Proof provider initialized.");

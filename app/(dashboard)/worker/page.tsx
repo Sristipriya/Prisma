@@ -32,36 +32,11 @@ interface WorkerStream {
 }
 
 const VERIFIED_PREPROD_CONTRACT = "6db3284190db9c089c0c2704b84062826c6eff39e5b31ce8ec138363c9d08f2f";
-const VERIFIED_PREPROD_EXPLORER_URL = `https://explorer.preprod.midnight.network/contracts/${VERIFIED_PREPROD_CONTRACT}`;
-
-const LIVE_PREPROD_FALLBACK_STREAMS: WorkerStream[] = [
-  {
-    id: 'live-stream-apex',
-    employer_name: 'Apex Innovations',
-    amount: 12500,
-    duration_seconds: 2592000,
-    withdrawn_amount: 3200,
-    start_time: new Date(Date.now() - 1200000000).toISOString(),
-    status: 'Streaming',
-    contract_address: VERIFIED_PREPROD_CONTRACT,
-    proof_hash: '0x81e65aff40...235d19'
-  },
-  {
-    id: 'live-stream-global',
-    employer_name: 'Global Ventures Protocol',
-    amount: 5000,
-    duration_seconds: 2592000,
-    withdrawn_amount: 4900,
-    start_time: new Date(Date.now() - 2500000000).toISOString(),
-    status: 'Streaming',
-    contract_address: '3803748c227b7354324f6cef54b2ae775cf8fbf47d480bdfdd5824bdc438a5a1',
-    proof_hash: '0x3803748c22...38a5a1'
-  }
-];
+const VERIFIED_PREPROD_EXPLORER_URL = `https://preprod.midnightexplorer.com/contracts/${VERIFIED_PREPROD_CONTRACT}`;
 
 export default function WorkerPage() {
   const { isConnected, connect, address } = useWallet();
-  const [streams, setStreams] = useState<WorkerStream[]>(LIVE_PREPROD_FALLBACK_STREAMS);
+  const [streams, setStreams] = useState<WorkerStream[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [now, setNow] = useState(Date.now());
 
@@ -105,11 +80,11 @@ export default function WorkerPage() {
         }));
         setStreams(mapped);
       } else {
-        setStreams(LIVE_PREPROD_FALLBACK_STREAMS);
+        setStreams([]);
       }
     } catch (err: any) {
-      console.warn('Could not query real streams, using live preprod streams:', err.message);
-      setStreams(LIVE_PREPROD_FALLBACK_STREAMS);
+      console.warn('Could not query real streams:', err.message);
+      setStreams([]);
     } finally {
       setIsLoading(false);
     }
@@ -158,12 +133,10 @@ export default function WorkerPage() {
         updateData.status = 'Completed';
       }
 
-      if (!stream.id.startsWith('live-stream')) {
-        const { error } = await supabase.from('payroll_streams')
-          .update(updateData)
-          .eq('id', stream.id);
-        if (error) console.warn('Supabase update non-fatal:', error.message);
-      }
+      const { error } = await supabase.from('payroll_streams')
+        .update(updateData)
+        .eq('id', stream.id);
+      if (error) console.warn('Supabase update non-fatal:', error.message);
 
       setStreams(prev => prev.map(s => s.id === stream.id ? { ...s, withdrawn_amount: newWithdrawn, ...(isCompleted ? { status: 'Completed' } : {}) } : s));
       toast.success(`Withdrew ${unlockedAmount.toFixed(4)} tNight via Midnight Preprod!`, { id: t });
@@ -264,6 +237,10 @@ export default function WorkerPage() {
 
         {isLoading ? (
           <div className="dp-empty">Loading live streams from Midnight Preprod…</div>
+        ) : displayStreams.length === 0 ? (
+          <div className="dp-empty" style={{ padding: '36px 0', textAlign: 'center' }}>
+            No active incoming payroll streams found. Once an employer deploys a shielded stream to your Midnight address, it will appear here.
+          </div>
         ) : (
           <div className="dp-list" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))', gap: '24px', padding: '12px 0' }}>
             {displayStreams.map(stream => {
@@ -271,7 +248,7 @@ export default function WorkerPage() {
               const totalUnlockedStr = (Number(stream.withdrawn_amount) + unlocked).toFixed(6);
               const pct = Math.min(100, ((Number(stream.withdrawn_amount) + unlocked) / Number(stream.amount)) * 100);
               const cleanContract = stream.contract_address.replace(/^0x/, '');
-              const explorerContractUrl = `https://explorer.preprod.midnight.network/contracts/${cleanContract}`;
+              const explorerContractUrl = `https://preprod.midnightexplorer.com/contracts/${cleanContract.startsWith('0x') ? cleanContract : `0x${cleanContract}`}`;
 
               return (
                 <div
@@ -311,7 +288,7 @@ export default function WorkerPage() {
                         className="hover:text-[#6ee7b7]"
                         title="View contract on Midnight Preprod Explorer"
                       >
-                        <span>mn_{cleanContract.slice(0, 10)}…{cleanContract.slice(-8)}</span>
+                        <span>{cleanContract.slice(0, 8)}…{cleanContract.slice(-6)}</span>
                         <ExternalLink className="w-3 h-3 opacity-60" />
                       </a>
                     </div>

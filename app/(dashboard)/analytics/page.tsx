@@ -129,7 +129,7 @@ export default function AnalyticsPage() {
           <div className="dp-card__header">
             <div>
               <h2 className="dp-card__title">ZK Circuit Performance</h2>
-              <p className="dp-card__sub">Network: Midnight Preview</p>
+              <p className="dp-card__sub">Network: Midnight Preprod</p>
             </div>
           </div>
 

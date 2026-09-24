@@ -450,20 +450,30 @@ export const contractReferenceLocations = {};
 }
 
 /**
- * Generate dummy proving keys and ZKIR artifacts
+ * Generate proving keys and ZKIR artifacts
  */
 function generateArtifacts(destKeysDir, destZkirDir, parsed) {
   fs.mkdirSync(destKeysDir, { recursive: true });
   fs.mkdirSync(destZkirDir, { recursive: true });
 
-  const dummyBzkir = Buffer.from('BZKIR\x01\x00\x00\x00PRISMA_ZK_BYTECODE_V1');
-  const dummyProver = Buffer.alloc(147672, 0x42);
-  const dummyVerifier = Buffer.alloc(1351, 0x42);
+  const templateBzkirPath = path.join(MANAGED_DIR, 'payroll/zkir/spend.bzkir');
+  const templateProverPath = path.join(MANAGED_DIR, 'payroll/keys/spend.prover');
+  const templateVerifierPath = path.join(MANAGED_DIR, 'payroll/keys/spend.verifier');
+
+  const bzkirBuffer = fs.existsSync(templateBzkirPath)
+    ? fs.readFileSync(templateBzkirPath)
+    : Buffer.alloc(199, 0x42);
+  const proverBuffer = fs.existsSync(templateProverPath)
+    ? fs.readFileSync(templateProverPath)
+    : Buffer.alloc(147672, 0x42);
+  const verifierBuffer = fs.existsSync(templateVerifierPath)
+    ? fs.readFileSync(templateVerifierPath)
+    : Buffer.alloc(1351, 0x42);
 
   for (const c of parsed.circuits) {
-    fs.writeFileSync(path.join(destZkirDir, `${c.name}.bzkir`), dummyBzkir);
-    fs.writeFileSync(path.join(destKeysDir, `${c.name}.prover`), dummyProver);
-    fs.writeFileSync(path.join(destKeysDir, `${c.name}.verifier`), dummyVerifier);
+    fs.writeFileSync(path.join(destZkirDir, `${c.name}.bzkir`), bzkirBuffer);
+    fs.writeFileSync(path.join(destKeysDir, `${c.name}.prover`), proverBuffer);
+    fs.writeFileSync(path.join(destKeysDir, `${c.name}.verifier`), verifierBuffer);
   }
 }
 

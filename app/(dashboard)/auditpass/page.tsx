@@ -265,7 +265,7 @@ export default function AuditPassPage() {
       type: isToken ? "Scoped Auditor Viewing Grant" : isTx ? "Zero-Knowledge Transaction" : "ZK Statutory Tax Attestation",
       proofStatus: "Cryptographically Sound (SNARK Verified)",
       scope: isToken ? "Aggregate Payroll (Worker PII Masked)" : "Income & Withholding Bracket Conformity",
-      txHash: isTx ? input : VERIFIED_TX,
+      txHash: isTx ? input : undefined,
     });
 
     setIsVerifying(false);

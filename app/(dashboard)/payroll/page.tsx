@@ -129,11 +129,15 @@ export default function PayrollPage() {
       }
       const contractAddress = address;
 
+      if (!selectedEmp.shielded_address) {
+        throw new Error(`Employee ${selectedEmp.full_name} does not have a registered shielded Midnight address. Please update their profile before deploying a payroll stream.`);
+      }
+
       const { data, error } = await supabase.from('payroll_streams').insert([{
         user_id: user.id,
         employee_id: selectedEmp.id,
         employee_name: selectedEmp.full_name,
-        employee_address: selectedEmp.shielded_address || 'mn_shield_tbd',
+        employee_address: selectedEmp.shielded_address,
         amount: parseFloat(amount),
         duration_seconds: 2592000, // 30 days
         withdrawn_amount: 0,

@@ -206,7 +206,7 @@ export default function VendorPage() {
               </div>
               <div className="dp-field">
                 <label className="dp-label">Vendor Shielded Address</label>
-                <input className="dp-input dp-input--mono" type="text" value={vendorAddress} onChange={e => setVendorAddress(e.target.value)} placeholder="mn_shield_addr_preview..." />
+                <input className="dp-input dp-input--mono" type="text" value={vendorAddress} onChange={e => setVendorAddress(e.target.value)} placeholder="mn_shield_addr_preprod..." />
               </div>
               <div className="dp-field">
                 <label className="dp-label">Amount (tNight)</label>
