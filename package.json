@@ -8,7 +8,7 @@
     "start": "next start",
     "lint": "eslint",
     "test": "vitest run",
-    "compact": "echo \"Compact compilation executed via CLI\"",
+    "compact": "node scripts/compile-compact.js",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
