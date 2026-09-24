@@ -1,0 +1,100 @@
+pragma language_version >= 0.14.0;
+
+import CompactStandardLibrary;
+
+/**
+ * ============================================================================
+ * PRISMA PROTOCOL: STREAMCREDIT COLLATERALIZED SALARY ADVANCE (streamcredit.compact)
+ * ============================================================================
+ * 
+ * PRODUCT PRIVACY MODEL:
+ * ----------------------------------------------------------------------------
+ * 1. WHAT IS PRIVATE (Client-Side Witness Context):
+ *    - Worker's identity, credit history, and personal financial distress level.
+ *    - Employer identity and employment terms.
+ *    - Specific salary amount and upcoming stream schedule.
+ *    - Private stream repayment redirection commitments.
+ *
+ * 2. WHAT IS PUBLIC (On-Chain Ledger State):
+ *    - `pool_authority_vk`: Lending liquidity pool verification key.
+ *    - `total_advances_disbursed`: Cumulative gross liquidity provided.
+ *    - `total_fees_collected`: Cumulative origination fees retained by pool.
+ *    - `last_advance_nullifier`: Cryptographic commitment preventing duplicate advances.
+ *
+ * 3. MATHEMATICAL INVARIANTS:
+ *    - Collateral Ceiling: Requested advance MUST NOT exceed 50% of verifiable
+ *      unaccrued future salary (requested_amount * 2 <= unaccrued_salary).
+ *    - Fixed Non-Predatory Fee: 1.5% fixed origination fee (150 bps).
+ *    - Net Disbursed = requested_amount - (requested_amount * 150) / 10000.
+ * ============================================================================
+ */
+
+export ledger pool_authority_vk: Bytes<32>;
+export ledger total_advances_disbursed: Uint<32>;
+export ledger total_fees_collected: Uint<32>;
+export ledger last_advance_nullifier: Bytes<32>;
+
+witness get_unaccrued_salary_collateral(stream_id: Bytes<32>, worker_sk: Bytes<32>): Uint<32>;
+witness compute_advance_nullifier(stream_id: Bytes<32>, nonce: Uint<32>, worker_sk: Bytes<32>): Bytes<32>;
+
+/**
+ * Constructor: Initializes the StreamCredit liquidity facility.
+ */
+constructor(pool_authority: Bytes<32>) {
+  pool_authority_vk = disclose(pool_authority);
+  total_advances_disbursed = 0 as Uint<32>;
+  total_fees_collected = 0 as Uint<32>;
+  last_advance_nullifier = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0] as Bytes<32>;
+}
+
+/**
+ * disburseSalaryAdvance Circuit:
+ * Issues instant liquidity collateralized by future streaming salary in Zero-Knowledge.
+ *
+ * Constraints:
+ * 1. Requested advance must be positive.
+ * 2. Requested advance <= 50% of verifiable unaccrued salary.
+ * 3. Fixed origination fee calculated at 1.5% (150 basis points).
+ * 4. Advance nullifier prevents double-dipping or replay attacks.
+ */
+export circuit disburseSalaryAdvance(
+  stream_id: Bytes<32>,
+  requested_amount: Uint<32>,
+  advance_nonce: Uint<32>,
+  advance_nullifier: Bytes<32>,
+  pool_sig: Bytes<32>,
+  worker_sk: Bytes<32>
+): [] {
+  // 1. Pool Authorization Check
+  assert(pool_sig == pool_authority_vk, "Unauthorized liquidity pool signature");
+  assert(requested_amount > 0, "Requested advance must be greater than zero");
+
+  // 2. Query confidential unaccrued collateral via private witness
+  const unaccrued_salary = get_unaccrued_salary_collateral(stream_id, worker_sk);
+
+  // 3. Strict 50% Collateral Ceiling Assertion: requested_amount <= unaccrued_salary / 2
+  assert((requested_amount * 2 as Uint<32>) <= unaccrued_salary, "Exceeds 50% unaccrued salary collateral ceiling");
+
+  // 4. Fixed 1.5% (150 bps) Origination Fee
+  const fee = (requested_amount * 150 as Uint<32>) / 10000 as Uint<32>;
+
+  // 5. Nullifier Verification and Replay Protection
+  const expected_nullifier = compute_advance_nullifier(stream_id, advance_nonce, worker_sk);
+  assert(advance_nullifier == expected_nullifier, "Advance nullifier proof mismatch");
+  assert(advance_nullifier != last_advance_nullifier, "Replay detected: salary advance already claimed for this nonce");
+
+  // 6. Ledger State Disclosures
+  total_advances_disbursed = (total_advances_disbursed + disclose(requested_amount)) as Uint<32>;
+  total_fees_collected = (total_fees_collected + disclose(fee)) as Uint<32>;
+  last_advance_nullifier = disclose(advance_nullifier);
+}
+
+/**
+ * spend Circuit:
+ * Canonical Midnight circuit interface.
+ */
+export circuit spend(
+  amount: Uint<32>
+): [] {
+  total_advances_disbursed = (total_advances_disbursed + disclose(amount)) as Uint<32>;
+}

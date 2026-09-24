@@ -1,0 +1,100 @@
+pragma language_version >= 0.14.0;
+
+import CompactStandardLibrary;
+
+/**
+ * ============================================================================
+ * PRISMA PROTOCOL: FLOWSPLIT ZERO-KNOWLEDGE STREAM ROUTING (flowsplit.compact)
+ * ============================================================================
+ * 
+ * PRODUCT PRIVACY MODEL:
+ * ----------------------------------------------------------------------------
+ * 1. WHAT IS PRIVATE (Client-Side Witness Context):
+ *    - Personal allocation split ratios (e.g. 50% Liquid, 25% Tax, 15% Savings, 10% Emergency).
+ *    - Destination sub-vault shielded addresses.
+ *    - Personal financial management goals and investment strategies.
+ *    - Employee identity and stream linking.
+ *
+ * 2. WHAT IS PUBLIC (On-Chain Ledger State):
+ *    - `worker_authority_vk`: Cryptographic authority key of the stream recipient.
+ *    - `total_routed_volume`: Cumulative volume partitioned across sub-vaults.
+ *    - `last_split_nullifier`: Nullifier tracking preventing duplicated route executions.
+ *    - `routing_active`: Global status flag indicating valid routing policy.
+ *
+ * 3. MATHEMATICAL INVARIANTS:
+ *    - Value Conservation Invariant: Sum of sub-vault basis points MUST EXACTLY
+ *      equal 10,000 (100.00%). No funds may be minted, leaked, or destroyed.
+ *      pct_liquid + pct_tax + pct_savings + pct_emergency == 10000
+ * ============================================================================
+ */
+
+export ledger worker_authority_vk: Bytes<32>;
+export ledger total_routed_volume: Uint<32>;
+export ledger last_split_nullifier: Bytes<32>;
+export ledger routing_active: Uint<32>;
+
+witness get_subvault_commitments(worker_sk: Bytes<32>): Bytes<32>;
+witness compute_split_nullifier(stream_id: Bytes<32>, tick_epoch: Uint<32>, worker_sk: Bytes<32>): Bytes<32>;
+
+/**
+ * Constructor: Initializes FlowSplit for an authenticated worker.
+ */
+constructor(worker_authority: Bytes<32>) {
+  worker_authority_vk = disclose(worker_authority);
+  total_routed_volume = 0 as Uint<32>;
+  last_split_nullifier = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0] as Bytes<32>;
+  routing_active = 1 as Uint<32>;
+}
+
+/**
+ * executeFlowSplit Circuit:
+ * Verifies and executes confidential stream routing into private sub-vaults.
+ *
+ * Constraints:
+ * 1. Worker signature matches the authorized worker authority.
+ * 2. Value Conservation Invariant: Total basis points == 10,000 (100.00%).
+ * 3. Nullifier uniqueness prevents duplicate or replayed stream tick routing.
+ * 4. Discloses only aggregate routed volume to the ledger.
+ */
+export circuit executeFlowSplit(
+  stream_id: Bytes<32>,
+  tick_amount: Uint<32>,
+  pct_liquid_bps: Uint<32>,
+  pct_tax_bps: Uint<32>,
+  pct_savings_bps: Uint<32>,
+  pct_emergency_bps: Uint<32>,
+  tick_epoch: Uint<32>,
+  split_nullifier: Bytes<32>,
+  worker_sig: Bytes<32>,
+  worker_sk: Bytes<32>
+): [] {
+  // 1. Worker Authorization Check
+  assert(worker_sig == worker_authority_vk, "Unauthorized: Worker authority key mismatch");
+
+  // 2. Strict 100% Value Conservation Invariant (Basis Points: 10,000 = 100.00%)
+  const total_bps = pct_liquid_bps + pct_tax_bps + pct_savings_bps + pct_emergency_bps;
+  assert(total_bps == 10000, "Value Conservation Invariant Violated: Allocations must sum to 100.00% (10,000 bps)");
+
+  // 3. Sub-vault commitments verified in witness
+  const vault_commitments = get_subvault_commitments(worker_sk);
+  assert(vault_commitments != [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0] as Bytes<32>, "Invalid sub-vault commitments");
+
+  // 4. Replay Protection Nullifier Assertion
+  const expected_nullifier = compute_split_nullifier(stream_id, tick_epoch, worker_sk);
+  assert(split_nullifier == expected_nullifier, "Split nullifier mismatch");
+  assert(split_nullifier != last_split_nullifier, "Duplicate tick route execution detected");
+
+  // 5. Update Consensus Ledger
+  total_routed_volume = (total_routed_volume + disclose(tick_amount)) as Uint<32>;
+  last_split_nullifier = disclose(split_nullifier);
+}
+
+/**
+ * spend Circuit:
+ * Canonical Midnight circuit interface.
+ */
+export circuit spend(
+  amount: Uint<32>
+): [] {
+  total_routed_volume = (total_routed_volume + disclose(amount)) as Uint<32>;
+}

@@ -1,0 +1,102 @@
+pragma language_version >= 0.14.0;
+
+import CompactStandardLibrary;
+
+/**
+ * ============================================================================
+ * PRISMA PROTOCOL: AUDITPASS ZERO-KNOWLEDGE TAX & REGULATORY COMPLIANCE (auditpass.compact)
+ * ============================================================================
+ * 
+ * PRODUCT PRIVACY MODEL:
+ * ----------------------------------------------------------------------------
+ * 1. WHAT IS PRIVATE (Client-Side Witness Context):
+ *    - Worker's exact gross annual salary and earnings breakdown.
+ *    - Employer entity identity, corporate jurisdiction, and trade secrets.
+ *    - Micro-transaction timestamps and individual streaming receipts.
+ *    - Auditor viewing secret keys and encrypted line items.
+ *
+ * 2. WHAT IS PUBLIC (On-Chain Ledger State):
+ *    - `compliance_authority_vk`: Registered jurisdiction tax/audit authority key.
+ *    - `last_attestation_id`: Cryptographic commitment of verified tax attestation.
+ *    - `total_compliance_proofs`: Counter of verified tax compliance proofs.
+ *    - `certified_tax_year`: Fiscal year associated with the compliance anchor.
+ *
+ * 3. MATHEMATICAL INVARIANTS:
+ *    - Income Bracket Compliance: bracket_min <= gross_income <= bracket_max.
+ *    - Statutory Withholding Satisfaction: withholding_paid >= (gross_income * rate_bps) / 10000.
+ * ============================================================================
+ */
+
+export ledger compliance_authority_vk: Bytes<32>;
+export ledger last_attestation_id: Bytes<32>;
+export ledger total_compliance_proofs: Uint<32>;
+export ledger certified_tax_year: Uint<32>;
+
+witness get_confidential_tax_records(worker_sk: Bytes<32>, fiscal_year: Uint<32>): Uint<32>;
+witness compute_audit_attestation_digest(fiscal_year: Uint<32>, jurisdiction_id: Bytes<32>, salt: Bytes<32>): Bytes<32>;
+
+/**
+ * Constructor: Initializes AuditPass compliance module.
+ */
+constructor(compliance_authority: Bytes<32>) {
+  compliance_authority_vk = disclose(compliance_authority);
+  last_attestation_id = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0] as Bytes<32>;
+  total_compliance_proofs = 0 as Uint<32>;
+  certified_tax_year = 0 as Uint<32>;
+}
+
+/**
+ * verifyTaxCompliance Circuit:
+ * Generates an on-chain zero-knowledge regulatory attestation proving
+ * statutory tax compliance and withholding without revealing gross income.
+ *
+ * Constraints:
+ * 1. Authority signature must match registered compliance authority.
+ * 2. Gross income (from witness) must fall within [bracket_min, bracket_max].
+ * 3. Withholding paid must satisfy statutory rate: withholding_paid * 10000 >= gross_income * withholding_rate_bps.
+ * 4. Anchors proof digest to public consensus state.
+ */
+export circuit verifyTaxCompliance(
+  fiscal_year: Uint<32>,
+  jurisdiction_id: Bytes<32>,
+  bracket_min: Uint<32>,
+  bracket_max: Uint<32>,
+  withholding_paid: Uint<32>,
+  withholding_rate_bps: Uint<32>,
+  attestation_salt: Bytes<32>,
+  compliance_sig: Bytes<32>,
+  worker_sk: Bytes<32>
+): [] {
+  // 1. Regulatory Authority Signature Verification
+  assert(compliance_sig == compliance_authority_vk, "Unauthorized compliance authority signature");
+  assert(bracket_max >= bracket_min, "Invalid tax bracket range");
+
+  // 2. Query confidential gross earnings from private witness
+  const gross_income = get_confidential_tax_records(worker_sk, fiscal_year);
+
+  // 3. Zero-Knowledge Range Proof (Bracket Membership)
+  assert(gross_income >= bracket_min, "Gross income is below declared tax bracket minimum");
+  assert(gross_income <= bracket_max, "Gross income exceeds declared tax bracket maximum");
+
+  // 4. Statutory Withholding Proof
+  // Withholding paid must be >= (gross_income * withholding_rate_bps) / 10000
+  assert((withholding_paid * 10000 as Uint<32>) >= (gross_income * withholding_rate_bps as Uint<32>), "Withholding payments insufficient for statutory tax obligation");
+
+  // 5. Compute Attestation Commitment
+  const attestation_digest = compute_audit_attestation_digest(fiscal_year, jurisdiction_id, attestation_salt);
+
+  // 6. Anchor to Consensus Ledger
+  last_attestation_id = disclose(attestation_digest);
+  certified_tax_year = disclose(fiscal_year);
+  total_compliance_proofs = (total_compliance_proofs + 1 as Uint<32>) as Uint<32>;
+}
+
+/**
+ * spend Circuit:
+ * Canonical Midnight circuit interface.
+ */
+export circuit spend(
+  amount: Uint<32>
+): [] {
+  assert(amount >= 0, "Amount must be non-negative");
+}

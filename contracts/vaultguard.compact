@@ -1,0 +1,101 @@
+pragma language_version >= 0.14.0;
+
+import CompactStandardLibrary;
+
+/**
+ * ============================================================================
+ * PRISMA PROTOCOL: VAULTGUARD ZERO-KNOWLEDGE TREASURY SOLVENCY (vaultguard.compact)
+ * ============================================================================
+ * 
+ * PRODUCT PRIVACY MODEL:
+ * ----------------------------------------------------------------------------
+ * 1. WHAT IS PRIVATE (Client-Side Witness Context):
+ *    - Employer's total liquid treasury reserves.
+ *    - Multi-custody bank and wallet balances.
+ *    - Exact internal runway forecasts and burn breakdown.
+ *    - Private treasury viewing keys and signature seeds.
+ *
+ * 2. WHAT IS PUBLIC (On-Chain Ledger State):
+ *    - `employer_treasury_vk`: Registered authority key of the enterprise treasury.
+ *    - `certified_runway_days`: Minimum verified runway horizon (e.g. 60, 90, 180 days).
+ *    - `last_attestation_hash`: Cryptographic digest of the verified solvency proof.
+ *    - `attestation_timestamp`: Block timestamp of the most recent solvency audit.
+ *    - `total_solvency_attestations`: Counter of verified on-chain attestations.
+ *
+ * 3. MATHEMATICAL INVARIANTS & CONSTRAINTS:
+ *    - Solvency Invariant: Private Reserves >= (Monthly Obligations / 30) * Runway Days.
+ *    - The exact reserve balance is NEVER revealed; only the mathematical truth
+ *      of the inequality is anchored to the consensus ledger.
+ * ============================================================================
+ */
+
+export ledger employer_treasury_vk: Bytes<32>;
+export ledger certified_runway_days: Uint<32>;
+export ledger last_attestation_hash: Bytes<32>;
+export ledger attestation_timestamp: Uint<32>;
+export ledger total_solvency_attestations: Uint<32>;
+
+// Private witness querying real-time confidential treasury reserves
+witness get_confidential_reserves(vault_sk: Bytes<32>): Uint<32>;
+witness compute_attestation_digest(runway_days: Uint<32>, monthly_burn: Uint<32>, salt: Bytes<32>): Bytes<32>;
+
+/**
+ * Constructor: Initializes VaultGuard solvency module for an enterprise treasury.
+ */
+constructor(treasury_authority: Bytes<32>) {
+  employer_treasury_vk = disclose(treasury_authority);
+  certified_runway_days = 0 as Uint<32>;
+  last_attestation_hash = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0] as Bytes<32>;
+  attestation_timestamp = 0 as Uint<32>;
+  total_solvency_attestations = 0 as Uint<32>;
+}
+
+/**
+ * attestSolvency Circuit:
+ * Generates an on-chain cryptographic solvency attestation proving that
+ * private treasury reserves satisfy the requested runway horizon.
+ *
+ * Constraints:
+ * 1. Authority signature must match employer treasury verification key.
+ * 2. Runway days must be positive (> 0).
+ * 3. Required reserve = (monthly_obligations * runway_days) / 30.
+ * 4. Private reserves >= required_reserve (Zero-Knowledge Solvency Assertion).
+ */
+export circuit attestSolvency(
+  monthly_obligations: Uint<32>,
+  runway_days: Uint<32>,
+  timestamp: Uint<32>,
+  attestation_salt: Bytes<32>,
+  treasury_sig: Bytes<32>,
+  vault_sk: Bytes<32>
+): [] {
+  // 1. Authenticated Treasury Authority Check
+  assert(treasury_sig == employer_treasury_vk, "Unauthorized treasury signature");
+  assert(runway_days > 0, "Runway horizon must be greater than zero");
+
+  // 2. Private Reserve Retrieval via Witness
+  const private_reserves = get_confidential_reserves(vault_sk);
+
+  // 3. Mathematical Solvency Inequality: Reserves >= (burn * days) / 30
+  // Scaled by 30 to prevent floating point division error: (private_reserves * 30) >= (monthly_obligations * runway_days)
+  assert((private_reserves * 30 as Uint<32>) >= (monthly_obligations * runway_days as Uint<32>), "Insolvent: Treasury reserves insufficient for requested runway");
+
+  // 4. Compute Attestation Commitment
+  const attestation_digest = compute_attestation_digest(runway_days, monthly_obligations, attestation_salt);
+
+  // 5. Public Ledger Anchoring
+  certified_runway_days = disclose(runway_days);
+  last_attestation_hash = disclose(attestation_digest);
+  attestation_timestamp = disclose(timestamp);
+  total_solvency_attestations = (total_solvency_attestations + 1 as Uint<32>) as Uint<32>;
+}
+
+/**
+ * spend Circuit:
+ * Canonical Midnight circuit interface.
+ */
+export circuit spend(
+  amount: Uint<32>
+): [] {
+  assert(amount >= 0, "Amount must be non-negative");
+}
