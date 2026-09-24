@@ -1,31 +1,75 @@
 import { describe, it, expect } from "vitest";
+import { setNetworkId } from "@midnight-ntwrk/midnight-js-network-id";
+import { Contract, ledger } from "../contracts/managed/vaultguard/contract/index";
+import { createTestCircuitContext } from "./test-context";
 
-describe("Prisma VaultGuard Zero-Knowledge Treasury Solvency Validation", () => {
-  it("calculates required reserve based on runway horizon days and commitments", () => {
-    const monthlyObligations = 17500;
-    const runwayDays = 90;
-    const requiredReserve = Math.max(1, Math.round((monthlyObligations / 30) * runwayDays));
-    expect(requiredReserve).toBe(52500);
+setNetworkId("undeployed");
+
+describe("Prisma VaultGuard Zero-Knowledge Treasury Solvency Compiled Circuit Tests", () => {
+  const dummyTreasurySig = "11".repeat(32);
+  const dummyVaultSk = "22".repeat(32);
+  const dummySalt = "33".repeat(32);
+
+  it("verifies and anchors zero-knowledge solvency attestation when private reserves meet runway obligations", () => {
+    // Treasury with 100,000 tNight in confidential reserves
+    const contract = new Contract<void>({
+      get_confidential_reserves: () => 100000n,
+      compute_attestation_digest: () => "digest_ok",
+    } as any);
+
+    let ctx = createTestCircuitContext(contract);
+
+    // Monthly burn: 15,000 tNight. Runway: 90 days. Required: (15,000 * 90) / 30 = 45,000 tNight.
+    ctx = contract.impureCircuits.attestSolvency(
+      ctx,
+      15000n,
+      90n,
+      1720000000n,
+      dummySalt,
+      dummyTreasurySig,
+      dummyVaultSk
+    ).context;
+
+    const currentLedger = ledger(ctx.currentQueryContext.state);
+    expect(currentLedger.total_solvency_attestations).toBe(1n);
+    expect(currentLedger.certified_runway_days).toBe(90n);
   });
 
-  it("proves solvency when private treasury reserves meet required obligations", () => {
-    const monthlyObligations = 15000;
-    const runwayDays = 60;
-    const requiredReserve = Math.round((monthlyObligations / 30) * runwayDays); // 30,000
-    const privateReserves = 45000;
-    const solvencyRatio = Math.round((privateReserves / requiredReserve) * 100);
+  it("strictly halts and throws assertion error when treasury reserves are insufficient for runway horizon", () => {
+    // Treasury with only 20,000 tNight in confidential reserves
+    const contract = new Contract<void>({
+      get_confidential_reserves: () => 20000n,
+      compute_attestation_digest: () => "digest_ok",
+    } as any);
 
-    expect(privateReserves).toBeGreaterThanOrEqual(requiredReserve);
-    expect(solvencyRatio).toBe(150); // 150% solvent
+    let ctx = createTestCircuitContext(contract);
+
+    // Monthly burn: 20,000 tNight. Runway: 90 days. Required: (20,000 * 90) / 30 = 60,000 tNight.
+    expect(() =>
+      contract.impureCircuits.attestSolvency(
+        ctx,
+        20000n,
+        90n,
+        1720000000n,
+        dummySalt,
+        dummyTreasurySig,
+        dummyVaultSk
+      )
+    ).toThrow("failed assert: Insolvent: Treasury reserves insufficient for requested runway");
   });
 
-  it("detects insolvency if reserves fall below the runway threshold", () => {
-    const monthlyObligations = 20000;
-    const runwayDays = 90;
-    const requiredReserve = Math.round((monthlyObligations / 30) * runwayDays); // 60,000
-    const privateReserves = 40000;
+  it("increments sequential on-chain attestation count across multiple certified audit horizons", () => {
+    const contract = new Contract<void>({
+      get_confidential_reserves: () => 200000n,
+      compute_attestation_digest: () => "digest_ok",
+    } as any);
 
-    const isSolvent = privateReserves >= requiredReserve;
-    expect(isSolvent).toBe(false);
+    let ctx = createTestCircuitContext(contract);
+
+    ctx = contract.impureCircuits.attestSolvency(ctx, 10000n, 60n, 1720000000n, dummySalt, dummyTreasurySig, dummyVaultSk).context;
+    ctx = contract.impureCircuits.attestSolvency(ctx, 10000n, 180n, 1720000100n, dummySalt, dummyTreasurySig, dummyVaultSk).context;
+
+    const currentLedger = ledger(ctx.currentQueryContext.state);
+    expect(currentLedger.total_solvency_attestations).toBe(2n);
   });
 });

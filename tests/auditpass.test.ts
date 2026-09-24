@@ -1,30 +1,90 @@
 import { describe, it, expect } from "vitest";
+import { setNetworkId } from "@midnight-ntwrk/midnight-js-network-id";
+import { Contract, ledger } from "../contracts/managed/auditpass/contract/index";
+import { createTestCircuitContext } from "./test-context";
 
-describe("Prisma AuditPass Selective Compliance & Scoped Viewing Enclave Validation", () => {
-  it("verifies employee income bracket membership without exposing exact salary", () => {
-    const grossEarnings = 125000;
-    const bracket = { min: 85000, max: 160000, name: "US-FED Bracket 3" };
+setNetworkId("undeployed");
 
-    const inBracket = grossEarnings >= bracket.min && grossEarnings <= bracket.max;
-    expect(inBracket).toBe(true);
+describe("Prisma AuditPass Zero-Knowledge Tax & Regulatory Compliance Compiled Circuit Tests", () => {
+  const dummyJurisdiction = "us_ca".repeat(16);
+  const dummySalt = "ee".repeat(32);
+  const dummyAuthoritySig = "ff".repeat(32);
+  const dummyWorkerSk = "12".repeat(32);
+
+  it("verifies tax compliance when private gross earnings fall strictly within the statutory bracket", () => {
+    // Gross income: 120,000 tNight. Bracket: [100,000, 150,000]. Withholding rate: 20% (2,000 bps).
+    // Required withholding: (120,000 * 2,000) / 10,000 = 24,000. Paid: 25,000.
+    const contract = new Contract<void>({
+      get_confidential_tax_records: () => 120000n,
+      compute_audit_attestation_digest: () => "attestation_digest_ok",
+    } as any);
+
+    let ctx = createTestCircuitContext(contract);
+
+    ctx = contract.impureCircuits.verifyTaxCompliance(
+      ctx,
+      2026n,
+      dummyJurisdiction,
+      100000n, // bracket_min
+      150000n, // bracket_max
+      25000n,  // withholding_paid
+      2000n,   // withholding_rate_bps (20%)
+      dummySalt,
+      dummyAuthoritySig,
+      dummyWorkerSk
+    ).context;
+
+    const currentLedger = ledger(ctx.currentQueryContext.state);
+    expect(currentLedger.total_compliance_proofs).toBe(1n);
   });
 
-  it("mints time-bounded scoped viewing tokens with valid expiration dates", () => {
-    const validDays = 30;
-    const createdAt = new Date();
-    const expiresAt = new Date(createdAt.getTime() + validDays * 24 * 60 * 60 * 1000);
+  it("strictly rejects verification when confidential income falls outside the claimed tax bracket range", () => {
+    // Gross income: 160,000 tNight. Bracket: [100,000, 150,000] -> Exceeds max!
+    const contract = new Contract<void>({
+      get_confidential_tax_records: () => 160000n,
+      compute_audit_attestation_digest: () => "attestation_digest_ok",
+    } as any);
 
-    const diffDays = Math.round((expiresAt.getTime() - createdAt.getTime()) / (1000 * 60 * 60 * 24));
-    expect(diffDays).toBe(30);
+    let ctx = createTestCircuitContext(contract);
+
+    expect(() =>
+      contract.impureCircuits.verifyTaxCompliance(
+        ctx,
+        2026n,
+        dummyJurisdiction,
+        100000n,
+        150000n,
+        35000n,
+        2000n,
+        dummySalt,
+        dummyAuthoritySig,
+        dummyWorkerSk
+      )
+    ).toThrow("failed assert: Gross income exceeds declared tax bracket maximum");
   });
 
-  it("ensures statutory withholding rate matches jurisdiction rules", () => {
-    const grossEarnings = 10000;
-    const withholdingRate = 22; // 22%
-    const withheldAmount = Math.round((grossEarnings * withholdingRate) / 100);
-    const netEarnings = grossEarnings - withheldAmount;
+  it("halts verification if withholding payments are below statutory obligation", () => {
+    // Gross: 120,000. Rate: 20% (24,000 required). Paid only: 20,000!
+    const contract = new Contract<void>({
+      get_confidential_tax_records: () => 120000n,
+      compute_audit_attestation_digest: () => "attestation_digest_ok",
+    } as any);
 
-    expect(withheldAmount).toBe(2200);
-    expect(netEarnings).toBe(7800);
+    let ctx = createTestCircuitContext(contract);
+
+    expect(() =>
+      contract.impureCircuits.verifyTaxCompliance(
+        ctx,
+        2026n,
+        dummyJurisdiction,
+        100000n,
+        150000n,
+        20000n, // insufficient withholding!
+        2000n,
+        dummySalt,
+        dummyAuthoritySig,
+        dummyWorkerSk
+      )
+    ).toThrow("failed assert: Withholding payments insufficient for statutory tax obligation");
   });
 });
