@@ -163,7 +163,7 @@ export default function AuditPassPage() {
 
       const newAttestation: TaxAttestation = {
         attestationId: res.attestationId,
-        txHash: res.txHash || VERIFIED_TX,
+        txHash: res.txHash,
         fiscalYear: res.fiscalYear,
         jurisdiction: res.jurisdiction,
         bracket: res.bracket,

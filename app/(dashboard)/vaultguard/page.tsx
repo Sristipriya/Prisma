@@ -128,7 +128,7 @@ export default function VaultGuardPage() {
       );
       updateLog(s4, "done", "Proof confirmed by Midnight consensus");
 
-      const recordTx = attestation.txHash || VERIFIED_TX;
+      const recordTx = attestation.txHash;
       const record: SolvencyAuditRecord = {
         id: `attest-${Date.now().toString().slice(-4)}`,
         timestamp: new Date().toISOString().replace("T", " ").slice(0, 16) + " UTC",

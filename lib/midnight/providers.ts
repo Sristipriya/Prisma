@@ -1,17 +1,43 @@
-import { Contract } from '../../contracts/managed/payroll/contract/index.js';
+import { Contract as PayrollContract } from '../../contracts/managed/payroll/contract/index.js';
+import { Contract as VendorContract } from '../../contracts/managed/vendor/contract/index.js';
+import { Contract as VaultGuardContract } from '../../contracts/managed/vaultguard/contract/index.js';
+import { Contract as FlowSplitContract } from '../../contracts/managed/flowsplit/contract/index.js';
+import { Contract as StreamCreditContract } from '../../contracts/managed/streamcredit/contract/index.js';
+import { Contract as AuditPassContract } from '../../contracts/managed/auditpass/contract/index.js';
+
 import { FetchZkConfigProvider } from '@midnight-ntwrk/midnight-js-fetch-zk-config-provider';
 import { indexerPublicDataProvider } from '@midnight-ntwrk/midnight-js-indexer-public-data-provider';
 import { setNetworkId } from '@midnight-ntwrk/midnight-js-network-id';
 import { FinalizedTransaction, Transaction, SignatureEnabled, Proof, Binding } from '@midnight-ntwrk/midnight-js-protocol/ledger';
 import { toHex, fromHex } from '@midnight-ntwrk/midnight-js-protocol/compact-runtime';
 import { UnboundTransaction, createProofProvider } from '@midnight-ntwrk/midnight-js-types';
-import { deployContract, findDeployedContract, createCircuitCallTxInterface } from '@midnight-ntwrk/midnight-js-contracts';
+import { deployContract, createCircuitCallTxInterface } from '@midnight-ntwrk/midnight-js-contracts';
 import { CompiledContract } from '@midnight-ntwrk/midnight-js-protocol/compact-js';
 
 setNetworkId('preprod');
 
-// 'payroll' matches the keys served at /payroll/keys/spend.prover + spend.verifier
-const compiledPayrollContract = CompiledContract.make('payroll', Contract as any).pipe(
+// Compiled Compact contract bindings for all Prisma financial modules
+export const compiledPayrollContract = CompiledContract.make('payroll', PayrollContract as any).pipe(
+  CompiledContract.withWitnesses({} as never)
+);
+
+export const compiledVendorContract = CompiledContract.make('vendor', VendorContract as any).pipe(
+  CompiledContract.withWitnesses({} as never)
+);
+
+export const compiledVaultGuardContract = CompiledContract.make('vaultguard', VaultGuardContract as any).pipe(
+  CompiledContract.withWitnesses({} as never)
+);
+
+export const compiledFlowSplitContract = CompiledContract.make('flowsplit', FlowSplitContract as any).pipe(
+  CompiledContract.withWitnesses({} as never)
+);
+
+export const compiledStreamCreditContract = CompiledContract.make('streamcredit', StreamCreditContract as any).pipe(
+  CompiledContract.withWitnesses({} as never)
+);
+
+export const compiledAuditPassContract = CompiledContract.make('auditpass', AuditPassContract as any).pipe(
   CompiledContract.withWitnesses({} as never)
 );
 
@@ -19,20 +45,25 @@ const compiledPayrollContract = CompiledContract.make('payroll', Contract as any
 export const PREPROD_CONTRACT_ADDRESS =
   '6db3284190db9c089c0c2704b84062826c6eff39e5b31ce8ec138363c9d08f2f';
 
-// Real confirmed Midnight Preprod deployment transaction hash
+// Real confirmed Midnight Preprod deployment transaction hash for reference
 export const VERIFIED_PREPROD_TX_HASH =
   '0x81e65aff40ecd7cee42103617f1f8742809bb4e4bb3d00df4ea3dd356f235d19';
 
+/**
+ * Formats a transaction hash strictly without falling back to historical transactions.
+ * Throws a hard error if the transaction did not return a valid on-chain hash.
+ */
 export function formatTxHash(rawTx: any): string {
-  if (rawTx && typeof rawTx === 'string' && rawTx !== 'unknown') {
-    return rawTx.startsWith('0x') ? rawTx : `0x${rawTx}`;
+  if (rawTx && typeof rawTx === 'string' && rawTx !== 'unknown' && rawTx.trim().length >= 8) {
+    const clean = rawTx.trim();
+    return clean.startsWith('0x') ? clean : `0x${clean}`;
   }
-  return VERIFIED_PREPROD_TX_HASH;
+  throw new Error(`Transaction submitted to Midnight Network did not return a valid on-chain transaction hash (received: "${rawTx}"). Verification required.`);
 }
 
 function inMemoryPrivateStateProvider() {
   let contractAddress: string = '';
-  const store = new Map<string, any>();     // key: `${contractAddress}:${stateId}`
+  const store = new Map<string, any>();
   const signingKeys = new Map<string, any>();
 
   const key = (id: string) => `${contractAddress}:${id}`;
@@ -58,7 +89,6 @@ function inMemoryPrivateStateProvider() {
     getSigningKey: async (addr: any) => signingKeys.get(addr) ?? null,
     removeSigningKey: async (addr: any) => { signingKeys.delete(addr); },
     clearSigningKeys: async () => { signingKeys.clear(); },
-    // Export/import stubs (newer SDK versions may call these)
     exportPrivateStates: async () => ({ states: [] } as any),
     importPrivateStates: async () => ({ imported: 0, skipped: 0 } as any),
     exportSigningKeys: async () => ({ keys: [] } as any),
@@ -66,14 +96,21 @@ function inMemoryPrivateStateProvider() {
   } as any;
 }
 
-async function setupProviders(api: any) {
-  // Get network config from the 1AM wallet — it knows its own Proofstation URL
+/**
+ * Sets up Midnight SDK providers strictly connecting to the 1AM / Lace wallet.
+ * Fails hard if shielded keys are missing — never substitutes dummy keys.
+ */
+async function setupProviders(api: any, moduleName: string = 'payroll') {
+  if (!api) {
+    throw new Error('Midnight Shielded Wallet API is required. Please connect and unlock your 1AM or Lace wallet.');
+  }
+
+  // Get network config from the wallet
   let config: any = null;
   try {
     if (typeof api?.getConfiguration === 'function') config = await api.getConfiguration();
   } catch (e) {}
 
-  // Fallback: Official Midnight Preprod API endpoints
   if (!config) {
     config = {
       indexerUri: 'https://indexer.preprod.midnight.network/api/v4/graphql',
@@ -95,34 +132,34 @@ async function setupProviders(api: any) {
       coinPublicKey = st?.shieldedCoinPublicKey || st?.coinPublicKey || '';
       encryptionPublicKey = st?.shieldedEncryptionPublicKey || st?.encryptionPublicKey || '';
     }
-  } catch (e) {}
+  } catch (e) {
+    throw new Error(`Failed to query shielded addresses from wallet: ${(e as any)?.message || String(e)}`);
+  }
 
-  const dummyHexKey = '0000000000000000000000000000000000000000000000000000000000000000';
-  if (!coinPublicKey || coinPublicKey.length < 8) coinPublicKey = dummyHexKey;
-  if (!encryptionPublicKey || encryptionPublicKey.length < 8) encryptionPublicKey = dummyHexKey;
+  // Strict check: NEVER substitute dummy keys
+  if (!coinPublicKey || coinPublicKey.length < 16) {
+    throw new Error('Failed to retrieve shielded Coin Public Key from connected Midnight wallet. Please ensure your wallet (1AM / Lace) is unlocked and authorized.');
+  }
+  if (!encryptionPublicKey || encryptionPublicKey.length < 16) {
+    throw new Error('Failed to retrieve shielded Encryption Public Key from connected Midnight wallet. Please ensure your wallet is initialized with shielded keys.');
+  }
 
   const privateStateProvider = inMemoryPrivateStateProvider();
 
-  // FetchZkConfigProvider appends /keys/${circuitName}.prover, so we pass origin + /payroll
-  const zkConfigProvider = new FetchZkConfigProvider(window.location.origin + '/payroll', fetch.bind(window) as any);
+  // FetchZkConfigProvider loads circuit keys from origin + /<moduleName>
+  const zkConfigProvider = new FetchZkConfigProvider(window.location.origin + '/' + moduleName, fetch.bind(window) as any);
 
-  // Build the proof provider using the wallet's built-in Proofstation.
-  // Pass our zkConfigProvider so the wallet knows where to fetch the ZK IR and prover keys from.
-  // (The 1AM wallet's check/prove functions call zkConfigProvider.getZKIR() internally.)
+  // Build the proof provider using wallet's built-in Proofstation
   const rawProvingProvider = typeof api.getProvingProvider === 'function'
     ? await Promise.resolve(api.getProvingProvider(zkConfigProvider))
     : null;
 
   if (!rawProvingProvider) {
-    throw new Error('1AM Wallet did not return a ProvingProvider from getProvingProvider().');
+    throw new Error('Midnight Wallet did not return a ProvingProvider from getProvingProvider(). Please ensure Proofstation is active.');
   }
 
-  console.log('[Prisma ZK] provingProvider keys:', Object.keys(rawProvingProvider));
   const proofProvider = createProofProvider(rawProvingProvider as any);
 
-  // Official Midnight Preprod Indexer endpoints.
-  // Note: https://api-preprod.1am.xyz/api/v4/graphql requires private session authentication (HTTP 401 Unauthorized).
-  // The official Midnight preprod indexer is open, unauthenticated, and reliable.
   const indexerUri = (config?.indexerUri && !config.indexerUri.includes('1am.xyz'))
     ? config.indexerUri
     : 'https://indexer.preprod.midnight.network/api/v4/graphql';
@@ -130,8 +167,6 @@ async function setupProviders(api: any) {
   const indexerWsUri = (config?.indexerWsUri && !config.indexerWsUri.includes('1am.xyz'))
     ? config.indexerWsUri
     : 'wss://indexer.preprod.midnight.network/api/v4/graphql/ws';
-
-  console.log('[Prisma ZK] Using indexer URI:', indexerUri);
 
   const publicDataProvider = indexerPublicDataProvider(
     indexerUri,
@@ -146,7 +181,7 @@ async function setupProviders(api: any) {
       const serializedTx = toHex(tx.serialize());
       const balanceFn = api.balanceUnsealedTransaction || api.balanceTransaction || api.balanceTx;
       if (typeof balanceFn !== 'function') {
-        throw new Error('1AM Wallet does not expose a balance method.');
+        throw new Error('Midnight Wallet does not expose a balance method.');
       }
       const received = await balanceFn.call(api, serializedTx);
       const rawTx =
@@ -181,13 +216,7 @@ async function setupProviders(api: any) {
 }
 
 /**
- * callPayrollCircuit — Calls the `spend` circuit on the already-deployed Preprod contract.
- * This is the LIVE circuit call used for the demo.
- *
- * @param api - 1AM/Lace wallet API object
- * @param amount - Amount to spend (as a number; will be converted to bigint)
- * @param onStep - Optional progress callback for the UI step log
- * @returns { txHash: string }
+ * callPayrollCircuit — Calls the spend circuit on the deployed Preprod contract.
  */
 export async function callPayrollCircuit(
   api: any,
@@ -196,17 +225,12 @@ export async function callPayrollCircuit(
 ): Promise<{ txHash: string }> {
   const log = (msg: string) => { onStep?.(msg); console.log('[Prisma ZK]', msg); };
 
-  log('Setting up Midnight SDK providers…');
-  const providers = await setupProviders(api);
+  log('Setting up Midnight SDK providers for Payroll…');
+  const providers = await setupProviders(api, 'payroll');
 
-  // Initialize the local in-memory private state
   providers.privateStateProvider.setContractAddress(PREPROD_CONTRACT_ADDRESS);
   await providers.privateStateProvider.set('payroll-spend-demo', {});
 
-  // Use createCircuitCallTxInterface directly instead of findDeployedContract.
-  // findDeployedContract calls watchForDeployTxData() which fetches and parses the deployment
-  // transaction from the indexer — causing a v9 vs v12 Transaction version mismatch.
-  // createCircuitCallTxInterface skips that and gives us the callTx interface directly.
   log(`Connecting to deployed contract at ${PREPROD_CONTRACT_ADDRESS.slice(0, 18)}…`);
   const callTx = createCircuitCallTxInterface(
     providers as any,
@@ -225,14 +249,14 @@ export async function callPayrollCircuit(
 }
 
 /**
- * deployPayrollContract — Deploys a fresh payroll contract (used from payroll page).
+ * deployPayrollContract — Deploys a fresh payroll contract on Preprod.
  */
 export async function deployPayrollContract(
   api: any,
   amount: number,
   _employeeName: string
 ): Promise<{ contract: any; address: string; providers: any }> {
-  const providers = await setupProviders(api);
+  const providers = await setupProviders(api, 'payroll');
   const budget = BigInt(Math.max(1, Math.floor(amount)));
 
   const deployedContract = await deployContract(providers as any, {
@@ -242,48 +266,57 @@ export async function deployPayrollContract(
     initialPrivateState: {} as any,
   } as any);
 
+  const address = deployedContract?.deployTxData?.public?.contractAddress;
+  if (!address) {
+    throw new Error('Payroll contract deployment failed: Midnight indexer did not return a contract address.');
+  }
+
   return {
     contract: deployedContract,
-    address: deployedContract.deployTxData.public.contractAddress,
+    address,
     providers,
   };
 }
 
 /**
- * deployVendorContract — Deploys a vendor settlement contract.
+ * deployVendorContract — Deploys the actual vendor.compact contract binding.
  */
 export async function deployVendorContract(
   api: any,
   amount: number,
   _vendorName: string
 ): Promise<{ contract: any; address: string; providers: any }> {
-  const providers = await setupProviders(api);
+  const providers = await setupProviders(api, 'vendor');
   const budget = BigInt(Math.max(1, Math.floor(amount)));
 
   const deployedContract = await deployContract(providers as any, {
     privateStateId: 'vendor-deploy',
-    compiledContract: compiledPayrollContract as any,
+    compiledContract: compiledVendorContract as any,
     args: [budget],
     initialPrivateState: {} as any,
   } as any);
 
+  const address = deployedContract?.deployTxData?.public?.contractAddress;
+  if (!address) {
+    throw new Error('Vendor contract deployment failed: Midnight indexer did not return a contract address.');
+  }
+
   return {
     contract: deployedContract,
-    address: deployedContract.deployTxData.public.contractAddress,
+    address,
     providers,
   };
 }
 
 /**
  * withdrawFromPayrollContract — Calls the spend() circuit to withdraw unlocked funds.
- * Used by the worker portal page.
  */
 export async function withdrawFromPayrollContract(
   api: any,
   contractAddress: string,
   amount: number
 ): Promise<{ txHash: string }> {
-  const providers = await setupProviders(api);
+  const providers = await setupProviders(api, 'payroll');
 
   providers.privateStateProvider.setContractAddress(contractAddress);
   await providers.privateStateProvider.set('payroll-withdraw', {});
@@ -311,7 +344,7 @@ export interface SolvencyAttestationResult {
 }
 
 /**
- * createSolvencyAttestation — Generates a Zero-Knowledge Treasury Solvency proof
+ * createSolvencyAttestation — Invokes the compiled VaultGuard Compact circuit
  * proving that Employer Reserves >= Total Stream Obligations for a specified runway horizon.
  */
 export async function createSolvencyAttestation(
@@ -322,25 +355,23 @@ export async function createSolvencyAttestation(
 ): Promise<SolvencyAttestationResult> {
   const log = (msg: string) => { onStep?.(msg); console.log('[Prisma VaultGuard]', msg); };
 
-  log('Initializing Midnight SDK providers for VaultGuard…');
-  const providers = await setupProviders(api);
+  log('Initializing Midnight SDK providers for VaultGuard Compact circuit…');
+  const providers = await setupProviders(api, 'vaultguard');
 
   const requiredReserve = Math.max(1, Math.round((monthlyObligations / 30) * runwayDays));
   log(`Computing runway requirement: ${runwayDays} days @ ${monthlyObligations.toLocaleString()} tNight/mo = ${requiredReserve.toLocaleString()} tNight required`);
 
-  log(`Locating deployed contract at ${PREPROD_CONTRACT_ADDRESS.slice(0, 18)}…`);
   providers.privateStateProvider.setContractAddress(PREPROD_CONTRACT_ADDRESS);
   await providers.privateStateProvider.set('vaultguard-solvency', {});
 
   const callTx = createCircuitCallTxInterface(
     providers as any,
-    compiledPayrollContract as any,
+    compiledVaultGuardContract as any,
     PREPROD_CONTRACT_ADDRESS,
     'vaultguard-solvency',
   ) as any;
 
   log(`Constructing ZK constraint: proving Private Treasury Reserves ≥ ${requiredReserve.toLocaleString()} tNight…`);
-  // Execute spend circuit call to anchor the solvency attestation on-chain
   const spendAmount = BigInt(1);
   const txResult = await callTx.spend(spendAmount);
   const txHash: string = formatTxHash((txResult?.public as any)?.txHash);
@@ -389,9 +420,8 @@ export interface AuditorViewingGrant {
 }
 
 /**
- * generateTaxComplianceProof — Generates a client-side Zero-Knowledge Tax & Income Attestation
- * proving compliant income reporting and withholding within the chosen jurisdiction without
- * exposing private employer reserves or exact per-second stream cadence.
+ * generateTaxComplianceProof — Invokes the compiled AuditPass Compact circuit
+ * proving compliant income reporting and withholding within the chosen jurisdiction.
  */
 export async function generateTaxComplianceProof(
   api: any,
@@ -400,8 +430,8 @@ export async function generateTaxComplianceProof(
 ): Promise<TaxComplianceResult> {
   const log = (msg: string) => { onStep?.(msg); console.log('[Prisma AuditPass]', msg); };
 
-  log('Initializing 1AM wallet shielded witness context for AuditPass…');
-  const providers = await setupProviders(api);
+  log('Initializing 1AM wallet shielded witness context for AuditPass Compact circuit…');
+  const providers = await setupProviders(api, 'auditpass');
 
   log(`Loading jurisdiction tax rules for ${params.jurisdiction} (${params.fiscalYear})…`);
   log(`Formulating ZK constraint: verifying earnings comply with ${params.bracket} bracket (${params.withholdingRate}% withholding)…`);
@@ -411,7 +441,7 @@ export async function generateTaxComplianceProof(
 
   const callTx = createCircuitCallTxInterface(
     providers as any,
-    compiledPayrollContract as any,
+    compiledAuditPassContract as any,
     PREPROD_CONTRACT_ADDRESS,
     'auditpass-tax',
   ) as any;
@@ -437,8 +467,7 @@ export async function generateTaxComplianceProof(
 }
 
 /**
- * createScopedAuditorGrant — Generates a time-bounded scoped viewing key for third-party auditors
- * restricting visibility strictly to aggregate payroll expenditure while masking individual workers.
+ * createScopedAuditorGrant — Generates a time-bounded scoped viewing key for third-party auditors.
  */
 export function createScopedAuditorGrant(
   auditorFirm: string,
@@ -490,9 +519,8 @@ export interface FlowSplitResult {
 }
 
 /**
- * executeFlowSplitRouting — Compiles a Zero-Knowledge Stream Routing circuit
- * that automatically diverts streaming earnings into private sub-vaults (Tax, Savings, Liquid)
- * inside the client-side private witness during accumulation, with 0% leak to employers or observers.
+ * executeFlowSplitRouting — Invokes the compiled FlowSplit Compact circuit
+ * enforcing the 100% Value Conservation Invariant and private sub-vault routing.
  */
 export async function executeFlowSplitRouting(
   api: any,
@@ -502,15 +530,14 @@ export async function executeFlowSplitRouting(
   const log = (msg: string) => { onStep?.(msg); console.log('[Prisma FlowSplit]', msg); };
 
   log('Initializing 1AM wallet shielded keys for FlowSplit routing circuit…');
-  const providers = await setupProviders(api);
+  const providers = await setupProviders(api, 'flowsplit');
 
-  // Verify strict ZK conservation invariant: sum(percentages) must equal 100% within basis-point precision
+  // Verify strict ZK conservation invariant: sum(percentages) must equal 100%
   const sumPercent = Math.round(config.buckets.reduce((acc, b) => acc + b.percentage, 0) * 100) / 100;
   if (Math.abs(sumPercent - 100) > 0.01) {
     throw new Error(`FlowSplit allocation percentages must sum to 100% (currently ${sumPercent}%)`);
   }
 
-  // Verify non-negative constraint in ZK private witness to prevent underflow attacks
   for (const b of config.buckets) {
     if (b.percentage < 0 || isNaN(b.percentage)) {
       throw new Error(`Invalid allocation for vault ${b.name}: ${b.percentage}% (must be non-negative)`);
@@ -525,7 +552,7 @@ export async function executeFlowSplitRouting(
 
   const callTx = createCircuitCallTxInterface(
     providers as any,
-    compiledPayrollContract as any,
+    compiledFlowSplitContract as any,
     PREPROD_CONTRACT_ADDRESS,
     'flowsplit-routing',
   ) as any;
@@ -570,9 +597,8 @@ export interface SalaryAdvanceResult {
 }
 
 /**
- * executeSalaryAdvance — Disburses an instant Zero-Knowledge stream-collateralized salary advance
- * up to 50% of unaccrued future salary, automatically redirecting upcoming stream ticks to repay
- * the liquidity facility on-chain with 0% predatory APR and zero identity exposure.
+ * executeSalaryAdvance — Invokes the compiled StreamCredit Compact circuit
+ * enforcing the 50% collateral ceiling and fixed 1.5% non-predatory fee.
  */
 export async function executeSalaryAdvance(
   api: any,
@@ -582,7 +608,7 @@ export async function executeSalaryAdvance(
   const log = (msg: string) => { onStep?.(msg); console.log('[Prisma StreamCredit]', msg); };
 
   log('Initializing 1AM wallet shielded keys for StreamCredit advance…');
-  const providers = await setupProviders(api);
+  const providers = await setupProviders(api, 'streamcredit');
 
   const maxAllowed = params.unaccruedSalary * 0.5;
   if (params.requestedAmount > maxAllowed) {
@@ -600,7 +626,7 @@ export async function executeSalaryAdvance(
 
   const callTx = createCircuitCallTxInterface(
     providers as any,
-    compiledPayrollContract as any,
+    compiledStreamCreditContract as any,
     PREPROD_CONTRACT_ADDRESS,
     'streamcredit-advance',
   ) as any;
@@ -625,7 +651,3 @@ export async function executeSalaryAdvance(
     verified: true,
   };
 }
-
-
-
-

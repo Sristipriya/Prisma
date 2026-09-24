@@ -75,16 +75,26 @@ export default function VendorPage() {
 
       const midnightWallets = (window as any).midnight || {};
       const midnightObj = midnightWallets['1am'] || midnightWallets.mnLace || Object.values(midnightWallets)[0];
-      let contractAddress = `mn_vendor_${Date.now().toString(36)}`;
-      if (midnightObj) {
-        let api;
-        if (typeof midnightObj.connect === 'function') api = await midnightObj.connect();
-        else if (typeof midnightObj.enable === 'function') api = await midnightObj.enable();
-        else api = midnightObj;
-        const { deployVendorContract } = await import('@/lib/midnight/providers');
-        const { address } = await deployVendorContract(api, parseFloat(amount), vendorName);
-        contractAddress = address;
+
+      if (!midnightObj) {
+        throw new Error('Midnight Shielded Wallet (1AM / Lace) is required. Please install and unlock your wallet to settle shielded invoices on Preprod.');
       }
+
+      let api;
+      if (typeof midnightObj.connect === 'function') api = await midnightObj.connect();
+      else if (typeof midnightObj.enable === 'function') api = await midnightObj.enable();
+      else api = midnightObj;
+
+      if (!api) {
+        throw new Error('Failed to connect to Midnight wallet. Please approve the connection request in your wallet extension.');
+      }
+
+      const { deployVendorContract } = await import('@/lib/midnight/providers');
+      const { address } = await deployVendorContract(api, parseFloat(amount), vendorName);
+      if (!address) {
+        throw new Error('Contract deployment failed: no contract address returned from Midnight indexer.');
+      }
+      const contractAddress = address;
 
       const { data, error } = await supabase.from('vendor_invoices').insert([{
         user_id: user.id,
