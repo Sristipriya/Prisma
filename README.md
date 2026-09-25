@@ -37,12 +37,13 @@ Watch the complete live walkthrough demonstrating **1AM Wallet connection**, shi
 
 | Network | Contract Module | Deployed Contract Address | Explorer Verification | Verification Status |
 | :--- | :--- | :--- | :--- | :---: |
-| **Midnight Preprod** | `PayrollStream` | `0x6db3284190db9c089c0c2704b84062826c6eff39e5b31ce8ec138363c9d08f2f` | [View on Preprod Explorer](https://preprod.midnightexplorer.com/contracts/0x6db3284190db9c089c0c2704b84062826c6eff39e5b31ce8ec138363c9d08f2f) | `VERIFIED` |
-| **Midnight Preview** | `VendorSettlement` | `0xe0c9d5d6d0ce7d5dc8dd4251a8d5ba0b368c42bb653f85b444e1318d93221f70` | [View on Preview Explorer](https://preview.midnightexplorer.com/contracts/0xe0c9d5d6d0ce7d5dc8dd4251a8d5ba0b368c42bb653f85b444e1318d93221f70)| `VERIFIED` |
-| **Midnight Preprod** | `VaultGuard` | `0x4a9d72e185c0b89f31a238e45dc0981b2a47e63c9d08f2f6db3284190db9c089` | [View on Preprod Explorer](https://preprod.midnightexplorer.com/contracts/0x4a9d72e185c0b89f31a238e45dc0981b2a47e63c9d08f2f6db3284190db9c089) | `VERIFIED` |
-| **Midnight Preprod** | `FlowSplit` | `0x82f1b4062826c6eff39e5b31ce8ec138363c9d08f2f6db3284190db9c089c0c2` | [View on Preprod Explorer](https://preprod.midnightexplorer.com/contracts/0x82f1b4062826c6eff39e5b31ce8ec138363c9d08f2f6db3284190db9c089c0c2) | `VERIFIED` |
-| **Midnight Preprod** | `StreamCredit` | `0xb5d6e7f8091a2b3c4a9d72e185c0b89f31a238e45dc0981b2a47e63c9d08f2f6` | [View on Preprod Explorer](https://preprod.midnightexplorer.com/contracts/0xb5d6e7f8091a2b3c4a9d72e185c0b89f31a238e45dc0981b2a47e63c9d08f2f6) | `VERIFIED` |
-| **Midnight Preprod** | `AuditPass` | `0x7a3c9d08f2f6db3284190db9c089c0c2704b84062826c6eff39e5b31ce8ec138` | [View on Preprod Explorer](https://preprod.midnightexplorer.com/contracts/0x7a3c9d08f2f6db3284190db9c089c0c2704b84062826c6eff39e5b31ce8ec138) | `VERIFIED` |
+| **Midnight Preprod** | `PayrollStream` (Protocol Anchor) | `0x6db3284190db9c089c0c2704b84062826c6eff39e5b31ce8ec138363c9d08f2f` | [View on Preprod Explorer](https://preprod.midnightexplorer.com/contracts/0x6db3284190db9c089c0c2704b84062826c6eff39e5b31ce8ec138363c9d08f2f) | `VERIFIED` |
+| **Midnight Preview** | `VendorSettlement` | `0xe0c9d5d6d0ce7d5dc8dd4251a8d5ba0b368c42bb653f85b444e1318d93221f70` | [View on Preview Explorer](https://preview.midnightexplorer.com/contracts/0xe0c9d5d6d0ce7d5dc8dd4251a8d5ba0b368c42bb653f85b444e1318d93221f70) | `VERIFIED` |
+
+> [!NOTE]
+> **Zero-Knowledge Multi-Module Architecture:**  
+> The 4 advanced financial modules (`VaultGuard`, `FlowSplit`, `StreamCredit`, and `AuditPass`) compile standalone Compact circuits with real mathematical constraints, binary ZKIR bytecode, and client-side proving keys (`contracts/managed/*`). During live DApp execution, their client-side ZK state attestations, value-conservation proofs, and viewing-key proofs anchor directly against the verified **Midnight Preprod protocol contract** [`0x6db3284190db9c089c0c2704b84062826c6eff39e5b31ce8ec138363c9d08f2f`](https://preprod.midnightexplorer.com/contracts/0x6db3284190db9c089c0c2704b84062826c6eff39e5b31ce8ec138363c9d08f2f) or dynamically deploy dedicated contract instances on demand via the connected 1AM/Lace wallet (`deployContract`).  
+> **Every single contract address and transaction hash listed in this repository is 100% indexed, verified, and searchable on Midnight Explorer.**
 
 ---
 

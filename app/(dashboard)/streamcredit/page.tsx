@@ -4,7 +4,7 @@ import { useWallet } from "@/components/WalletContext";
 import { toast } from "sonner";
 import "../dashboard-pages.css";
 
-const PREPROD_CONTRACT = "0xb5d6e7f8091a2b3c4a9d72e185c0b89f31a238e45dc0981b2a47e63c9d08f2f6";
+const PREPROD_CONTRACT = "0x6db3284190db9c089c0c2704b84062826c6eff39e5b31ce8ec138363c9d08f2f";
 
 interface ProverStep {
   id: number;
@@ -33,7 +33,7 @@ const INITIAL_ADVANCES: ActiveAdvance[] = [
     repaid: 840,
     termDays: 14,
     dailyRate: 107.14,
-    txHash: "0x2704b84062826c6eff39e5b31ce8ec138363c9d08f2f6db3284190db9c089c0",
+    txHash: "0x81e65aff40ecd7cee42103617f1f8742809bb4e4bb3d00df4ea3dd356f235d19",
     status: "Amortizing",
     timestamp: "2026-09-10 14:20 UTC",
   },

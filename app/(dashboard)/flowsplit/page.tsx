@@ -18,7 +18,7 @@ import {
 } from "lucide-react";
 import "../dashboard-pages.css";
 
-const PREPROD_CONTRACT = "0x82f1b4062826c6eff39e5b31ce8ec138363c9d08f2f6db3284190db9c089c0c2";
+const PREPROD_CONTRACT = "0x6db3284190db9c089c0c2704b84062826c6eff39e5b31ce8ec138363c9d08f2f";
 
 interface ProverStep {
   id: number;
