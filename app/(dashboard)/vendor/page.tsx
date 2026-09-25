@@ -89,12 +89,16 @@ export default function VendorPage() {
         throw new Error('Failed to connect to Midnight wallet. Please approve the connection request in your wallet extension.');
       }
 
-      const { deployVendorContract } = await import('@/lib/midnight/providers');
-      const { address } = await deployVendorContract(api, parseFloat(amount), vendorName);
+      const { deployVendorContract, settleVendorInvoice } = await import('@/lib/midnight/providers');
+      const { address, txHash: deployTxHash } = await deployVendorContract(api, parseFloat(amount), vendorName);
       if (!address) {
         throw new Error('Contract deployment failed: no contract address returned from Midnight indexer.');
       }
       const contractAddress = address;
+
+      // Execute on-chain settleInvoice Compact circuit
+      const { txHash: settleTxHash } = await settleVendorInvoice(api, contractAddress, parseFloat(amount), invoiceId, vendorAddress);
+      const finalizedTxHash = settleTxHash || deployTxHash;
 
       const { data, error } = await supabase.from('vendor_invoices').insert([{
         user_id: user.id,
@@ -103,7 +107,7 @@ export default function VendorPage() {
         vendor_address: vendorAddress,
         amount: parseFloat(amount),
         status: 'Confirmed',
-        proof_hash: contractAddress.slice(0, 10) + '...' + contractAddress.slice(-6),
+        proof_hash: finalizedTxHash,
         contract_address: contractAddress,
       }]).select();
       if (error) throw error;
@@ -111,7 +115,7 @@ export default function VendorPage() {
       if (data && data.length > 0) setInvoices(prev => [data[0] as VendorInvoice, ...prev]);
       setInvoiceId(''); setVendorName(''); setVendorAddress(''); setAmount('');
       setShowForm(false);
-      toast.success(`Invoice ${invoiceId} settled`, { id: t });
+      toast.success(`Invoice ${invoiceId} settled on Midnight! (Tx: ${finalizedTxHash.slice(0, 10)}…)`, { id: t });
     } catch (e: any) {
       toast.error('Settlement failed: ' + (e.message || String(e)), { id: t });
     } finally {

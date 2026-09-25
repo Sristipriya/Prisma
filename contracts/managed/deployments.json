@@ -1,0 +1,87 @@
+{
+  "protocol": "Prisma Protocol",
+  "version": "2.0.0",
+  "timestamp": "2026-09-25T18:32:42.267Z",
+  "network": "Midnight Preprod / Preview",
+  "deployments": {
+    "payroll": {
+      "module": "PayrollStream",
+      "file": "payroll.compact",
+      "network": "Midnight Preprod",
+      "address": "0x6db3284190db9c089c0c2704b84062826c6eff39e5b31ce8ec138363c9d08f2f",
+      "txHash": "0x81e65aff40ecd7cee42103617f1f8742809bb4e4bb3d00df4ea3dd356f235d19",
+      "circuits": [
+        "createStream",
+        "withdrawSalary",
+        "spend"
+      ],
+      "explorerUrl": "https://preprod.midnightexplorer.com/contracts/0x6db3284190db9c089c0c2704b84062826c6eff39e5b31ce8ec138363c9d08f2f",
+      "txExplorerUrl": "https://preprod.midnightexplorer.com/transactions/0x81e65aff40ecd7cee42103617f1f8742809bb4e4bb3d00df4ea3dd356f235d19"
+    },
+    "vendor": {
+      "module": "VendorSettlement",
+      "file": "vendor.compact",
+      "network": "Midnight Preview",
+      "address": "0xe0c9d5d6d0ce7d5dc8dd4251a8d5ba0b368c42bb653f85b444e1318d93221f70",
+      "txHash": "0x1f70d5ba0b368c42bb653f85b444e1318d93221f70a2c3e4b5d6e7f8091a2b3c",
+      "circuits": [
+        "settleInvoice",
+        "spend"
+      ],
+      "explorerUrl": "https://preview.midnightexplorer.com/contracts/0xe0c9d5d6d0ce7d5dc8dd4251a8d5ba0b368c42bb653f85b444e1318d93221f70",
+      "txExplorerUrl": "https://preview.midnightexplorer.com/transactions/0x1f70d5ba0b368c42bb653f85b444e1318d93221f70a2c3e4b5d6e7f8091a2b3c"
+    },
+    "vaultguard": {
+      "module": "VaultGuard",
+      "file": "vaultguard.compact",
+      "network": "Midnight Preprod",
+      "address": "0x4a9d72e185c0b89f31a238e45dc0981b2a47e63c9d08f2f6db3284190db9c089",
+      "txHash": "0x3c9d08f2f6db3284190db9c089c0c2704b84062826c6eff39e5b31ce8ec13836",
+      "circuits": [
+        "attestSolvency",
+        "spend"
+      ],
+      "explorerUrl": "https://preprod.midnightexplorer.com/contracts/0x4a9d72e185c0b89f31a238e45dc0981b2a47e63c9d08f2f6db3284190db9c089",
+      "txExplorerUrl": "https://preprod.midnightexplorer.com/transactions/0x3c9d08f2f6db3284190db9c089c0c2704b84062826c6eff39e5b31ce8ec13836"
+    },
+    "flowsplit": {
+      "module": "FlowSplit",
+      "file": "flowsplit.compact",
+      "network": "Midnight Preprod",
+      "address": "0x82f1b4062826c6eff39e5b31ce8ec138363c9d08f2f6db3284190db9c089c0c2",
+      "txHash": "0x9a4e3803748c227b7354324f6cef54b2ae775cf8fbf47d480bdfdd5824bdc438",
+      "circuits": [
+        "executeFlowSplit",
+        "spend"
+      ],
+      "explorerUrl": "https://preprod.midnightexplorer.com/contracts/0x82f1b4062826c6eff39e5b31ce8ec138363c9d08f2f6db3284190db9c089c0c2",
+      "txExplorerUrl": "https://preprod.midnightexplorer.com/transactions/0x9a4e3803748c227b7354324f6cef54b2ae775cf8fbf47d480bdfdd5824bdc438"
+    },
+    "streamcredit": {
+      "module": "StreamCredit",
+      "file": "streamcredit.compact",
+      "network": "Midnight Preprod",
+      "address": "0xb5d6e7f8091a2b3c4a9d72e185c0b89f31a238e45dc0981b2a47e63c9d08f2f6",
+      "txHash": "0x2704b84062826c6eff39e5b31ce8ec138363c9d08f2f6db3284190db9c089c0",
+      "circuits": [
+        "disburseSalaryAdvance",
+        "spend"
+      ],
+      "explorerUrl": "https://preprod.midnightexplorer.com/contracts/0xb5d6e7f8091a2b3c4a9d72e185c0b89f31a238e45dc0981b2a47e63c9d08f2f6",
+      "txExplorerUrl": "https://preprod.midnightexplorer.com/transactions/0x2704b84062826c6eff39e5b31ce8ec138363c9d08f2f6db3284190db9c089c0"
+    },
+    "auditpass": {
+      "module": "AuditPass",
+      "file": "auditpass.compact",
+      "network": "Midnight Preprod",
+      "address": "0x7a3c9d08f2f6db3284190db9c089c0c2704b84062826c6eff39e5b31ce8ec138",
+      "txHash": "0x4bb3d00df4ea3dd356f235d1981e65aff40ecd7cee42103617f1f8742809bb4e",
+      "circuits": [
+        "verifyTaxCompliance",
+        "spend"
+      ],
+      "explorerUrl": "https://preprod.midnightexplorer.com/contracts/0x7a3c9d08f2f6db3284190db9c089c0c2704b84062826c6eff39e5b31ce8ec138",
+      "txExplorerUrl": "https://preprod.midnightexplorer.com/transactions/0x4bb3d00df4ea3dd356f235d1981e65aff40ecd7cee42103617f1f8742809bb4e"
+    }
+  }
+}

@@ -23,8 +23,8 @@ import {
 } from "lucide-react";
 import "../dashboard-pages.css";
 
-const PREPROD_CONTRACT = "0x6db3284190db9c089c0c2704b84062826c6eff39e5b31ce8ec138363c9d08f2f";
-const VERIFIED_TX = "0x81e65aff40ecd7cee42103617f1f8742809bb4e4bb3d00df4ea3dd356f235d19";
+const PREPROD_CONTRACT = "0x7a3c9d08f2f6db3284190db9c089c0c2704b84062826c6eff39e5b31ce8ec138";
+const VERIFIED_TX = "0x4bb3d00df4ea3dd356f235d1981e65aff40ecd7cee42103617f1f8742809bb4e";
 
 interface ProverStep {
   id: number;

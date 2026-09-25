@@ -123,7 +123,7 @@ export default function PayrollPage() {
       }
 
       const { deployPayrollContract } = await import('@/lib/midnight/providers');
-      const { address } = await deployPayrollContract(api, parseFloat(amount), selectedEmp.full_name);
+      const { address, txHash } = await deployPayrollContract(api, parseFloat(amount), selectedEmp.full_name);
       if (!address) {
         throw new Error('Contract deployment failed: no contract address returned from Midnight indexer.');
       }
@@ -142,7 +142,7 @@ export default function PayrollPage() {
         duration_seconds: 2592000, // 30 days
         withdrawn_amount: 0,
         status: 'Streaming',
-        proof_hash: contractAddress.slice(0, 10) + '...' + contractAddress.slice(-6),
+        proof_hash: txHash,
         contract_address: contractAddress,
       }]).select();
       if (error) throw error;
@@ -150,7 +150,7 @@ export default function PayrollPage() {
       if (data && data.length > 0) setStreams(prev => [{ ...data[0], employee_name: selectedEmp.full_name } as PayrollStream, ...prev]);
       setAmount(''); 
       setShowForm(false);
-      toast.success(`Stream deployed: ${contractAddress.slice(0, 16)}…`, { id: t });
+      toast.success(`Stream deployed on Midnight Preprod! (Tx: ${txHash.slice(0, 10)}…)`, { id: t });
     } catch (e: any) {
       toast.error('Deployment failed: ' + (e.message || String(e)), { id: t });
     } finally {

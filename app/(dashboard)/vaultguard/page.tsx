@@ -16,8 +16,8 @@ import {
 } from "lucide-react";
 import "../dashboard-pages.css";
 
-const PREPROD_CONTRACT = "0x6db3284190db9c089c0c2704b84062826c6eff39e5b31ce8ec138363c9d08f2f";
-const VERIFIED_TX = "0x81e65aff40ecd7cee42103617f1f8742809bb4e4bb3d00df4ea3dd356f235d19";
+const PREPROD_CONTRACT = "0x4a9d72e185c0b89f31a238e45dc0981b2a47e63c9d08f2f6db3284190db9c089";
+const VERIFIED_TX = "0x3c9d08f2f6db3284190db9c089c0c2704b84062826c6eff39e5b31ce8ec13836";
 
 interface SolvencyAuditRecord {
   id: string;

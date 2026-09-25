@@ -9,6 +9,7 @@
     "lint": "eslint",
     "test": "vitest run",
     "compact": "node scripts/compile-compact.js",
+    "deploy:contracts": "node scripts/deploy-contracts.js",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

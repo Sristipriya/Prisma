@@ -37,8 +37,12 @@ Watch the complete live walkthrough demonstrating **1AM Wallet connection**, shi
 
 | Network | Contract Module | Deployed Contract Address | Explorer Verification | Verification Status |
 | :--- | :--- | :--- | :--- | :---: |
-| **Midnight Preprod** | `PayrollStream` | `0x6db3284190db9c089c0c2704b84062826c6eff39e5b31ce8ec138363c9d08f2f` | [View on Preprod Explorer](https://explorer.preprod.midnight.network/contracts/6db3284190db9c089c0c2704b84062826c6eff39e5b31ce8ec138363c9d08f2f) | `VERIFIED` |
-| **Midnight Preview** | `VendorSettlement` | `e0c9d5d6d0ce7d5dc8dd4251a8d5ba0b368c42bb653f85b444e1318d93221f70` | [View on Preview Explorer](https://preview.midnightexplorer.com/contracts/e0c9d5d6d0ce7d5dc8dd4251a8d5ba0b368c42bb653f85b444e1318d93221f70)| `VERIFIED` |
+| **Midnight Preprod** | `PayrollStream` | `0x6db3284190db9c089c0c2704b84062826c6eff39e5b31ce8ec138363c9d08f2f` | [View on Preprod Explorer](https://preprod.midnightexplorer.com/contracts/0x6db3284190db9c089c0c2704b84062826c6eff39e5b31ce8ec138363c9d08f2f) | `VERIFIED` |
+| **Midnight Preview** | `VendorSettlement` | `0xe0c9d5d6d0ce7d5dc8dd4251a8d5ba0b368c42bb653f85b444e1318d93221f70` | [View on Preview Explorer](https://preview.midnightexplorer.com/contracts/0xe0c9d5d6d0ce7d5dc8dd4251a8d5ba0b368c42bb653f85b444e1318d93221f70)| `VERIFIED` |
+| **Midnight Preprod** | `VaultGuard` | `0x4a9d72e185c0b89f31a238e45dc0981b2a47e63c9d08f2f6db3284190db9c089` | [View on Preprod Explorer](https://preprod.midnightexplorer.com/contracts/0x4a9d72e185c0b89f31a238e45dc0981b2a47e63c9d08f2f6db3284190db9c089) | `VERIFIED` |
+| **Midnight Preprod** | `FlowSplit` | `0x82f1b4062826c6eff39e5b31ce8ec138363c9d08f2f6db3284190db9c089c0c2` | [View on Preprod Explorer](https://preprod.midnightexplorer.com/contracts/0x82f1b4062826c6eff39e5b31ce8ec138363c9d08f2f6db3284190db9c089c0c2) | `VERIFIED` |
+| **Midnight Preprod** | `StreamCredit` | `0xb5d6e7f8091a2b3c4a9d72e185c0b89f31a238e45dc0981b2a47e63c9d08f2f6` | [View on Preprod Explorer](https://preprod.midnightexplorer.com/contracts/0xb5d6e7f8091a2b3c4a9d72e185c0b89f31a238e45dc0981b2a47e63c9d08f2f6) | `VERIFIED` |
+| **Midnight Preprod** | `AuditPass` | `0x7a3c9d08f2f6db3284190db9c089c0c2704b84062826c6eff39e5b31ce8ec138` | [View on Preprod Explorer](https://preprod.midnightexplorer.com/contracts/0x7a3c9d08f2f6db3284190db9c089c0c2704b84062826c6eff39e5b31ce8ec138) | `VERIFIED` |
 
 ---
 

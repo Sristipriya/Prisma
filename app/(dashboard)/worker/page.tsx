@@ -124,11 +124,14 @@ export default function WorkerPage() {
       else api = midnightObj;
 
       const { withdrawFromPayrollContract } = await import('@/lib/midnight/providers');
-      await withdrawFromPayrollContract(api, stream.contract_address, unlockedAmount);
+      const { txHash } = await withdrawFromPayrollContract(api, stream.contract_address, unlockedAmount, stream.id);
 
       const newWithdrawn = Number(stream.withdrawn_amount) + unlockedAmount;
       const isCompleted = newWithdrawn >= Number(stream.amount);
-      const updateData: any = { withdrawn_amount: newWithdrawn };
+      const updateData: any = {
+        withdrawn_amount: newWithdrawn,
+        proof_hash: txHash,
+      };
       if (isCompleted) {
         updateData.status = 'Completed';
       }
@@ -138,8 +141,21 @@ export default function WorkerPage() {
         .eq('id', stream.id);
       if (error) console.warn('Supabase update non-fatal:', error.message);
 
-      setStreams(prev => prev.map(s => s.id === stream.id ? { ...s, withdrawn_amount: newWithdrawn, ...(isCompleted ? { status: 'Completed' } : {}) } : s));
-      toast.success(`Withdrew ${unlockedAmount.toFixed(4)} tNight via Midnight Preprod!`, { id: t });
+      setStreams(prev => prev.map(s => s.id === stream.id ? { ...s, withdrawn_amount: newWithdrawn, proof_hash: txHash, ...(isCompleted ? { status: 'Completed' } : {}) } : s));
+      toast.success(
+        <span>
+          Withdrew {unlockedAmount.toFixed(4)} tNight!{' '}
+          <a
+            href={`https://preprod.midnightexplorer.com/transactions/${txHash}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{ color: '#6ee7b7', textDecoration: 'underline' }}
+          >
+            View Tx ({txHash.slice(0, 10)}…)
+          </a>
+        </span>,
+        { id: t }
+      );
     } catch (e: any) {
       toast.error('Withdrawal failed: ' + (e.message || String(e)), { id: t });
     }
