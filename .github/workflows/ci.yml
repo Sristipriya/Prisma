@@ -17,7 +17,7 @@ env:
 
 jobs:
   test:
-    name: Unit, ZK Circuit & Financial Primitives Tests (21 Tests)
+    name: Unit, ZK Circuit & Financial Primitives Tests (28 Tests)
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
@@ -63,7 +63,7 @@ jobs:
           test -f contracts/managed/payroll/zkir/spend.bzkir && echo "✓ spend.bzkir proving artifact verified"
 
   build:
-    name: TypeScript Verification & Next.js Production Build (12 Routes)
+    name: TypeScript Verification & Next.js Production Build (14 Routes)
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository

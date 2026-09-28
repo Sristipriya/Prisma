@@ -50,7 +50,9 @@ export circuit attestSolvency(
   const private_reserves = get_confidential_reserves(vault_sk);
 
   // 3. Mathematical Solvency Inequality: Reserves >= (burn * days) / 30
-  assert((private_reserves * 30 as Uint<32>) >= (monthly_obligations * runway_days as Uint<32>), "Insolvent: Treasury reserves insufficient for requested runway");
+  const daily_burn = (monthly_obligations / 30 as Uint<32>);
+  const required_reserves = (daily_burn * runway_days as Uint<32>);
+  assert(private_reserves >= required_reserves, "Insolvent: Treasury reserves insufficient for requested runway");
 
   // 4. Compute Attestation Commitment
   const attestation_digest = compute_attestation_digest(runway_days, monthly_obligations, attestation_salt);

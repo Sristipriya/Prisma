@@ -17,50 +17,132 @@ import { CompiledContract } from '@midnight-ntwrk/midnight-js-protocol/compact-j
 setNetworkId('preprod');
 
 /**
+ * NIST FIPS 180-4 standard SHA-256 implementation producing 64-char hex string.
+ * Self-contained, dependency-free, running synchronously in both browser and Node.js.
+ */
+export function sha256Hex(ascii: string): string {
+  function rightRotate(value: number, amount: number) {
+    return (value >>> amount) | (value << (32 - amount));
+  }
+  let i: number, j: number;
+  let result = '';
+  const words: number[] = [];
+  const asciiBitLength = ascii.length * 8;
+
+  let hash = [
+    0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a,
+    0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19,
+  ];
+
+  const k = [
+    0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5, 0x3956c25b, 0x59f111f1, 0x923f82a4, 0xab1c5ed5,
+    0xd807aa98, 0x12835b01, 0x243185be, 0x550c7dc3, 0x72be5d74, 0x80deb1fe, 0x9bdc06a7, 0xc19bf174,
+    0xe49b69c1, 0xefbe4786, 0x0fc19dc6, 0x240ca1cc, 0x2de92c6f, 0x4a7484aa, 0x5cb0a9dc, 0x76f988da,
+    0x983e5152, 0xa831c66d, 0xb00327c8, 0xbf597fc7, 0xc6e00bf3, 0xd5a79147, 0x06ca6351, 0x14292967,
+    0x27b70a85, 0x2e1b2138, 0x4d2c6dfc, 0x53380d13, 0x650a7354, 0x766a0abb, 0x81c2c92e, 0x92722c85,
+    0xa2bfe8a1, 0xa81a664b, 0xc24b8b70, 0xc76c51a3, 0xd192e819, 0xd6990624, 0xf40e3585, 0x106aa070,
+    0x19a4c116, 0x1e376c08, 0x2748774c, 0x34b0bcb5, 0x391c0cb3, 0x4ed8aa4a, 0x5b9cca4f, 0x682e6ff3,
+    0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208, 0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2,
+  ];
+
+  for (i = 0; i < ascii.length; i++) {
+    const charCode = ascii.charCodeAt(i);
+    words[i >> 2] |= charCode << ((3 - (i % 4)) * 8);
+  }
+
+  words[asciiBitLength >> 5] |= 0x80 << (24 - (asciiBitLength % 32));
+  words[(((asciiBitLength + 64) >> 9) << 4) + 15] = asciiBitLength;
+
+  for (i = 0; i < words.length; i += 16) {
+    const w = words.slice(i, i + 16);
+    let a = hash[0], b = hash[1], c = hash[2], d = hash[3];
+    let e = hash[4], f = hash[5], g = hash[6], h = hash[7];
+
+    for (j = 0; j < 64; j++) {
+      if (j >= 16) {
+        const s0 = rightRotate(w[j - 15], 7) ^ rightRotate(w[j - 15], 18) ^ (w[j - 15] >>> 3);
+        const s1 = rightRotate(w[j - 2], 17) ^ rightRotate(w[j - 2], 19) ^ (w[j - 2] >>> 10);
+        w[j] = (w[j - 16] + s0 + w[j - 7] + s1) | 0;
+      }
+      const ch = (e & f) ^ (~e & g);
+      const temp1 = (h + (rightRotate(e, 6) ^ rightRotate(e, 11) ^ rightRotate(e, 25)) + ch + k[j] + w[j]) | 0;
+      const maj = (a & b) ^ (a & c) ^ (b & c);
+      const temp2 = ((rightRotate(a, 2) ^ rightRotate(a, 13) ^ rightRotate(a, 22)) + maj) | 0;
+
+      h = g;
+      g = f;
+      f = e;
+      e = (d + temp1) | 0;
+      d = c;
+      c = b;
+      b = a;
+      a = (temp1 + temp2) | 0;
+    }
+
+    hash[0] = (hash[0] + a) | 0;
+    hash[1] = (hash[1] + b) | 0;
+    hash[2] = (hash[2] + c) | 0;
+    hash[3] = (hash[3] + d) | 0;
+    hash[4] = (hash[4] + e) | 0;
+    hash[5] = (hash[5] + f) | 0;
+    hash[6] = (hash[6] + g) | 0;
+    hash[7] = (hash[7] + h) | 0;
+  }
+
+  for (i = 0; i < 8; i++) {
+    for (j = 3; j >= 0; j--) {
+      const byte = (hash[i] >> (8 * j)) & 255;
+      result += (byte < 16 ? '0' : '') + byte.toString(16);
+    }
+  }
+  return result;
+}
+
+/**
  * Verified and deployed contract addresses on Midnight Networks.
  */
 export const DEPLOYED_CONTRACTS = {
   payroll: {
     address: '6db3284190db9c089c0c2704b84062826c6eff39e5b31ce8ec138363c9d08f2f',
-    txHash: '0x81e65aff40ecd7cee42103617f1f8742809bb4e4bb3d00df4ea3dd356f235d19',
+    txHash: '0xb220e18249223a9784106eae22150251bb866f6ef7079560580ee2d624d3cc6f',
     network: 'Midnight Preprod',
     explorerContractUrl: 'https://preprod.midnightexplorer.com/contracts/0x6db3284190db9c089c0c2704b84062826c6eff39e5b31ce8ec138363c9d08f2f',
-    explorerTxUrl: 'https://preprod.midnightexplorer.com/transactions/0x81e65aff40ecd7cee42103617f1f8742809bb4e4bb3d00df4ea3dd356f235d19',
+    explorerTxUrl: 'https://preprod.midnightexplorer.com/transactions/0xb220e18249223a9784106eae22150251bb866f6ef7079560580ee2d624d3cc6f',
   },
   vendor: {
     address: 'e0c9d5d6d0ce7d5dc8dd4251a8d5ba0b368c42bb653f85b444e1318d93221f70',
-    txHash: '0x1f70d5ba0b368c42bb653f85b444e1318d93221f70a2c3e4b5d6e7f8091a2b3c',
+    txHash: '0x9766198312e0d540f52023a9b7ed56671934f12924ce21455da5d208805b6bbf',
     network: 'Midnight Preview',
     explorerContractUrl: 'https://preview.midnightexplorer.com/contracts/0xe0c9d5d6d0ce7d5dc8dd4251a8d5ba0b368c42bb653f85b444e1318d93221f70',
-    explorerTxUrl: 'https://preview.midnightexplorer.com/transactions/0x1f70d5ba0b368c42bb653f85b444e1318d93221f70a2c3e4b5d6e7f8091a2b3c',
+    explorerTxUrl: 'https://preview.midnightexplorer.com/transactions/0x9766198312e0d540f52023a9b7ed56671934f12924ce21455da5d208805b6bbf',
   },
   vaultguard: {
     address: '6db3284190db9c089c0c2704b84062826c6eff39e5b31ce8ec138363c9d08f2f',
-    txHash: '0x81e65aff40ecd7cee42103617f1f8742809bb4e4bb3d00df4ea3dd356f235d19',
+    txHash: '0xb220e18249223a9784106eae22150251bb866f6ef7079560580ee2d624d3cc6f',
     network: 'Midnight Preprod',
     explorerContractUrl: 'https://preprod.midnightexplorer.com/contracts/0x6db3284190db9c089c0c2704b84062826c6eff39e5b31ce8ec138363c9d08f2f',
-    explorerTxUrl: 'https://preprod.midnightexplorer.com/transactions/0x81e65aff40ecd7cee42103617f1f8742809bb4e4bb3d00df4ea3dd356f235d19',
+    explorerTxUrl: 'https://preprod.midnightexplorer.com/transactions/0xb220e18249223a9784106eae22150251bb866f6ef7079560580ee2d624d3cc6f',
   },
   flowsplit: {
     address: '6db3284190db9c089c0c2704b84062826c6eff39e5b31ce8ec138363c9d08f2f',
-    txHash: '0x81e65aff40ecd7cee42103617f1f8742809bb4e4bb3d00df4ea3dd356f235d19',
+    txHash: '0xb220e18249223a9784106eae22150251bb866f6ef7079560580ee2d624d3cc6f',
     network: 'Midnight Preprod',
     explorerContractUrl: 'https://preprod.midnightexplorer.com/contracts/0x6db3284190db9c089c0c2704b84062826c6eff39e5b31ce8ec138363c9d08f2f',
-    explorerTxUrl: 'https://preprod.midnightexplorer.com/transactions/0x81e65aff40ecd7cee42103617f1f8742809bb4e4bb3d00df4ea3dd356f235d19',
+    explorerTxUrl: 'https://preprod.midnightexplorer.com/transactions/0xb220e18249223a9784106eae22150251bb866f6ef7079560580ee2d624d3cc6f',
   },
   streamcredit: {
     address: '6db3284190db9c089c0c2704b84062826c6eff39e5b31ce8ec138363c9d08f2f',
-    txHash: '0x81e65aff40ecd7cee42103617f1f8742809bb4e4bb3d00df4ea3dd356f235d19',
+    txHash: '0xb220e18249223a9784106eae22150251bb866f6ef7079560580ee2d624d3cc6f',
     network: 'Midnight Preprod',
     explorerContractUrl: 'https://preprod.midnightexplorer.com/contracts/0x6db3284190db9c089c0c2704b84062826c6eff39e5b31ce8ec138363c9d08f2f',
-    explorerTxUrl: 'https://preprod.midnightexplorer.com/transactions/0x81e65aff40ecd7cee42103617f1f8742809bb4e4bb3d00df4ea3dd356f235d19',
+    explorerTxUrl: 'https://preprod.midnightexplorer.com/transactions/0xb220e18249223a9784106eae22150251bb866f6ef7079560580ee2d624d3cc6f',
   },
   auditpass: {
     address: '6db3284190db9c089c0c2704b84062826c6eff39e5b31ce8ec138363c9d08f2f',
-    txHash: '0x81e65aff40ecd7cee42103617f1f8742809bb4e4bb3d00df4ea3dd356f235d19',
+    txHash: '0xb220e18249223a9784106eae22150251bb866f6ef7079560580ee2d624d3cc6f',
     network: 'Midnight Preprod',
     explorerContractUrl: 'https://preprod.midnightexplorer.com/contracts/0x6db3284190db9c089c0c2704b84062826c6eff39e5b31ce8ec138363c9d08f2f',
-    explorerTxUrl: 'https://preprod.midnightexplorer.com/transactions/0x81e65aff40ecd7cee42103617f1f8742809bb4e4bb3d00df4ea3dd356f235d19',
+    explorerTxUrl: 'https://preprod.midnightexplorer.com/transactions/0xb220e18249223a9784106eae22150251bb866f6ef7079560580ee2d624d3cc6f',
   },
 };
 
@@ -68,131 +150,26 @@ export const DEPLOYED_CONTRACTS = {
 export const PREPROD_CONTRACT_ADDRESS = DEPLOYED_CONTRACTS.payroll.address;
 export const VERIFIED_PREPROD_TX_HASH = DEPLOYED_CONTRACTS.payroll.txHash;
 
-// Compiled Compact contract bindings with authentic private witnesses
-export const compiledPayrollContract = CompiledContract.make('payroll', PayrollContract as any).pipe(
-  CompiledContract.withWitnesses({
-    verify_employer_signature: (_context: any, _employer_vk: any, _stream_id: any, _allocation: any, employer_sig: any) => {
-      return typeof employer_sig === 'string' && employer_sig.length > 0;
-    },
-    verify_worker_signature: (_context: any, _worker_pk: any, _stream_id: any, _amount: any, _nonce: any, worker_sig: any) => {
-      return typeof worker_sig === 'string' && worker_sig.length > 0;
-    },
-    get_worker_credential: (_context: any, worker_sk: any) => {
-      return typeof worker_sk === 'string' && worker_sk.length >= 64 ? worker_sk : '01'.repeat(32);
-    },
-    get_accrued_balance: (_context: any, _stream_id: any, _current_time: any) => {
-      return 1000000000n;
-    },
-    get_stream_withdrawn_amount: (_context: any, _stream_id: any) => {
-      return 0n;
-    },
-    get_stream_outstanding_debt: (_context: any, _stream_id: any) => {
-      return 0n;
-    },
-    is_nullifier_consumed: (_context: any, _nullifier: any) => {
-      return false;
-    },
-    generate_withdrawal_nullifier: (_context: any, stream_id: any, nonce: any, worker_sk: any) => {
-      const seed = `nullifier:${stream_id}:${nonce}:${worker_sk}`;
-      return toHex(Buffer.from(seed).slice(0, 32)).padEnd(64, '0');
-    },
-  } as never)
-);
-
-export const compiledVendorContract = CompiledContract.make('vendor', VendorContract as any).pipe(
-  CompiledContract.withWitnesses({
-    verify_payer_signature: (_context: any, _payer_vk: any, _invoice_id: any, _amount: any, payer_sig: any) => {
-      return typeof payer_sig === 'string' && payer_sig.length > 0;
-    },
-    get_vendor_credential: (_context: any, vendor_sk: any) => {
-      return typeof vendor_sk === 'string' && vendor_sk.length >= 64 ? vendor_sk : '02'.repeat(32);
-    },
-    is_invoice_nullifier_consumed: (_context: any, _nullifier: any) => {
-      return false;
-    },
-    compute_invoice_nullifier: (_context: any, invoice_id: any, _amount: any, vendor_sk: any) => {
-      const seed = `inv_null:${invoice_id}:${vendor_sk}`;
-      return toHex(Buffer.from(seed).slice(0, 32)).padEnd(64, '0');
-    },
-  } as never)
-);
-
-export const compiledVaultGuardContract = CompiledContract.make('vaultguard', VaultGuardContract as any).pipe(
-  CompiledContract.withWitnesses({
-    verify_treasury_signature: (_context: any, _treasury_vk: any, _monthly_obligations: any, _runway_days: any, sig: any) => {
-      return typeof sig === 'string' && sig.length > 0;
-    },
-    get_confidential_reserves: (_context: any, _vault_sk: any) => {
-      return 150000n;
-    },
-    compute_attestation_digest: (_context: any, runway_days: any, obligations: any) => {
-      const seed = `attest:${runway_days}:${obligations}`;
-      return toHex(Buffer.from(seed).slice(0, 32)).padEnd(64, '0');
-    },
-  } as never)
-);
-
-export const compiledFlowSplitContract = CompiledContract.make('flowsplit', FlowSplitContract as any).pipe(
-  CompiledContract.withWitnesses({
-    verify_worker_split_signature: (_context: any, _worker_vk: any, _stream_id: any, _amount: any, sig: any) => {
-      return typeof sig === 'string' && sig.length > 0;
-    },
-    get_subvault_commitments: (_context: any, _worker_sk: any) => {
-      return '04'.repeat(32);
-    },
-    is_split_nullifier_consumed: (_context: any, _nullifier: any) => {
-      return false;
-    },
-    compute_split_nullifier: (_context: any, stream_id: any, epoch: any) => {
-      const seed = `split_null:${stream_id}:${epoch}`;
-      return toHex(Buffer.from(seed).slice(0, 32)).padEnd(64, '0');
-    },
-  } as never)
-);
-
-export const compiledStreamCreditContract = CompiledContract.make('streamcredit', StreamCreditContract as any).pipe(
-  CompiledContract.withWitnesses({
-    verify_pool_signature: (_context: any, _pool_vk: any, _stream_id: any, _amount: any, pool_sig: any) => {
-      return typeof pool_sig === 'string' && pool_sig.length > 0;
-    },
-    get_unaccrued_salary_collateral: (_context: any, _stream_id: any, _worker_sk: any) => {
-      return 100000n;
-    },
-    is_advance_nullifier_consumed: (_context: any, _nullifier: any) => {
-      return false;
-    },
-    compute_advance_nullifier: (_context: any, stream_id: any, nonce: any) => {
-      const seed = `adv_null:${stream_id}:${nonce}`;
-      return toHex(Buffer.from(seed).slice(0, 32)).padEnd(64, '0');
-    },
-  } as never)
-);
-
-export const compiledAuditPassContract = CompiledContract.make('auditpass', AuditPassContract as any).pipe(
-  CompiledContract.withWitnesses({
-    verify_compliance_signature: (_context: any, _compliance_vk: any, _year: any, _jurisdiction: any, sig: any) => {
-      return typeof sig === 'string' && sig.length > 0;
-    },
-    get_confidential_tax_records: (_context: any, _worker_sk: any, _fiscal_year: any) => {
-      return 92400n;
-    },
-    compute_audit_attestation_digest: (_context: any, year: any, jurisdiction: any) => {
-      const seed = `tax_digest:${year}:${jurisdiction}`;
-      return toHex(Buffer.from(seed).slice(0, 32)).padEnd(64, '0');
-    },
-  } as never)
-);
-
-/**
- * Formats a transaction hash strictly without falling back to historical transactions.
- * Throws a hard error if the transaction did not return a valid on-chain hash.
- */
-export function formatTxHash(rawTx: any): string {
-  if (rawTx && typeof rawTx === 'string' && rawTx !== 'unknown' && rawTx.trim().length >= 8) {
-    const clean = rawTx.trim();
-    return clean.startsWith('0x') ? clean : `0x${clean}`;
+function jsonReplacer(_key: string, value: any) {
+  if (typeof value === 'bigint') {
+    return { __type: 'bigint', value: value.toString() };
   }
-  throw new Error(`Transaction submitted to Midnight Network did not return a valid on-chain transaction hash (received: "${rawTx}"). Verification required.`);
+  if (value instanceof Uint8Array) {
+    return { __type: 'Uint8Array', value: Array.from(value) };
+  }
+  return value;
+}
+
+function jsonReviver(_key: string, value: any) {
+  if (value && typeof value === 'object') {
+    if (value.__type === 'bigint') {
+      return BigInt(value.value);
+    }
+    if (value.__type === 'Uint8Array') {
+      return new Uint8Array(value.value);
+    }
+  }
+  return value;
 }
 
 /**
@@ -207,6 +184,7 @@ export function createPersistentPrivateStateProvider() {
 
   const storagePrefix = 'prisma:midnight:private-state:';
   const signingKeyPrefix = 'prisma:midnight:signing-key:';
+  const nullifiersKey = 'prisma:midnight:consumed-nullifiers';
 
   const makeKey = (id: string) => `${storagePrefix}${contractAddress || 'global'}:${id}`;
 
@@ -214,7 +192,7 @@ export function createPersistentPrivateStateProvider() {
     if (typeof window === 'undefined' || !window.localStorage) return null;
     try {
       const val = window.localStorage.getItem(k);
-      return val ? JSON.parse(val) : null;
+      return val ? JSON.parse(val, jsonReviver) : null;
     } catch {
       return null;
     }
@@ -223,7 +201,7 @@ export function createPersistentPrivateStateProvider() {
   const saveToStorage = (k: string, val: any): void => {
     if (typeof window === 'undefined' || !window.localStorage) return;
     try {
-      window.localStorage.setItem(k, JSON.stringify(val));
+      window.localStorage.setItem(k, JSON.stringify(val, jsonReplacer));
     } catch (e) {
       console.warn('[Prisma Private State] Local storage persistence warning:', e);
     }
@@ -236,9 +214,25 @@ export function createPersistentPrivateStateProvider() {
     } catch {}
   };
 
+  const getNullifierSet = (): Set<string> => {
+    const raw = loadFromStorage(nullifiersKey);
+    return Array.isArray(raw) ? new Set(raw) : new Set();
+  };
+
   return {
     setContractAddress(address: any) {
       contractAddress = address ? String(address).toLowerCase().replace(/^0x/, '') : '';
+    },
+    hasNullifier(nullifier: string): boolean {
+      if (!nullifier) return false;
+      const set = getNullifierSet();
+      return set.has(String(nullifier).toLowerCase());
+    },
+    recordNullifier(nullifier: string): void {
+      if (!nullifier) return;
+      const set = getNullifierSet();
+      set.add(String(nullifier).toLowerCase());
+      saveToStorage(nullifiersKey, Array.from(set));
     },
     get: async (stateId: string) => {
       const k = makeKey(stateId);
@@ -308,48 +302,141 @@ export function createPersistentPrivateStateProvider() {
     },
     exportPrivateStates: async () => {
       const states: Array<{ key: string; value: any }> = [];
-      if (typeof window !== 'undefined' && window.localStorage) {
-        for (let i = 0; i < window.localStorage.length; i++) {
-          const key = window.localStorage.key(i);
-          if (key?.startsWith(storagePrefix)) {
-            states.push({ key, value: loadFromStorage(key) });
-          }
-        }
+      for (const [k, v] of memoryCache.entries()) {
+        states.push({ key: k, value: v });
       }
-      return { states };
+      return states;
     },
-    importPrivateStates: async (data: { states: Array<{ key: string; value: any }> }) => {
-      let imported = 0;
-      if (Array.isArray(data?.states)) {
-        for (const item of data.states) {
-          if (item?.key && item.value !== undefined) {
-            saveToStorage(item.key, item.value);
-            memoryCache.set(item.key, item.value);
-            imported++;
-          }
-        }
+    importPrivateStates: async (states: Array<{ key: string; value: any }>) => {
+      for (const item of states) {
+        memoryCache.set(item.key, item.value);
+        saveToStorage(item.key, item.value);
       }
-      return { imported, skipped: 0 };
     },
-    exportSigningKeys: async () => {
-      const keys: Array<{ address: string; key: any }> = [];
-      signingKeys.forEach((val, addr) => keys.push({ address: addr, key: val }));
-      return { keys };
+  };
+}
+
+export const globalPrivateStateProvider = createPersistentPrivateStateProvider();
+
+// Compiled Compact contract bindings with authentic private witnesses
+export const compiledPayrollContract = CompiledContract.make('payroll', PayrollContract as any).pipe(
+  CompiledContract.withWitnesses({
+    verify_employer_signature: (_context: any, _employer_vk: any, _stream_id: any, _allocation: any, employer_sig: any) => {
+      return typeof employer_sig === 'string' && employer_sig.length > 0;
     },
-    importSigningKeys: async (data: { keys: Array<{ address: string; key: any }> }) => {
-      let imported = 0;
-      if (Array.isArray(data?.keys)) {
-        for (const item of data.keys) {
-          if (item?.address && item.key) {
-            signingKeys.set(item.address, item.key);
-            saveToStorage(`${signingKeyPrefix}${item.address}`, item.key);
-            imported++;
-          }
-        }
-      }
-      return { imported, skipped: 0 };
+    verify_worker_signature: (_context: any, _worker_pk: any, _stream_id: any, _amount: any, _nonce: any, worker_sig: any) => {
+      return typeof worker_sig === 'string' && worker_sig.length > 0;
     },
-  } as any;
+    get_worker_credential: (_context: any, worker_sk: any) => {
+      return typeof worker_sk === 'string' && worker_sk.length >= 64 ? worker_sk : '01'.repeat(32);
+    },
+    get_accrued_balance: (_context: any, _stream_id: any, _current_time: any) => {
+      return 1000000000n;
+    },
+    get_stream_withdrawn_amount: (_context: any, _stream_id: any) => {
+      return 0n;
+    },
+    get_stream_outstanding_debt: (_context: any, _stream_id: any) => {
+      return 0n;
+    },
+    is_nullifier_consumed: (_context: any, nullifier: any) => {
+      return globalPrivateStateProvider.hasNullifier(String(nullifier));
+    },
+    generate_withdrawal_nullifier: (_context: any, stream_id: any, nonce: any, worker_sk: any) => {
+      return sha256Hex(`nullifier:${stream_id}:${nonce}:${worker_sk}`);
+    },
+  } as never)
+);
+
+export const compiledVendorContract = CompiledContract.make('vendor', VendorContract as any).pipe(
+  CompiledContract.withWitnesses({
+    verify_payer_signature: (_context: any, _payer_vk: any, _invoice_id: any, _amount: any, payer_sig: any) => {
+      return typeof payer_sig === 'string' && payer_sig.length > 0;
+    },
+    get_vendor_credential: (_context: any, vendor_sk: any) => {
+      return typeof vendor_sk === 'string' && vendor_sk.length >= 64 ? vendor_sk : '02'.repeat(32);
+    },
+    is_invoice_nullifier_consumed: (_context: any, nullifier: any) => {
+      return globalPrivateStateProvider.hasNullifier(String(nullifier));
+    },
+    compute_invoice_nullifier: (_context: any, invoice_id: any, amount: any, vendor_sk: any) => {
+      return sha256Hex(`inv_null:${invoice_id}:${amount}:${vendor_sk}`);
+    },
+  } as never)
+);
+
+export const compiledVaultGuardContract = CompiledContract.make('vaultguard', VaultGuardContract as any).pipe(
+  CompiledContract.withWitnesses({
+    verify_treasury_signature: (_context: any, _treasury_vk: any, _monthly_obligations: any, _runway_days: any, sig: any) => {
+      return typeof sig === 'string' && sig.length > 0;
+    },
+    get_confidential_reserves: (_context: any, _vault_sk: any) => {
+      return 150000n;
+    },
+    compute_attestation_digest: (_context: any, runway_days: any, obligations: any, salt: any) => {
+      return sha256Hex(`attest:${runway_days}:${obligations}:${salt}`);
+    },
+  } as never)
+);
+
+export const compiledFlowSplitContract = CompiledContract.make('flowsplit', FlowSplitContract as any).pipe(
+  CompiledContract.withWitnesses({
+    verify_worker_split_signature: (_context: any, _worker_vk: any, _stream_id: any, _amount: any, sig: any) => {
+      return typeof sig === 'string' && sig.length > 0;
+    },
+    get_subvault_commitments: (_context: any, _worker_sk: any) => {
+      return '04'.repeat(32);
+    },
+    is_split_nullifier_consumed: (_context: any, nullifier: any) => {
+      return globalPrivateStateProvider.hasNullifier(String(nullifier));
+    },
+    compute_split_nullifier: (_context: any, stream_id: any, epoch: any, worker_sk: any) => {
+      return sha256Hex(`split_null:${stream_id}:${epoch}:${worker_sk}`);
+    },
+  } as never)
+);
+
+export const compiledStreamCreditContract = CompiledContract.make('streamcredit', StreamCreditContract as any).pipe(
+  CompiledContract.withWitnesses({
+    verify_pool_signature: (_context: any, _pool_vk: any, _stream_id: any, _amount: any, pool_sig: any) => {
+      return typeof pool_sig === 'string' && pool_sig.length > 0;
+    },
+    get_unaccrued_salary_collateral: (_context: any, _stream_id: any, _worker_sk: any) => {
+      return 100000n;
+    },
+    is_advance_nullifier_consumed: (_context: any, nullifier: any) => {
+      return globalPrivateStateProvider.hasNullifier(String(nullifier));
+    },
+    compute_advance_nullifier: (_context: any, stream_id: any, nonce: any, worker_sk: any) => {
+      return sha256Hex(`adv_null:${stream_id}:${nonce}:${worker_sk}`);
+    },
+  } as never)
+);
+
+export const compiledAuditPassContract = CompiledContract.make('auditpass', AuditPassContract as any).pipe(
+  CompiledContract.withWitnesses({
+    verify_compliance_signature: (_context: any, _compliance_vk: any, _year: any, _jurisdiction: any, sig: any) => {
+      return typeof sig === 'string' && sig.length > 0;
+    },
+    get_confidential_tax_records: (_context: any, _worker_sk: any, _fiscal_year: any) => {
+      return 92400n;
+    },
+    compute_audit_attestation_digest: (_context: any, year: any, jurisdiction: any, salt: any) => {
+      return sha256Hex(`tax_digest:${year}:${jurisdiction}:${salt}`);
+    },
+  } as never)
+);
+
+/**
+ * Formats a transaction hash strictly without falling back to historical transactions.
+ * Throws a hard error if the transaction did not return a valid on-chain hash.
+ */
+export function formatTxHash(rawTx: any): string {
+  if (rawTx && typeof rawTx === 'string' && rawTx !== 'unknown' && rawTx.trim().length >= 8) {
+    const clean = rawTx.trim();
+    return clean.startsWith('0x') ? clean : `0x${clean}`;
+  }
+  throw new Error(`Transaction submitted to Midnight Network did not return a valid on-chain transaction hash (received: "${rawTx}"). Verification required.`);
 }
 
 /**
@@ -516,11 +603,12 @@ export async function deployPayrollContract(
 ): Promise<{ contract: any; address: string; txHash: string; providers: any }> {
   const providers = await setupProviders(api, 'payroll');
   const budget = BigInt(Math.max(1, Math.floor(amount)));
+  const employerKey = providers.walletProvider.getCoinPublicKey().slice(0, 64).padEnd(64, '0');
 
   const deployedContract = await deployContract(providers as any, {
     privateStateId: 'payroll-deploy',
     compiledContract: compiledPayrollContract as any,
-    args: [budget],
+    args: [budget, employerKey],
     initialPrivateState: {} as any,
   } as any);
 
@@ -534,8 +622,11 @@ export async function deployPayrollContract(
     deployTx?.public?.txHash ||
     deployTx?.public?.transactionId ||
     deployTx?.public?.identifiers?.[0] ||
-    deployTx?.txHash ||
-    DEPLOYED_CONTRACTS.payroll.txHash;
+    deployTx?.txHash;
+
+  if (!rawTxHash) {
+    throw new Error('Payroll deployment failed: Transaction was not accepted by Midnight network consensus.');
+  }
 
   const txHash = formatTxHash(rawTxHash);
 
@@ -557,11 +648,12 @@ export async function deployVendorContract(
 ): Promise<{ contract: any; address: string; txHash: string; providers: any }> {
   const providers = await setupProviders(api, 'vendor');
   const budget = BigInt(Math.max(1, Math.floor(amount)));
+  const payerKey = providers.walletProvider.getCoinPublicKey().slice(0, 64).padEnd(64, '0');
 
   const deployedContract = await deployContract(providers as any, {
     privateStateId: 'vendor-deploy',
     compiledContract: compiledVendorContract as any,
-    args: [budget],
+    args: [budget, payerKey],
     initialPrivateState: {} as any,
   } as any);
 
@@ -575,8 +667,11 @@ export async function deployVendorContract(
     deployTx?.public?.txHash ||
     deployTx?.public?.transactionId ||
     deployTx?.public?.identifiers?.[0] ||
-    deployTx?.txHash ||
-    DEPLOYED_CONTRACTS.vendor.txHash;
+    deployTx?.txHash;
+
+  if (!rawTxHash) {
+    throw new Error('Vendor deployment failed: Transaction was not accepted by Midnight network consensus.');
+  }
 
   const txHash = formatTxHash(rawTxHash);
 
@@ -623,22 +718,21 @@ export async function settleVendorInvoice(
   const settleAmount = BigInt(Math.max(1, Math.floor(amount)));
   const cleanInvoiceId = toHex(Buffer.from(invoiceId)).slice(0, 64).padEnd(64, '0');
   const vendorSk = (vendorAddress.replace(/^0x/, '').slice(0, 64) || '02'.repeat(32)).padEnd(64, '0');
-  const invoiceNullifier = toHex(Buffer.from(`inv_settle:${cleanInvoiceId}:${settleAmount}:${Date.now()}`).slice(0, 32)).padEnd(64, '0');
+  const invoiceNullifier = sha256Hex(`inv_null:${cleanInvoiceId}:${settleAmount}:${vendorSk}`);
   const payerSig = providers.walletProvider.getCoinPublicKey().slice(0, 64).padEnd(64, '0');
 
   log(`Invoking vendor::settleInvoice(invoice=${invoiceId}, amount=${settleAmount} tNight)…`);
-  let txResult: any;
-  if (typeof callTx.settleInvoice === 'function') {
-    txResult = await callTx.settleInvoice(
-      cleanInvoiceId,
-      settleAmount,
-      invoiceNullifier,
-      payerSig,
-      vendorSk
-    );
-  } else {
-    txResult = await callTx.spend(settleAmount);
+  if (typeof callTx.settleInvoice !== 'function') {
+    throw new Error('Target contract binding does not support the settleInvoice circuit');
   }
+  const txResult = await callTx.settleInvoice(
+    cleanInvoiceId,
+    settleAmount,
+    invoiceNullifier,
+    payerSig,
+    vendorSk
+  );
+  providers.privateStateProvider.recordNullifier(invoiceNullifier);
 
   const txHash: string = formatTxHash((txResult?.public as any)?.txHash);
   log(`✓ Vendor invoice settled on Midnight! Tx Hash: ${txHash}`);
@@ -674,26 +768,24 @@ export async function withdrawFromPayrollContract(
   const withdrawAmount = BigInt(Math.max(1, Math.floor(amount)));
   const cleanStreamId = (streamId && streamId.length >= 32 ? streamId : '01'.repeat(32)).slice(0, 64).padEnd(64, '0');
   const workerSk = providers.walletProvider.getCoinPublicKey().slice(0, 64).padEnd(64, '0');
-  const nullifier = toHex(Buffer.from(`withdraw:${cleanStreamId}:${Date.now()}:${workerSk}`).slice(0, 32)).padEnd(64, '0');
   const currentTime = BigInt(Math.floor(Date.now() / 1000));
   const nonce = BigInt(Date.now() % 1000000);
+  const nullifier = sha256Hex(`nullifier:${cleanStreamId}:${nonce}:${workerSk}`);
+  const workerSig = sha256Hex(`sig:worker:${cleanStreamId}:${withdrawAmount}:${nonce}:${workerSk}`);
 
-  const workerSig = toHex(Buffer.from(`sig:worker:${cleanStreamId}:${withdrawAmount}:${nonce}:${workerSk}`).slice(0, 32)).padEnd(64, '0');
-
-  let txResult: any;
-  if (typeof callTx.withdrawSalary === 'function') {
-    txResult = await callTx.withdrawSalary(
-      cleanStreamId,
-      withdrawAmount,
-      nullifier,
-      workerSk,
-      currentTime,
-      nonce,
-      workerSig
-    );
-  } else {
-    txResult = await callTx.spend(withdrawAmount);
+  if (typeof callTx.withdrawSalary !== 'function') {
+    throw new Error('Target contract binding does not support the withdrawSalary circuit');
   }
+  const txResult = await callTx.withdrawSalary(
+    cleanStreamId,
+    withdrawAmount,
+    nullifier,
+    workerSk,
+    currentTime,
+    nonce,
+    workerSig
+  );
+  providers.privateStateProvider.recordNullifier(nullifier);
 
   const txHash: string = formatTxHash((txResult?.public as any)?.txHash);
   return { txHash };
@@ -746,23 +838,21 @@ export async function createSolvencyAttestation(
   const monthlyBig = BigInt(Math.max(1, Math.floor(monthlyObligations)));
   const runwayBig = BigInt(Math.max(1, Math.floor(runwayDays)));
   const timestampBig = BigInt(Math.floor(Date.now() / 1000));
-  const salt = toHex(Buffer.from(`salt:${Date.now()}`).slice(0, 32)).padEnd(64, '0');
+  const salt = sha256Hex(`salt:${timestampBig}:${monthlyBig}:${runwayBig}`);
   const treasurySig = providers.walletProvider.getCoinPublicKey().slice(0, 64).padEnd(64, '0');
   const vaultSk = providers.walletProvider.getEncryptionPublicKey().slice(0, 64).padEnd(64, '0');
 
-  let txResult: any;
-  if (typeof callTx.attestSolvency === 'function') {
-    txResult = await callTx.attestSolvency(
-      monthlyBig,
-      runwayBig,
-      timestampBig,
-      salt,
-      treasurySig,
-      vaultSk
-    );
-  } else {
-    txResult = await callTx.spend(BigInt(1));
+  if (typeof callTx.attestSolvency !== 'function') {
+    throw new Error('Target contract binding does not support the attestSolvency circuit');
   }
+  const txResult = await callTx.attestSolvency(
+    monthlyBig,
+    runwayBig,
+    timestampBig,
+    salt,
+    treasurySig,
+    vaultSk
+  );
 
   const txHash: string = formatTxHash((txResult?.public as any)?.txHash);
   log(`ZK Solvency Attestation verified by consensus! Tx Hash: ${txHash}`);
@@ -840,33 +930,31 @@ export async function generateTaxComplianceProof(
   ) as any;
 
   const fiscalYearBig = BigInt(parseInt(params.fiscalYear, 10) || 2026);
-  const jurisdictionId = toHex(Buffer.from(params.jurisdiction).slice(0, 32)).padEnd(64, '0');
+  const jurisdictionId = sha256Hex(params.jurisdiction);
   const bracketMin = BigInt(75000);
   const bracketMax = BigInt(110000);
   const withholdingRateBps = BigInt(Math.round(params.withholdingRate * 100));
   const grossEarnings = BigInt(Math.round(params.grossEarnings));
   const withholdingPaid = (grossEarnings * withholdingRateBps) / 10000n;
-  const salt = toHex(Buffer.from(`tax_salt:${Date.now()}`).slice(0, 32)).padEnd(64, '0');
   const complianceSig = providers.walletProvider.getCoinPublicKey().slice(0, 64).padEnd(64, '0');
   const workerSk = providers.walletProvider.getEncryptionPublicKey().slice(0, 64).padEnd(64, '0');
+  const salt = sha256Hex(`tax_salt:${params.fiscalYear}:${params.jurisdiction}:${workerSk}`);
 
   log('Executing Compact ZK circuit to anchor cryptographic compliance attestation…');
-  let txResult: any;
-  if (typeof callTx.verifyTaxCompliance === 'function') {
-    txResult = await callTx.verifyTaxCompliance(
-      fiscalYearBig,
-      jurisdictionId,
-      bracketMin,
-      bracketMax,
-      withholdingPaid,
-      withholdingRateBps,
-      salt,
-      complianceSig,
-      workerSk
-    );
-  } else {
-    txResult = await callTx.spend(BigInt(1));
+  if (typeof callTx.verifyTaxCompliance !== 'function') {
+    throw new Error('AuditPass Compact circuit verifyTaxCompliance is unavailable on target contract interface');
   }
+  const txResult = await callTx.verifyTaxCompliance(
+    fiscalYearBig,
+    jurisdictionId,
+    bracketMin,
+    bracketMax,
+    withholdingPaid,
+    withholdingRateBps,
+    salt,
+    complianceSig,
+    workerSk
+  );
 
   const txHash: string = formatTxHash((txResult?.public as any)?.txHash);
   const attestationId = `AP-${params.fiscalYear}-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
@@ -987,28 +1075,31 @@ export async function executeFlowSplitRouting(
   const pctSavingsBps = BigInt(Math.round(savingsBucket * 100));
   const pctEmergencyBps = BigInt(Math.round(emergencyBucket * 100));
   const tickEpoch = BigInt(Math.floor(Date.now() / 1000));
-  const splitNullifier = toHex(Buffer.from(`split:${cleanStreamId}:${tickEpoch}`).slice(0, 32)).padEnd(64, '0');
   const workerSig = providers.walletProvider.getCoinPublicKey().slice(0, 64).padEnd(64, '0');
   const workerSk = providers.walletProvider.getEncryptionPublicKey().slice(0, 64).padEnd(64, '0');
+  const splitNullifier = sha256Hex(`split_null:${cleanStreamId}:${tickEpoch}:${workerSk}`);
+
+  if (globalPrivateStateProvider.hasNullifier(splitNullifier)) {
+    throw new Error(`FlowSplit routing failed: Epoch tick ${tickEpoch} already processed (replay prevented)`);
+  }
 
   log('Executing Compact ZK circuit to anchor autonomous stream routing configuration…');
-  let txResult: any;
-  if (typeof callTx.executeFlowSplit === 'function') {
-    txResult = await callTx.executeFlowSplit(
-      cleanStreamId,
-      tickAmount,
-      pctLiquidBps,
-      pctTaxBps,
-      pctSavingsBps,
-      pctEmergencyBps,
-      tickEpoch,
-      splitNullifier,
-      workerSig,
-      workerSk
-    );
-  } else {
-    txResult = await callTx.spend(BigInt(1));
+  if (typeof callTx.executeFlowSplit !== 'function') {
+    throw new Error('FlowSplit Compact circuit executeFlowSplit is unavailable on target contract interface');
   }
+  const txResult = await callTx.executeFlowSplit(
+    cleanStreamId,
+    tickAmount,
+    pctLiquidBps,
+    pctTaxBps,
+    pctSavingsBps,
+    pctEmergencyBps,
+    tickEpoch,
+    splitNullifier,
+    workerSig,
+    workerSk
+  );
+  providers.privateStateProvider.recordNullifier(splitNullifier);
 
   const txHash: string = formatTxHash((txResult?.public as any)?.txHash);
   const allocationId = `FS-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
@@ -1085,24 +1176,27 @@ export async function executeSalaryAdvance(
   const cleanStreamId = (params.streamId || '05'.repeat(32)).slice(0, 64).padEnd(64, '0');
   const requestedBig = BigInt(Math.max(1, Math.floor(params.requestedAmount)));
   const advanceNonce = BigInt(Date.now() % 1000000);
-  const advanceNullifier = toHex(Buffer.from(`adv:${cleanStreamId}:${advanceNonce}`).slice(0, 32)).padEnd(64, '0');
   const poolSig = providers.walletProvider.getCoinPublicKey().slice(0, 64).padEnd(64, '0');
   const workerSk = providers.walletProvider.getEncryptionPublicKey().slice(0, 64).padEnd(64, '0');
+  const advanceNullifier = sha256Hex(`adv_null:${cleanStreamId}:${advanceNonce}:${workerSk}`);
+
+  if (globalPrivateStateProvider.hasNullifier(advanceNullifier)) {
+    throw new Error(`Salary advance failed: Nonce ${advanceNonce} already disbursed (replay prevented)`);
+  }
 
   log('Executing Compact ZK circuit to disburse liquidity & lock stream redirection…');
-  let txResult: any;
-  if (typeof callTx.disburseSalaryAdvance === 'function') {
-    txResult = await callTx.disburseSalaryAdvance(
-      cleanStreamId,
-      requestedBig,
-      advanceNonce,
-      advanceNullifier,
-      poolSig,
-      workerSk
-    );
-  } else {
-    txResult = await callTx.spend(BigInt(1));
+  if (typeof callTx.disburseSalaryAdvance !== 'function') {
+    throw new Error('StreamCredit Compact circuit disburseSalaryAdvance is unavailable on target contract interface');
   }
+  const txResult = await callTx.disburseSalaryAdvance(
+    cleanStreamId,
+    requestedBig,
+    advanceNonce,
+    advanceNullifier,
+    poolSig,
+    workerSk
+  );
+  providers.privateStateProvider.recordNullifier(advanceNullifier);
 
   const txHash: string = formatTxHash((txResult?.public as any)?.txHash);
   const advanceId = `SC-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;

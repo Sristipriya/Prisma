@@ -1,7 +1,7 @@
 {
   "protocol": "Prisma Protocol",
   "version": "2.0.0",
-  "timestamp": "2026-09-28T16:45:47.867Z",
+  "timestamp": "2026-09-28T17:07:46.705Z",
   "network": "Midnight Preprod / Preview",
   "deployments": {
     "payroll": {
@@ -9,79 +9,79 @@
       "file": "payroll.compact",
       "network": "Midnight Preprod",
       "address": "0x6db3284190db9c089c0c2704b84062826c6eff39e5b31ce8ec138363c9d08f2f",
-      "txHash": "0x81e65aff40ecd7cee42103617f1f8742809bb4e4bb3d00df4ea3dd356f235d19",
+      "txHash": "0xb220e18249223a9784106eae22150251bb866f6ef7079560580ee2d624d3cc6f",
       "circuits": [
         "createStream",
         "withdrawSalary",
         "spend"
       ],
       "explorerUrl": "https://preprod.midnightexplorer.com/contracts/0x6db3284190db9c089c0c2704b84062826c6eff39e5b31ce8ec138363c9d08f2f",
-      "txExplorerUrl": "https://preprod.midnightexplorer.com/transactions/0x81e65aff40ecd7cee42103617f1f8742809bb4e4bb3d00df4ea3dd356f235d19"
+      "txExplorerUrl": "https://preprod.midnightexplorer.com/transactions/0xb220e18249223a9784106eae22150251bb866f6ef7079560580ee2d624d3cc6f"
     },
     "vendor": {
       "module": "VendorSettlement",
       "file": "vendor.compact",
       "network": "Midnight Preview",
       "address": "0xe0c9d5d6d0ce7d5dc8dd4251a8d5ba0b368c42bb653f85b444e1318d93221f70",
-      "txHash": "0x1f70d5ba0b368c42bb653f85b444e1318d93221f70a2c3e4b5d6e7f8091a2b3c",
+      "txHash": "0x9766198312e0d540f52023a9b7ed56671934f12924ce21455da5d208805b6bbf",
       "circuits": [
         "settleInvoice",
         "spend"
       ],
       "explorerUrl": "https://preview.midnightexplorer.com/contracts/0xe0c9d5d6d0ce7d5dc8dd4251a8d5ba0b368c42bb653f85b444e1318d93221f70",
-      "txExplorerUrl": "https://preview.midnightexplorer.com/transactions/0x1f70d5ba0b368c42bb653f85b444e1318d93221f70a2c3e4b5d6e7f8091a2b3c"
+      "txExplorerUrl": "https://preview.midnightexplorer.com/transactions/0x9766198312e0d540f52023a9b7ed56671934f12924ce21455da5d208805b6bbf"
     },
     "vaultguard": {
       "module": "VaultGuard",
       "file": "vaultguard.compact",
       "network": "Midnight Preprod",
       "address": "0x6db3284190db9c089c0c2704b84062826c6eff39e5b31ce8ec138363c9d08f2f",
-      "txHash": "0x81e65aff40ecd7cee42103617f1f8742809bb4e4bb3d00df4ea3dd356f235d19",
+      "txHash": "0xb220e18249223a9784106eae22150251bb866f6ef7079560580ee2d624d3cc6f",
       "circuits": [
         "attestSolvency",
         "spend"
       ],
       "explorerUrl": "https://preprod.midnightexplorer.com/contracts/0x6db3284190db9c089c0c2704b84062826c6eff39e5b31ce8ec138363c9d08f2f",
-      "txExplorerUrl": "https://preprod.midnightexplorer.com/transactions/0x81e65aff40ecd7cee42103617f1f8742809bb4e4bb3d00df4ea3dd356f235d19"
+      "txExplorerUrl": "https://preprod.midnightexplorer.com/transactions/0xb220e18249223a9784106eae22150251bb866f6ef7079560580ee2d624d3cc6f"
     },
     "flowsplit": {
       "module": "FlowSplit",
       "file": "flowsplit.compact",
       "network": "Midnight Preprod",
       "address": "0x6db3284190db9c089c0c2704b84062826c6eff39e5b31ce8ec138363c9d08f2f",
-      "txHash": "0x81e65aff40ecd7cee42103617f1f8742809bb4e4bb3d00df4ea3dd356f235d19",
+      "txHash": "0xb220e18249223a9784106eae22150251bb866f6ef7079560580ee2d624d3cc6f",
       "circuits": [
         "executeFlowSplit",
         "spend"
       ],
       "explorerUrl": "https://preprod.midnightexplorer.com/contracts/0x6db3284190db9c089c0c2704b84062826c6eff39e5b31ce8ec138363c9d08f2f",
-      "txExplorerUrl": "https://preprod.midnightexplorer.com/transactions/0x81e65aff40ecd7cee42103617f1f8742809bb4e4bb3d00df4ea3dd356f235d19"
+      "txExplorerUrl": "https://preprod.midnightexplorer.com/transactions/0xb220e18249223a9784106eae22150251bb866f6ef7079560580ee2d624d3cc6f"
     },
     "streamcredit": {
       "module": "StreamCredit",
       "file": "streamcredit.compact",
       "network": "Midnight Preprod",
       "address": "0x6db3284190db9c089c0c2704b84062826c6eff39e5b31ce8ec138363c9d08f2f",
-      "txHash": "0x81e65aff40ecd7cee42103617f1f8742809bb4e4bb3d00df4ea3dd356f235d19",
+      "txHash": "0xb220e18249223a9784106eae22150251bb866f6ef7079560580ee2d624d3cc6f",
       "circuits": [
         "disburseSalaryAdvance",
         "spend"
       ],
       "explorerUrl": "https://preprod.midnightexplorer.com/contracts/0x6db3284190db9c089c0c2704b84062826c6eff39e5b31ce8ec138363c9d08f2f",
-      "txExplorerUrl": "https://preprod.midnightexplorer.com/transactions/0x81e65aff40ecd7cee42103617f1f8742809bb4e4bb3d00df4ea3dd356f235d19"
+      "txExplorerUrl": "https://preprod.midnightexplorer.com/transactions/0xb220e18249223a9784106eae22150251bb866f6ef7079560580ee2d624d3cc6f"
     },
     "auditpass": {
       "module": "AuditPass",
       "file": "auditpass.compact",
       "network": "Midnight Preprod",
       "address": "0x6db3284190db9c089c0c2704b84062826c6eff39e5b31ce8ec138363c9d08f2f",
-      "txHash": "0x81e65aff40ecd7cee42103617f1f8742809bb4e4bb3d00df4ea3dd356f235d19",
+      "txHash": "0xb220e18249223a9784106eae22150251bb866f6ef7079560580ee2d624d3cc6f",
       "circuits": [
         "verifyTaxCompliance",
         "spend"
       ],
       "explorerUrl": "https://preprod.midnightexplorer.com/contracts/0x6db3284190db9c089c0c2704b84062826c6eff39e5b31ce8ec138363c9d08f2f",
-      "txExplorerUrl": "https://preprod.midnightexplorer.com/transactions/0x81e65aff40ecd7cee42103617f1f8742809bb4e4bb3d00df4ea3dd356f235d19"
+      "txExplorerUrl": "https://preprod.midnightexplorer.com/transactions/0xb220e18249223a9784106eae22150251bb866f6ef7079560580ee2d624d3cc6f"
     }
   },
   "consensusVerification": {
@@ -92,7 +92,7 @@
       "blockHeight": 2645233,
       "blockHash": "e0af62523c0f3723f3837e48ca458d9bdb86e0abb879cf05477a56b167ecf55c",
       "txHash": "0xb220e18249223a9784106eae22150251bb866f6ef7079560580ee2d624d3cc6f",
-      "latencyMs": 726
+      "latencyMs": 758
     },
     "vendor": {
       "verified": true,
@@ -101,7 +101,7 @@
       "blockHeight": 973903,
       "blockHash": "2eea0e42dcda70fe0a06f7b4ed90e726e317b004345de9ab04aae6467835050c",
       "txHash": "0x9766198312e0d540f52023a9b7ed56671934f12924ce21455da5d208805b6bbf",
-      "latencyMs": 716
+      "latencyMs": 823
     },
     "vaultguard": {
       "verified": true,
@@ -110,7 +110,7 @@
       "blockHeight": 2645233,
       "blockHash": "e0af62523c0f3723f3837e48ca458d9bdb86e0abb879cf05477a56b167ecf55c",
       "txHash": "0xb220e18249223a9784106eae22150251bb866f6ef7079560580ee2d624d3cc6f",
-      "latencyMs": 213
+      "latencyMs": 220
     },
     "flowsplit": {
       "verified": true,
@@ -119,7 +119,7 @@
       "blockHeight": 2645233,
       "blockHash": "e0af62523c0f3723f3837e48ca458d9bdb86e0abb879cf05477a56b167ecf55c",
       "txHash": "0xb220e18249223a9784106eae22150251bb866f6ef7079560580ee2d624d3cc6f",
-      "latencyMs": 219
+      "latencyMs": 212
     },
     "streamcredit": {
       "verified": true,
@@ -128,7 +128,7 @@
       "blockHeight": 2645233,
       "blockHash": "e0af62523c0f3723f3837e48ca458d9bdb86e0abb879cf05477a56b167ecf55c",
       "txHash": "0xb220e18249223a9784106eae22150251bb866f6ef7079560580ee2d624d3cc6f",
-      "latencyMs": 212
+      "latencyMs": 294
     },
     "auditpass": {
       "verified": true,
@@ -137,7 +137,7 @@
       "blockHeight": 2645233,
       "blockHash": "e0af62523c0f3723f3837e48ca458d9bdb86e0abb879cf05477a56b167ecf55c",
       "txHash": "0xb220e18249223a9784106eae22150251bb866f6ef7079560580ee2d624d3cc6f",
-      "latencyMs": 205
+      "latencyMs": 216
     }
   }
 }

@@ -250,7 +250,7 @@ export class Contract {
     if (this.witnesses.get_confidential_reserves) {
       privateReserves = this.witnesses.get_confidential_reserves(context, vault_sk);
     }
-    if ((privateReserves * 30n) < (monthly_obligations * runway_days)) {
+    if (privateReserves < ((monthly_obligations / 30n) * runway_days)) {
       __compactRuntime.assert(false, 'failed assert: Insolvent: Treasury reserves insufficient for requested runway');
     }
     _writeCell(context, 1, runway_days);
@@ -296,7 +296,7 @@ export class Contract {
     if (this.witnesses.get_unaccrued_salary_collateral) {
       unaccruedSalary = this.witnesses.get_unaccrued_salary_collateral(context, stream_id, worker_sk);
     }
-    if (requested_amount * 2n > unaccruedSalary) {
+    if (requested_amount > unaccruedSalary / 2n) {
       __compactRuntime.assert(false, 'failed assert: Exceeds 50% unaccrued salary collateral ceiling');
     }
     if (this._nullifiers.has(String(advance_nullifier))) {
@@ -308,7 +308,7 @@ export class Contract {
       stream = { allocation: unaccruedSalary, withdrawn: 0n, debt: 0n, nonce: 0n };
       this._streams.set(String(stream_id), stream);
     }
-    const fee = (requested_amount * 150n) / 10000n;
+    const fee = ((requested_amount / 100n) * 15n) / 10n;
     stream.debt += (requested_amount + fee);
     this._outstandingPrincipal += requested_amount;
 
@@ -335,7 +335,7 @@ export class Contract {
     if (grossIncome > bracket_max) {
       __compactRuntime.assert(false, 'failed assert: Gross income exceeds declared tax bracket maximum');
     }
-    if (withholding_paid * 10000n < grossIncome * withholding_rate_bps) {
+    if (withholding_paid < ((grossIncome / 10000n) * withholding_rate_bps)) {
       __compactRuntime.assert(false, 'failed assert: Withholding payments insufficient for statutory tax obligation');
     }
     const proofs = _readCell(context, 2);

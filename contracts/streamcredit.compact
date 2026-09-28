@@ -52,10 +52,11 @@ export circuit disburseSalaryAdvance(
   const unaccrued_salary = get_unaccrued_salary_collateral(stream_id, worker_sk);
 
   // 3. Strict 50% Collateral Ceiling Assertion
-  assert((requested_amount * 2 as Uint<32>) <= unaccrued_salary, "Exceeds 50% unaccrued salary collateral ceiling");
+  const half_unaccrued = (unaccrued_salary / 2 as Uint<32>);
+  assert(requested_amount <= half_unaccrued, "Exceeds 50% unaccrued salary collateral ceiling");
 
   // 4. Fixed 1.5% (150 bps) Origination Fee
-  const fee = (requested_amount * 150 as Uint<32>) / 10000 as Uint<32>;
+  const fee = ((requested_amount / 100 as Uint<32>) * 15 as Uint<32>) / 10 as Uint<32>;
 
   // 5. Persistent Nullifier Replay Defense across full consensus history
   const already_claimed = is_advance_nullifier_consumed(advance_nullifier);

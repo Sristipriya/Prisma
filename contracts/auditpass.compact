@@ -55,7 +55,8 @@ export circuit verifyTaxCompliance(
   assert(gross_income <= bracket_max, "Gross income exceeds declared tax bracket maximum");
 
   // 4. Statutory Withholding Proof
-  assert((withholding_paid * 10000 as Uint<32>) >= (gross_income * withholding_rate_bps as Uint<32>), "Withholding payments insufficient for statutory tax obligation");
+  const required_withholding = ((gross_income / 10000 as Uint<32>) * withholding_rate_bps as Uint<32>);
+  assert(withholding_paid >= required_withholding, "Withholding payments insufficient for statutory tax obligation");
 
   // 5. Compute Attestation Commitment
   const attestation_digest = compute_audit_attestation_digest(fiscal_year, jurisdiction_id, attestation_salt);
