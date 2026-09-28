@@ -332,15 +332,16 @@ prisma-app/
 │   └── Screenshot/                    # Platform showcase visual documentation
 ├── Screenshot/                        # Root-level High-Resolution Screenshot Gallery for GitHub
 ├── scripts/
-│   └── compile-compact.js             # Automated Compact Compiler & Runtime Code Generator
-└── tests/                             # Cryptographic & Functional Test Suites (21 Tests)
+│   ├── compile-compact.js             # Automated Compact Compiler & Runtime Code Generator
+│   └── deploy-contracts.js            # CD Pipeline Automation & Live Midnight GraphQL Consensus Verifier
+└── tests/                             # Cryptographic & Functional Test Suites (28 Tests)
     ├── test-context.ts                # Compact Circuit Context Factory
-    ├── payroll.test.ts                # Compiled Payroll Circuit Tests (5 tests)
-    ├── vendor.test.ts                 # Compiled Vendor Settlement Tests (4 tests)
-    ├── vaultguard.test.ts             # Compiled Treasury Solvency Tests (3 tests)
-    ├── flowsplit.test.ts              # Compiled Stream Routing Tests (3 tests)
-    ├── streamcredit.test.ts           # Compiled Collateralized Advance Tests (3 tests)
-    └── auditpass.test.ts              # Compiled Tax Compliance Tests (3 tests)
+    ├── payroll.test.ts                # Compiled Payroll Circuit Tests (9 tests: signatures, entitlement, replay)
+    ├── vendor.test.ts                 # Compiled Vendor Settlement Tests (4 tests: signatures, replay, limits)
+    ├── vaultguard.test.ts             # Compiled Treasury Solvency Tests (4 tests: signatures, runway, insolvency)
+    ├── flowsplit.test.ts              # Compiled Stream Routing Tests (4 tests: signatures, conservation, replay)
+    ├── streamcredit.test.ts           # Compiled Collateralized Advance Tests (3 tests: signatures, collateral, fees)
+    └── auditpass.test.ts              # Compiled Tax Compliance Tests (4 tests: signatures, brackets, withholding)
 ```
 
 ---
@@ -353,13 +354,13 @@ Prisma maintains an automated continuous integration and testing pipeline via Gi
 
 ### Automated Pipeline Jobs:
 - **Unit, ZK Circuit & Financial Primitives Tests (`test`):**
-  - Executes comprehensive Vitest suites (**21 tests across 6 test files**) executing real compiled Compact circuits via `@midnight-ntwrk/compact-runtime`:
-    1. `payroll.test.ts` (5 tests): Budget limit checks, streaming allocations, confidential withdrawals, and nullifier replay defenses.
-    2. `vendor.test.ts` (4 tests): Shielded invoice settlements, budget ceiling assertions, and invoice replay protection.
-    3. `vaultguard.test.ts` (3 tests): Runway obligations ($\ge \frac{\text{obligations}}{30} \times \text{runway}$), 60/90/180-day horizons, and insolvency detection.
-    4. `flowsplit.test.ts` (3 tests): 100% Value Conservation Invariant ($\sum p_i = 100\%$), discrete per-vault allocation arithmetic, and replay prevention.
-    5. `streamcredit.test.ts` (3 tests): 50% future earnings collateral ceiling, 1.5% fixed origination fee, and advance nullifiers.
-    6. `auditpass.test.ts` (3 tests): ZK tax bracket compliance range proofs, statutory withholding calculation, and attestation anchoring.
+  - Executes comprehensive Vitest suites (**28 tests across 6 test files**) executing real compiled Compact circuits via `@midnight-ntwrk/compact-runtime`:
+    1. `payroll.test.ts` (9 tests): Cryptographic authorization signatures (employer & worker), authenticated per-worker stream entitlement bounds, and persistent multi-transaction nullifier replay protection across consensus history.
+    2. `vendor.test.ts` (4 tests): Shielded invoice settlements, cryptographic payer authorization signatures, enterprise budget ceiling assertions, and multi-transaction invoice nullifier defense.
+    3. `vaultguard.test.ts` (4 tests): Cryptographic treasury authorization signatures, mathematical runway obligations ($\ge \frac{\text{obligations}}{30} \times \text{runway}$), 60/90/180-day audit horizons, and insolvency detection.
+    4. `flowsplit.test.ts` (4 tests): Cryptographic worker split authorization signatures, 100% Value Conservation Invariant ($\sum p_i = 100\%$), discrete per-vault allocation arithmetic, and tick-epoch double-routing replay defense.
+    5. `streamcredit.test.ts` (3 tests): Cryptographic liquidity pool signatures, 50% future earnings collateral ceiling, debt liability tracking against unwithdrawn entitlement, and advance nullifiers.
+    6. `auditpass.test.ts` (4 tests): Cryptographic compliance authority signatures, ZK tax bracket compliance range proofs, statutory withholding calculation, and attestation anchoring.
   - Run command: `npm run test`
 - **Compact Contracts & Proving Keys Verification (`contract`):**
   - Executes `npm run compact` via `scripts/compile-compact.js` compiling all 6 Compact contracts into managed TypeScript definitions, JavaScript runtime classes, binary ZKIR bytecode, and proving keys.

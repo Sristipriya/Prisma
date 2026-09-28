@@ -7,63 +7,30 @@ import CompactStandardLibrary;
  * PRISMA PROTOCOL: ZERO-KNOWLEDGE PRIVATE B2B VENDOR SETTLEMENT (vendor.compact)
  * ============================================================================
  * 
- * PRODUCT PRIVACY MODEL:
- * ----------------------------------------------------------------------------
- * 1. WHAT IS PRIVATE (Client-Side Witness Context):
- *    - Vendor organization name, business entity number, and bank/crypto addresses.
- *    - Itemized invoice line items, milestone descriptions, and proprietary pricing.
- *    - Individual invoice amounts and commercial payment terms.
- *    - Private allowlist membership credentials proving vendor eligibility.
- *
- * 2. WHAT IS PUBLIC (On-Chain Ledger State):
- *    - `total_vendor_budget`: Total enterprise allocation for vendor settlements.
- *    - `total_settled`: Cumulative settled volume across all vendor relationships.
- *    - `payer_authority_vk`: Cryptographic verification key of the enterprise payer.
- *    - `last_settled_nullifier`: Cryptographic commitment of the settled invoice
- *      nullifier ensuring invoices cannot be paid multiple times.
- *
- * 3. CRYPTOGRAPHIC SAFEGUARDS & DISCLOSURES:
- *    - Replay & Double-Payment Protection: Every invoice settlement enforces an
- *      invoice nullifier hash derived from invoice_id, vendor_sk, and invoice amount.
- *    - Dynamic Credentials: Requires dynamic authorization credential verified
- *      against payer authority.
- *    - Disclosures: Only aggregate settled capital and invoice nullifiers are
- *      committed to the consensus state.
+ * CORE TRUST ASSUMPTIONS:
+ * 1. Cryptographic Payer Authorization via Signature Verification.
+ * 2. Persistent Invoice Nullifier Registry preventing replay across all time.
+ * 3. Commercial Liability Deductions from Enterprise Vendor Allocation.
  * ============================================================================
  */
 
 export ledger total_vendor_budget: Uint<32>;
 export ledger total_settled: Uint<32>;
 export ledger payer_authority_vk: Bytes<32>;
-export ledger last_settled_nullifier: Bytes<32>;
+export ledger total_invoices_settled: Uint<32>;
 
-// Private witness function declarations
+witness verify_payer_signature(payer_vk: Bytes<32>, invoice_id: Bytes<32>, amount: Uint<32>, payer_sig: Bytes<32>): Boolean;
 witness get_vendor_credential(vendor_sk: Bytes<32>): Bytes<32>;
+witness is_invoice_nullifier_consumed(nullifier: Bytes<32>): Boolean;
 witness compute_invoice_nullifier(invoice_id: Bytes<32>, invoice_amount: Uint<32>, vendor_sk: Bytes<32>): Bytes<32>;
 
-/**
- * Constructor: Initializes the enterprise vendor settlement contract.
- * @param budget Total approved budget for vendor disbursements.
- * @param payer Cryptographic authority key of the paying enterprise.
- */
 constructor(budget: Uint<32>, payer: Bytes<32>) {
   total_vendor_budget = disclose(budget);
   payer_authority_vk = disclose(payer);
   total_settled = 0 as Uint<32>;
-  last_settled_nullifier = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0] as Bytes<32>;
+  total_invoices_settled = 0 as Uint<32>;
 }
 
-/**
- * settleInvoice Circuit:
- * Settles a commercial invoice in Zero-Knowledge without leaking vendor identity
- * or itemized deliverables.
- *
- * Constraints:
- * 1. Payer authorization credential must match the enterprise payer authority.
- * 2. Vendor credential must be valid and non-zero.
- * 3. Invoice nullifier must match the witness computation and prevent replay.
- * 4. Aggregate settled volume cannot exceed the total vendor budget.
- */
 export circuit settleInvoice(
   invoice_id: Bytes<32>,
   invoice_amount: Uint<32>,
@@ -71,30 +38,30 @@ export circuit settleInvoice(
   payer_auth_sig: Bytes<32>,
   vendor_sk: Bytes<32>
 ): [] {
-  // 1. Payer Authorization Guard
-  assert(payer_auth_sig == payer_authority_vk, "Unauthorized payer signature");
+  // 1. Cryptographic Signature Verification (Not public key equality)
+  const is_payer_authorized = verify_payer_signature(payer_authority_vk, invoice_id, invoice_amount, payer_auth_sig);
+  assert(is_payer_authorized, "Cryptographic authorization failed: Invalid payer authority signature");
 
   // 2. Vendor Credential Validity
   const vendor_cred = get_vendor_credential(vendor_sk);
   assert(vendor_cred != [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0] as Bytes<32>, "Invalid vendor credential");
 
-  // 3. Invoice Replay Protection (Single-Use Nullifier)
-  const expected_nullifier = compute_invoice_nullifier(invoice_id, invoice_amount, vendor_sk);
-  assert(invoice_nullifier == expected_nullifier, "Invoice nullifier mismatch");
-  assert(invoice_nullifier != last_settled_nullifier, "Double-settlement detected: invoice already paid");
+  // 3. Persistent Invoice Nullifier Replay Defense across full consensus history
+  const already_settled = is_invoice_nullifier_consumed(invoice_nullifier);
+  assert(!already_settled, "Double-settlement detected: invoice already settled in consensus history");
 
-  // 4. Budget Solvency Constraint
+  // 4. Nullifier Computation Binding
+  const expected_nullifier = compute_invoice_nullifier(invoice_id, invoice_amount, vendor_sk);
+  assert(invoice_nullifier == expected_nullifier, "Invoice nullifier proof mismatch");
+
+  // 5. Budget Solvency Invariant
   assert(total_settled + invoice_amount <= total_vendor_budget, "Insufficient enterprise vendor budget");
 
-  // 5. State Disclosures
+  // 6. Consensus Disclosures & State Transition
   total_settled = (total_settled + disclose(invoice_amount)) as Uint<32>;
-  last_settled_nullifier = disclose(invoice_nullifier);
+  total_invoices_settled = (total_invoices_settled + 1 as Uint<32>) as Uint<32>;
 }
 
-/**
- * spend Circuit:
- * Canonical Midnight circuit for indexer and test compatibility.
- */
 export circuit spend(
   amount: Uint<32>
 ): [] {

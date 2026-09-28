@@ -87,4 +87,28 @@ describe("Prisma AuditPass Zero-Knowledge Tax & Regulatory Compliance Compiled C
       )
     ).toThrow("failed assert: Withholding payments insufficient for statutory tax obligation");
   });
+
+  it("strictly rejects tax compliance certification if compliance authority signature verification fails", () => {
+    const contract = new Contract<void>({
+      verify_compliance_signature: () => false,
+      get_confidential_tax_records: () => 120000n,
+    } as any);
+
+    let ctx = createTestCircuitContext(contract);
+
+    expect(() =>
+      contract.impureCircuits.verifyTaxCompliance(
+        ctx,
+        2026n,
+        dummyJurisdiction,
+        100000n,
+        150000n,
+        25000n,
+        2000n,
+        dummySalt,
+        dummyAuthoritySig,
+        dummyWorkerSk
+      )
+    ).toThrow("failed assert: Cryptographic authorization failed: Invalid compliance authority signature");
+  });
 });

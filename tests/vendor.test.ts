@@ -85,7 +85,7 @@ describe("Prisma Vendor Settlement Compiled Compact Circuit Tests", () => {
         dummyPayerAuth,
         dummyVendorSk
       )
-    ).toThrow("failed assert: Double-settlement detected: invoice already paid");
+    ).toThrow("failed assert: Double-settlement detected: invoice already settled in consensus history");
   });
 
   it("supports canonical spend circuit for indexer and backward compatibility", () => {

@@ -78,6 +78,6 @@ describe("Prisma StreamCredit Collateralized Salary Advance Compiled Circuit Tes
         dummyPoolSig,
         dummyWorkerSk
       )
-    ).toThrow("failed assert: Replay detected: salary advance already claimed for this nonce");
+    ).toThrow("failed assert: Replay detected: salary advance already claimed for this nullifier");
   });
 });

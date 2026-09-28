@@ -2,7 +2,9 @@
 import type * as __compactRuntime from '@midnight-ntwrk/compact-runtime';
 
 export type Witnesses<PS> = {
+  verify_pool_signature(context: __compactRuntime.WitnessContext<PS>, pool_vk: Uint8Array | string, stream_id: Uint8Array | string, amount: bigint, pool_sig: Uint8Array | string): boolean;
   get_unaccrued_salary_collateral(context: __compactRuntime.WitnessContext<PS>, stream_id: Uint8Array | string, worker_sk: Uint8Array | string): bigint;
+  is_advance_nullifier_consumed(context: __compactRuntime.WitnessContext<PS>, nullifier: Uint8Array | string): boolean;
   compute_advance_nullifier(context: __compactRuntime.WitnessContext<PS>, stream_id: Uint8Array | string, nonce: bigint, worker_sk: Uint8Array | string): Uint8Array | string;
 };
 
@@ -27,7 +29,8 @@ export type Ledger = {
   readonly pool_authority_vk: Uint8Array | string;
   readonly total_advances_disbursed: bigint;
   readonly total_fees_collected: bigint;
-  readonly last_advance_nullifier: Uint8Array | string;
+  readonly total_outstanding_principal: bigint;
+  readonly total_advances_count: bigint;
 };
 
 export type ContractReferenceLocations = any;

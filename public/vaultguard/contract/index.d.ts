@@ -2,6 +2,7 @@
 import type * as __compactRuntime from '@midnight-ntwrk/compact-runtime';
 
 export type Witnesses<PS> = {
+  verify_treasury_signature(context: __compactRuntime.WitnessContext<PS>, treasury_vk: Uint8Array | string, monthly_obligations: bigint, runway_days: bigint, sig: Uint8Array | string): boolean;
   get_confidential_reserves(context: __compactRuntime.WitnessContext<PS>, vault_sk: Uint8Array | string): bigint;
   compute_attestation_digest(context: __compactRuntime.WitnessContext<PS>, runway_days: bigint, monthly_burn: bigint, salt: Uint8Array | string): Uint8Array | string;
 };

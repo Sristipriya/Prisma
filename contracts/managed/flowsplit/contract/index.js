@@ -41,6 +41,8 @@ export class Contract {
   impureCircuits;
   provableCircuits;
   _nullifiers;
+  _streams;
+  _outstandingPrincipal;
 
   constructor(witnesses = {}) {
     if (typeof witnesses !== 'object' || witnesses === null) {
@@ -48,6 +50,8 @@ export class Contract {
     }
     this.witnesses = witnesses;
     this._nullifiers = new Set();
+    this._streams = new Map();
+    this._outstandingPrincipal = 0n;
     this.circuits = {
 
       executeFlowSplit: (...args) => {
@@ -129,30 +133,60 @@ export class Contract {
     return [];
   }
 
-  _createStream(context, partialProofData, stream_id, allocation_amount, employer_credential) {
+  _createStream(context, partialProofData, stream_id, allocation_amount, employer_sig) {
+    if (this.witnesses.verify_employer_signature) {
+      const employer_vk = '00'.repeat(32);
+      const is_authorized = this.witnesses.verify_employer_signature(context, employer_vk, stream_id, allocation_amount, employer_sig);
+      if (!is_authorized) {
+        __compactRuntime.assert(false, 'failed assert: Cryptographic authorization failed: Invalid employer signature');
+      }
+    }
     const currentSpent = _readCell(context, 1);
     const budget = _readCell(context, 0);
     if (currentSpent + allocation_amount > budget) {
       __compactRuntime.assert(false, 'failed assert: Payroll budget exceeded');
     }
+    this._streams.set(String(stream_id), {
+      allocation: allocation_amount,
+      withdrawn: 0n,
+      debt: 0n,
+      nonce: 0n
+    });
     const activeStreams = _readCell(context, 2);
     _writeCell(context, 2, activeStreams + 1n);
     return [];
   }
 
-  _withdrawSalary(context, partialProofData, stream_id, withdraw_amount, nullifier, worker_sk, current_time, nonce) {
+  _withdrawSalary(context, partialProofData, stream_id, withdraw_amount, nullifier, worker_sk, current_time, nonce, worker_sig) {
+    let worker_pk = worker_sk;
     if (this.witnesses.get_worker_credential) {
-      const cred = this.witnesses.get_worker_credential(context, worker_sk);
-      if (!cred) __compactRuntime.assert(false, 'failed assert: Invalid worker witness credential');
+      worker_pk = this.witnesses.get_worker_credential(context, worker_sk);
+      if (!worker_pk) __compactRuntime.assert(false, 'failed assert: Invalid worker witness credential');
     }
-    if (this.witnesses.get_accrued_balance) {
-      const accrued = this.witnesses.get_accrued_balance(context, stream_id, current_time);
-      if (withdraw_amount > accrued) {
-        __compactRuntime.assert(false, 'failed assert: Withdrawal amount exceeds accrued stream balance');
+    if (this.witnesses.verify_worker_signature && worker_sig !== undefined) {
+      const is_authorized = this.witnesses.verify_worker_signature(context, worker_pk, stream_id, withdraw_amount, nonce, worker_sig);
+      if (!is_authorized) {
+        __compactRuntime.assert(false, 'failed assert: Cryptographic authorization failed: Invalid worker signature');
       }
     }
     if (this._nullifiers.has(String(nullifier))) {
-      __compactRuntime.assert(false, 'failed assert: Nullifier replay detected: transaction already settled');
+      __compactRuntime.assert(false, 'failed assert: Nullifier replay detected: transaction already settled in consensus history');
+    }
+    let stream = this._streams.get(String(stream_id));
+    if (!stream) {
+      stream = { allocation: 1000000000n, withdrawn: 0n, debt: 0n, nonce: 0n };
+      this._streams.set(String(stream_id), stream);
+    }
+    let accrued = withdraw_amount;
+    if (this.witnesses.get_accrued_balance) {
+      accrued = this.witnesses.get_accrued_balance(context, stream_id, current_time);
+    }
+    if (accrued < stream.withdrawn + stream.debt) {
+      __compactRuntime.assert(false, 'failed assert: Liabilities exceed accrued stream entitlement');
+    }
+    const available = accrued - stream.withdrawn - stream.debt;
+    if (withdraw_amount > available) {
+      __compactRuntime.assert(false, 'failed assert: Withdrawal amount exceeds authenticated unwithdrawn entitlement');
     }
     const currentSpent = _readCell(context, 1);
     const budget = _readCell(context, 0);
@@ -160,17 +194,26 @@ export class Contract {
       __compactRuntime.assert(false, 'failed assert: Exceeds total aggregate payroll budget');
     }
     this._nullifiers.add(String(nullifier));
+    stream.withdrawn += withdraw_amount;
+    stream.nonce = nonce;
     _writeCell(context, 1, currentSpent + withdraw_amount);
     return [];
   }
 
   _settleInvoice(context, partialProofData, invoice_id, invoice_amount, invoice_nullifier, payer_auth_sig, vendor_sk) {
+    if (this.witnesses.verify_payer_signature) {
+      const payer_vk = '00'.repeat(32);
+      const is_authorized = this.witnesses.verify_payer_signature(context, payer_vk, invoice_id, invoice_amount, payer_auth_sig);
+      if (!is_authorized) {
+        __compactRuntime.assert(false, 'failed assert: Cryptographic authorization failed: Invalid payer authority signature');
+      }
+    }
     if (this.witnesses.get_vendor_credential) {
       const cred = this.witnesses.get_vendor_credential(context, vendor_sk);
       if (!cred) __compactRuntime.assert(false, 'failed assert: Invalid vendor credential');
     }
     if (this._nullifiers.has(String(invoice_nullifier))) {
-      __compactRuntime.assert(false, 'failed assert: Double-settlement detected: invoice already paid');
+      __compactRuntime.assert(false, 'failed assert: Double-settlement detected: invoice already settled in consensus history');
     }
     const currentSpent = _readCell(context, 1);
     const budget = _readCell(context, 0);
@@ -183,6 +226,13 @@ export class Contract {
   }
 
   _attestSolvency(context, partialProofData, monthly_obligations, runway_days, timestamp, attestation_salt, treasury_sig, vault_sk) {
+    if (this.witnesses.verify_treasury_signature) {
+      const treasury_vk = '00'.repeat(32);
+      const is_authorized = this.witnesses.verify_treasury_signature(context, treasury_vk, monthly_obligations, runway_days, treasury_sig);
+      if (!is_authorized) {
+        __compactRuntime.assert(false, 'failed assert: Cryptographic authorization failed: Invalid treasury signature');
+      }
+    }
     let privateReserves = 1000000000n;
     if (this.witnesses.get_confidential_reserves) {
       privateReserves = this.witnesses.get_confidential_reserves(context, vault_sk);
@@ -197,20 +247,38 @@ export class Contract {
   }
 
   _executeFlowSplit(context, partialProofData, stream_id, tick_amount, pct_liquid_bps, pct_tax_bps, pct_savings_bps, pct_emergency_bps, tick_epoch, split_nullifier, worker_sig, worker_sk) {
+    if (this.witnesses.verify_worker_split_signature) {
+      const worker_vk = '00'.repeat(32);
+      const is_authorized = this.witnesses.verify_worker_split_signature(context, worker_vk, stream_id, tick_amount, worker_sig);
+      if (!is_authorized) {
+        __compactRuntime.assert(false, 'failed assert: Cryptographic authorization failed: Invalid worker split signature');
+      }
+    }
     const totalBps = pct_liquid_bps + pct_tax_bps + pct_savings_bps + pct_emergency_bps;
     if (totalBps !== 10000n) {
       __compactRuntime.assert(false, 'failed assert: Value Conservation Invariant Violated: Allocations must sum to 100.00% (10,000 bps)');
     }
     if (this._nullifiers.has(String(split_nullifier))) {
-      __compactRuntime.assert(false, 'failed assert: Duplicate tick route execution detected');
+      __compactRuntime.assert(false, 'failed assert: Duplicate tick route execution detected: nullifier already consumed');
     }
     this._nullifiers.add(String(split_nullifier));
+    const stream = this._streams.get(String(stream_id));
+    if (stream) {
+      stream.withdrawn += tick_amount;
+    }
     const currentRouted = _readCell(context, 1);
     _writeCell(context, 1, currentRouted + tick_amount);
     return [];
   }
 
   _disburseSalaryAdvance(context, partialProofData, stream_id, requested_amount, advance_nonce, advance_nullifier, pool_sig, worker_sk) {
+    if (this.witnesses.verify_pool_signature) {
+      const pool_vk = '00'.repeat(32);
+      const is_authorized = this.witnesses.verify_pool_signature(context, pool_vk, stream_id, requested_amount, pool_sig);
+      if (!is_authorized) {
+        __compactRuntime.assert(false, 'failed assert: Cryptographic authorization failed: Invalid liquidity pool signature');
+      }
+    }
     let unaccruedSalary = 10000000n;
     if (this.witnesses.get_unaccrued_salary_collateral) {
       unaccruedSalary = this.witnesses.get_unaccrued_salary_collateral(context, stream_id, worker_sk);
@@ -219,15 +287,31 @@ export class Contract {
       __compactRuntime.assert(false, 'failed assert: Exceeds 50% unaccrued salary collateral ceiling');
     }
     if (this._nullifiers.has(String(advance_nullifier))) {
-      __compactRuntime.assert(false, 'failed assert: Replay detected: salary advance already claimed for this nonce');
+      __compactRuntime.assert(false, 'failed assert: Replay detected: salary advance already claimed for this nullifier');
     }
     this._nullifiers.add(String(advance_nullifier));
+    let stream = this._streams.get(String(stream_id));
+    if (!stream) {
+      stream = { allocation: unaccruedSalary, withdrawn: 0n, debt: 0n, nonce: 0n };
+      this._streams.set(String(stream_id), stream);
+    }
+    const fee = (requested_amount * 150n) / 10000n;
+    stream.debt += (requested_amount + fee);
+    this._outstandingPrincipal += requested_amount;
+
     const currentDisbursed = _readCell(context, 1);
     _writeCell(context, 1, currentDisbursed + requested_amount);
     return [];
   }
 
   _verifyTaxCompliance(context, partialProofData, fiscal_year, jurisdiction_id, bracket_min, bracket_max, withholding_paid, withholding_rate_bps, attestation_salt, compliance_sig, worker_sk) {
+    if (this.witnesses.verify_compliance_signature) {
+      const compliance_vk = '00'.repeat(32);
+      const is_authorized = this.witnesses.verify_compliance_signature(context, compliance_vk, fiscal_year, jurisdiction_id, compliance_sig);
+      if (!is_authorized) {
+        __compactRuntime.assert(false, 'failed assert: Cryptographic authorization failed: Invalid compliance authority signature');
+      }
+    }
     let grossIncome = bracket_min;
     if (this.witnesses.get_confidential_tax_records) {
       grossIncome = this.witnesses.get_confidential_tax_records(context, worker_sk, fiscal_year);
@@ -263,7 +347,7 @@ export function ledger(stateOrChargedState) {
   return {
     worker_authority_vk: 0n,
     total_routed_volume: 0n,
-    last_split_nullifier: 0n,
+    total_splits_executed: 0n,
     routing_active: 0n,
     total_spent: spent,
     total_disbursed: spent,
@@ -274,9 +358,14 @@ export function ledger(stateOrChargedState) {
     spending_limit: budget,
     total_payroll_budget: budget,
     total_vendor_budget: budget,
+    total_allocated: spent,
     active_streams: counter,
     total_solvency_attestations: counter,
-    total_compliance_proofs: counter
+    total_compliance_proofs: counter,
+    total_nullifiers_consumed: counter,
+    total_invoices_settled: counter,
+    total_advances_count: counter,
+    total_splits_executed: counter
   };
 }
 

@@ -2,7 +2,9 @@
 import type * as __compactRuntime from '@midnight-ntwrk/compact-runtime';
 
 export type Witnesses<PS> = {
+  verify_payer_signature(context: __compactRuntime.WitnessContext<PS>, payer_vk: Uint8Array | string, invoice_id: Uint8Array | string, amount: bigint, payer_sig: Uint8Array | string): boolean;
   get_vendor_credential(context: __compactRuntime.WitnessContext<PS>, vendor_sk: Uint8Array | string): Uint8Array | string;
+  is_invoice_nullifier_consumed(context: __compactRuntime.WitnessContext<PS>, nullifier: Uint8Array | string): boolean;
   compute_invoice_nullifier(context: __compactRuntime.WitnessContext<PS>, invoice_id: Uint8Array | string, invoice_amount: bigint, vendor_sk: Uint8Array | string): Uint8Array | string;
 };
 
@@ -27,7 +29,7 @@ export type Ledger = {
   readonly total_vendor_budget: bigint;
   readonly total_settled: bigint;
   readonly payer_authority_vk: Uint8Array | string;
-  readonly last_settled_nullifier: Uint8Array | string;
+  readonly total_invoices_settled: bigint;
   readonly total_spent: bigint;
   readonly spending_limit: bigint;
 };

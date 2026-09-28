@@ -2,36 +2,42 @@
 import type * as __compactRuntime from '@midnight-ntwrk/compact-runtime';
 
 export type Witnesses<PS> = {
-  get_accrued_balance(context: __compactRuntime.WitnessContext<PS>, stream_id: Uint8Array | string, current_time: bigint): bigint;
+  verify_employer_signature(context: __compactRuntime.WitnessContext<PS>, employer_vk: Uint8Array | string, stream_id: Uint8Array | string, allocation: bigint, employer_sig: Uint8Array | string): boolean;
+  verify_worker_signature(context: __compactRuntime.WitnessContext<PS>, worker_pk: Uint8Array | string, stream_id: Uint8Array | string, amount: bigint, nonce: bigint, worker_sig: Uint8Array | string): boolean;
   get_worker_credential(context: __compactRuntime.WitnessContext<PS>, worker_sk: Uint8Array | string): Uint8Array | string;
+  get_accrued_balance(context: __compactRuntime.WitnessContext<PS>, stream_id: Uint8Array | string, current_time: bigint): bigint;
+  get_stream_withdrawn_amount(context: __compactRuntime.WitnessContext<PS>, stream_id: Uint8Array | string): bigint;
+  get_stream_outstanding_debt(context: __compactRuntime.WitnessContext<PS>, stream_id: Uint8Array | string): bigint;
+  is_nullifier_consumed(context: __compactRuntime.WitnessContext<PS>, nullifier: Uint8Array | string): boolean;
   generate_withdrawal_nullifier(context: __compactRuntime.WitnessContext<PS>, stream_id: Uint8Array | string, nonce: bigint, worker_sk: Uint8Array | string): Uint8Array | string;
 };
 
 export type ImpureCircuits<PS> = {
-  createStream(context: __compactRuntime.CircuitContext<PS>, stream_id: Uint8Array | string, allocation_amount: bigint, employer_credential: Uint8Array | string): __compactRuntime.CircuitResults<PS, []>;
-  withdrawSalary(context: __compactRuntime.CircuitContext<PS>, stream_id: Uint8Array | string, withdraw_amount: bigint, nullifier: Uint8Array | string, worker_sk: Uint8Array | string, current_time: bigint, nonce: bigint): __compactRuntime.CircuitResults<PS, []>;
+  createStream(context: __compactRuntime.CircuitContext<PS>, stream_id: Uint8Array | string, allocation_amount: bigint, employer_sig: Uint8Array | string): __compactRuntime.CircuitResults<PS, []>;
+  withdrawSalary(context: __compactRuntime.CircuitContext<PS>, stream_id: Uint8Array | string, withdraw_amount: bigint, nullifier: Uint8Array | string, worker_sk: Uint8Array | string, current_time: bigint, nonce: bigint, worker_sig: Uint8Array | string): __compactRuntime.CircuitResults<PS, []>;
   spend(context: __compactRuntime.CircuitContext<PS>, amount: bigint): __compactRuntime.CircuitResults<PS, []>;
 };
 
 export type ProvableCircuits<PS> = {
-  createStream(context: __compactRuntime.CircuitContext<PS>, stream_id: Uint8Array | string, allocation_amount: bigint, employer_credential: Uint8Array | string): __compactRuntime.CircuitResults<PS, []>;
-  withdrawSalary(context: __compactRuntime.CircuitContext<PS>, stream_id: Uint8Array | string, withdraw_amount: bigint, nullifier: Uint8Array | string, worker_sk: Uint8Array | string, current_time: bigint, nonce: bigint): __compactRuntime.CircuitResults<PS, []>;
+  createStream(context: __compactRuntime.CircuitContext<PS>, stream_id: Uint8Array | string, allocation_amount: bigint, employer_sig: Uint8Array | string): __compactRuntime.CircuitResults<PS, []>;
+  withdrawSalary(context: __compactRuntime.CircuitContext<PS>, stream_id: Uint8Array | string, withdraw_amount: bigint, nullifier: Uint8Array | string, worker_sk: Uint8Array | string, current_time: bigint, nonce: bigint, worker_sig: Uint8Array | string): __compactRuntime.CircuitResults<PS, []>;
   spend(context: __compactRuntime.CircuitContext<PS>, amount: bigint): __compactRuntime.CircuitResults<PS, []>;
 };
 
 export type PureCircuits = {};
 
 export type Circuits<PS> = {
-  createStream(context: __compactRuntime.CircuitContext<PS>, stream_id: Uint8Array | string, allocation_amount: bigint, employer_credential: Uint8Array | string): __compactRuntime.CircuitResults<PS, []>;
-  withdrawSalary(context: __compactRuntime.CircuitContext<PS>, stream_id: Uint8Array | string, withdraw_amount: bigint, nullifier: Uint8Array | string, worker_sk: Uint8Array | string, current_time: bigint, nonce: bigint): __compactRuntime.CircuitResults<PS, []>;
+  createStream(context: __compactRuntime.CircuitContext<PS>, stream_id: Uint8Array | string, allocation_amount: bigint, employer_sig: Uint8Array | string): __compactRuntime.CircuitResults<PS, []>;
+  withdrawSalary(context: __compactRuntime.CircuitContext<PS>, stream_id: Uint8Array | string, withdraw_amount: bigint, nullifier: Uint8Array | string, worker_sk: Uint8Array | string, current_time: bigint, nonce: bigint, worker_sig: Uint8Array | string): __compactRuntime.CircuitResults<PS, []>;
   spend(context: __compactRuntime.CircuitContext<PS>, amount: bigint): __compactRuntime.CircuitResults<PS, []>;
 };
 
 export type Ledger = {
   readonly total_payroll_budget: bigint;
+  readonly total_allocated: bigint;
   readonly total_disbursed: bigint;
   readonly employer_vk: Uint8Array | string;
-  readonly last_nullifier: Uint8Array | string;
+  readonly total_nullifiers_consumed: bigint;
   readonly active_streams: bigint;
   readonly total_spent: bigint;
   readonly spending_limit: bigint;

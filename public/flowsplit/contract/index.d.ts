@@ -2,7 +2,9 @@
 import type * as __compactRuntime from '@midnight-ntwrk/compact-runtime';
 
 export type Witnesses<PS> = {
+  verify_worker_split_signature(context: __compactRuntime.WitnessContext<PS>, worker_vk: Uint8Array | string, stream_id: Uint8Array | string, tick_amount: bigint, sig: Uint8Array | string): boolean;
   get_subvault_commitments(context: __compactRuntime.WitnessContext<PS>, worker_sk: Uint8Array | string): Uint8Array | string;
+  is_split_nullifier_consumed(context: __compactRuntime.WitnessContext<PS>, nullifier: Uint8Array | string): boolean;
   compute_split_nullifier(context: __compactRuntime.WitnessContext<PS>, stream_id: Uint8Array | string, tick_epoch: bigint, worker_sk: Uint8Array | string): Uint8Array | string;
 };
 
@@ -26,7 +28,7 @@ export type Circuits<PS> = {
 export type Ledger = {
   readonly worker_authority_vk: Uint8Array | string;
   readonly total_routed_volume: bigint;
-  readonly last_split_nullifier: Uint8Array | string;
+  readonly total_splits_executed: bigint;
   readonly routing_active: bigint;
 };
 

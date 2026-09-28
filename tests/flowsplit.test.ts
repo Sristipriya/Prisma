@@ -96,4 +96,28 @@ describe("Prisma FlowSplit Zero-Knowledge Stream Routing Compiled Circuit Tests"
       )
     ).toThrow("failed assert: Duplicate tick route execution detected");
   });
+
+  it("strictly rejects routing execution if cryptographic worker split signature verification fails", () => {
+    const contract = new Contract<void>({
+      ...mockWitnesses,
+      verify_worker_split_signature: () => false,
+    } as any);
+    let ctx = createTestCircuitContext(contract);
+
+    expect(() =>
+      contract.impureCircuits.executeFlowSplit(
+        ctx,
+        dummyStreamId,
+        5000n,
+        5000n,
+        2500n,
+        1500n,
+        1000n,
+        1n,
+        dummySplitNullifier,
+        dummyWorkerSig,
+        dummyWorkerSk
+      )
+    ).toThrow("failed assert: Cryptographic authorization failed: Invalid worker split signature");
+  });
 });

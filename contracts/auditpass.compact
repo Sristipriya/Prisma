@@ -7,23 +7,11 @@ import CompactStandardLibrary;
  * PRISMA PROTOCOL: AUDITPASS ZERO-KNOWLEDGE TAX & REGULATORY COMPLIANCE (auditpass.compact)
  * ============================================================================
  * 
- * PRODUCT PRIVACY MODEL:
- * ----------------------------------------------------------------------------
- * 1. WHAT IS PRIVATE (Client-Side Witness Context):
- *    - Worker's exact gross annual salary and earnings breakdown.
- *    - Employer entity identity, corporate jurisdiction, and trade secrets.
- *    - Micro-transaction timestamps and individual streaming receipts.
- *    - Auditor viewing secret keys and encrypted line items.
- *
- * 2. WHAT IS PUBLIC (On-Chain Ledger State):
- *    - `compliance_authority_vk`: Registered jurisdiction tax/audit authority key.
- *    - `last_attestation_id`: Cryptographic commitment of verified tax attestation.
- *    - `total_compliance_proofs`: Counter of verified tax compliance proofs.
- *    - `certified_tax_year`: Fiscal year associated with the compliance anchor.
- *
- * 3. MATHEMATICAL INVARIANTS:
- *    - Income Bracket Compliance: bracket_min <= gross_income <= bracket_max.
- *    - Statutory Withholding Satisfaction: withholding_paid >= (gross_income * rate_bps) / 10000.
+ * CORE TRUST ASSUMPTIONS:
+ * 1. Cryptographic Compliance Authority Signature Verification.
+ * 2. Range Proof of Income Bracket Compliance.
+ * 3. Statutory Withholding Obligation Satisfaction.
+ * 4. Immutable Attestation Digest Anchoring.
  * ============================================================================
  */
 
@@ -32,12 +20,10 @@ export ledger last_attestation_id: Bytes<32>;
 export ledger total_compliance_proofs: Uint<32>;
 export ledger certified_tax_year: Uint<32>;
 
+witness verify_compliance_signature(compliance_vk: Bytes<32>, fiscal_year: Uint<32>, jurisdiction_id: Bytes<32>, sig: Bytes<32>): Boolean;
 witness get_confidential_tax_records(worker_sk: Bytes<32>, fiscal_year: Uint<32>): Uint<32>;
 witness compute_audit_attestation_digest(fiscal_year: Uint<32>, jurisdiction_id: Bytes<32>, salt: Bytes<32>): Bytes<32>;
 
-/**
- * Constructor: Initializes AuditPass compliance module.
- */
 constructor(compliance_authority: Bytes<32>) {
   compliance_authority_vk = disclose(compliance_authority);
   last_attestation_id = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0] as Bytes<32>;
@@ -45,17 +31,6 @@ constructor(compliance_authority: Bytes<32>) {
   certified_tax_year = 0 as Uint<32>;
 }
 
-/**
- * verifyTaxCompliance Circuit:
- * Generates an on-chain zero-knowledge regulatory attestation proving
- * statutory tax compliance and withholding without revealing gross income.
- *
- * Constraints:
- * 1. Authority signature must match registered compliance authority.
- * 2. Gross income (from witness) must fall within [bracket_min, bracket_max].
- * 3. Withholding paid must satisfy statutory rate: withholding_paid * 10000 >= gross_income * withholding_rate_bps.
- * 4. Anchors proof digest to public consensus state.
- */
 export circuit verifyTaxCompliance(
   fiscal_year: Uint<32>,
   jurisdiction_id: Bytes<32>,
@@ -67,8 +42,9 @@ export circuit verifyTaxCompliance(
   compliance_sig: Bytes<32>,
   worker_sk: Bytes<32>
 ): [] {
-  // 1. Regulatory Authority Signature Verification
-  assert(compliance_sig == compliance_authority_vk, "Unauthorized compliance authority signature");
+  // 1. Cryptographic Regulatory Authority Signature Verification
+  const is_authorized = verify_compliance_signature(compliance_authority_vk, fiscal_year, jurisdiction_id, compliance_sig);
+  assert(is_authorized, "Cryptographic authorization failed: Invalid compliance authority signature");
   assert(bracket_max >= bracket_min, "Invalid tax bracket range");
 
   // 2. Query confidential gross earnings from private witness
@@ -79,7 +55,6 @@ export circuit verifyTaxCompliance(
   assert(gross_income <= bracket_max, "Gross income exceeds declared tax bracket maximum");
 
   // 4. Statutory Withholding Proof
-  // Withholding paid must be >= (gross_income * withholding_rate_bps) / 10000
   assert((withholding_paid * 10000 as Uint<32>) >= (gross_income * withholding_rate_bps as Uint<32>), "Withholding payments insufficient for statutory tax obligation");
 
   // 5. Compute Attestation Commitment
@@ -91,12 +66,8 @@ export circuit verifyTaxCompliance(
   total_compliance_proofs = (total_compliance_proofs + 1 as Uint<32>) as Uint<32>;
 }
 
-/**
- * spend Circuit:
- * Canonical Midnight circuit interface.
- */
 export circuit spend(
   amount: Uint<32>
 ): [] {
-  assert(amount >= 0, "Amount must be non-negative");
+  total_compliance_proofs = (total_compliance_proofs + 1 as Uint<32>) as Uint<32>;
 }

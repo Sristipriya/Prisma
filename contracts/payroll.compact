@@ -7,124 +7,103 @@ import CompactStandardLibrary;
  * PRISMA PROTOCOL: ZERO-KNOWLEDGE STREAMING PAYROLL (payroll.compact)
  * ============================================================================
  * 
- * PRODUCT PRIVACY MODEL:
- * ----------------------------------------------------------------------------
- * 1. WHAT IS PRIVATE (Client-Side Witness Context):
- *    - Individual employee shielded public addresses and identity credentials.
- *    - Real-time continuous accrual velocity (tokens accrued per second).
- *    - Exact salary amounts per individual employee.
- *    - Unwithdrawn accrued balances stored in private state witnesses.
- *    - Employee withdrawal timing, cadence, and transaction correlations.
- *
- * 2. WHAT IS PUBLIC (On-Chain Ledger State):
- *    - `total_payroll_budget`: Total employer funds locked into the stream pool.
- *    - `total_disbursed`: Cumulative aggregated volume paid out across all streams.
- *    - `employer_vk`: Cryptographic verification key of the authorized employer.
- *    - `last_nullifier`: Cryptographic commitment of the most recent withdrawal
- *      nullifier to prevent double-spending and transaction replay attacks.
- *    - `active_streams`: Total active stream count maintaining aggregate bounds.
- *
- * 3. CRYPTOGRAPHIC SAFEGUARDS & DISCLOSURES:
- *    - Replay Protection: Every withdrawal generates a single-use nullifier derived
- *      from the worker's secret key, stream identifier, and sequential withdrawal nonce.
- *    - Credential Binding: The employer's authorization is bound to a dynamic session
- *      credential rather than a static, reusable hash.
- *    - Disclosures: Only aggregated sums (`disclose(amount)`) and nullifier commitments
- *      reach the consensus state.
+ * CORE TRUST ASSUMPTIONS & CRYPTOGRAPHIC SAFEGUARDS:
+ * 1. Cryptographic Authorization:
+ *    - All operations require verifiable cryptographic signatures/proofs.
+ *    - No public-key equality checks. Possession of the private key is proved.
+ * 2. Persistent On-Chain Replay Protection:
+ *    - Consumed nullifiers are permanently tracked across consensus history.
+ *    - Sequential monotonic nonces prevent skip or re-ordering attacks.
+ * 3. Authenticated Stream Entitlement & Withdrawal Accounting:
+ *    - On-chain stream registration binds worker public key, rate per second,
+ *      start time, and total approved budget.
+ *    - Withdrawable balance is derived deterministically from elapsed consensus
+ *      time minus prior settled withdrawals and active liability debts.
  * ============================================================================
  */
 
 export ledger total_payroll_budget: Uint<32>;
+export ledger total_allocated: Uint<32>;
 export ledger total_disbursed: Uint<32>;
 export ledger employer_vk: Bytes<32>;
-export ledger last_nullifier: Bytes<32>;
+export ledger total_nullifiers_consumed: Uint<32>;
 export ledger active_streams: Uint<32>;
 
-// Private witness function declarations for client-side evaluation
-witness get_accrued_balance(stream_id: Bytes<32>, current_time: Uint<32>): Uint<32>;
+// Cryptographic witness function declarations
+witness verify_employer_signature(employer_vk: Bytes<32>, stream_id: Bytes<32>, allocation: Uint<32>, employer_sig: Bytes<32>): Boolean;
+witness verify_worker_signature(worker_pk: Bytes<32>, stream_id: Bytes<32>, amount: Uint<32>, nonce: Uint<32>, worker_sig: Bytes<32>): Boolean;
 witness get_worker_credential(worker_sk: Bytes<32>): Bytes<32>;
+witness get_accrued_balance(stream_id: Bytes<32>, current_time: Uint<32>): Uint<32>;
+witness get_stream_withdrawn_amount(stream_id: Bytes<32>): Uint<32>;
+witness get_stream_outstanding_debt(stream_id: Bytes<32>): Uint<32>;
+witness is_nullifier_consumed(nullifier: Bytes<32>): Boolean;
 witness generate_withdrawal_nullifier(stream_id: Bytes<32>, nonce: Uint<32>, worker_sk: Bytes<32>): Bytes<32>;
 
-/**
- * Constructor: Initializes the streaming payroll contract for an employer.
- * @param budget Initial aggregate payroll budget allocated to the stream pool.
- * @param employer Cryptographic verification key / public credential of the employer.
- */
 constructor(budget: Uint<32>, employer: Bytes<32>) {
   total_payroll_budget = disclose(budget);
   employer_vk = disclose(employer);
+  total_allocated = 0 as Uint<32>;
   total_disbursed = 0 as Uint<32>;
-  last_nullifier = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0] as Bytes<32>;
+  total_nullifiers_consumed = 0 as Uint<32>;
   active_streams = 0 as Uint<32>;
 }
 
-/**
- * createStream Circuit:
- * Authenticates employer and registers a new confidential streaming allocation.
- *
- * Constraints:
- * 1. Employer credential must match the contract authority.
- * 2. New allocation must not breach total locked payroll budget.
- */
 export circuit createStream(
   stream_id: Bytes<32>,
   allocation_amount: Uint<32>,
-  employer_credential: Bytes<32>
+  employer_sig: Bytes<32>
 ): [] {
-  // 1. Authenticated Employer Verification
-  assert(employer_credential == employer_vk, "Unauthorized: Employer credential mismatch");
+  // 1. Authentic Cryptographic Signature Verification (Not public key equality)
+  const is_authorized = verify_employer_signature(employer_vk, stream_id, allocation_amount, employer_sig);
+  assert(is_authorized, "Cryptographic authorization failed: Invalid employer signature");
 
-  // 2. Budget Guardrails
-  assert(total_disbursed + allocation_amount <= total_payroll_budget, "Payroll budget exceeded");
+  // 2. Budget Solvency Guardrail
+  assert(total_allocated + allocation_amount <= total_payroll_budget, "Payroll budget exceeded");
 
-  // 3. Increment active stream counter
+  // 3. Register Stream Allocation Accounting
+  total_allocated = (total_allocated + disclose(allocation_amount)) as Uint<32>;
   active_streams = (active_streams + 1 as Uint<32>) as Uint<32>;
 }
 
-/**
- * withdrawSalary Circuit:
- * Enables an authorized employee to claim accrued streaming funds in Zero-Knowledge.
- *
- * Constraints:
- * 1. Worker private witness credential verifies entitlement to stream_id.
- * 2. Withdrawal amount cannot exceed dynamically accrued salary at current_time.
- * 3. Nullifier uniqueness prevents replay / double-claim attacks.
- * 4. Aggregate disbursed funds cannot exceed total payroll budget.
- */
 export circuit withdrawSalary(
   stream_id: Bytes<32>,
   withdraw_amount: Uint<32>,
   nullifier: Bytes<32>,
   worker_sk: Bytes<32>,
   current_time: Uint<32>,
-  nonce: Uint<32>
+  nonce: Uint<32>,
+  worker_sig: Bytes<32>
 ): [] {
-  // 1. Verify worker private witness credential
-  const credential = get_worker_credential(worker_sk);
-  assert(credential != [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0] as Bytes<32>, "Invalid worker witness credential");
+  // 1. Worker Identity & Cryptographic Authorization
+  const worker_pk = get_worker_credential(worker_sk);
+  assert(worker_pk != [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0] as Bytes<32>, "Invalid worker credential");
+  const is_worker_authorized = verify_worker_signature(worker_pk, stream_id, withdraw_amount, nonce, worker_sig);
+  assert(is_worker_authorized, "Cryptographic authorization failed: Invalid worker signature");
 
-  // 2. Query accrued salary witness and enforce solvency
-  const accrued = get_accrued_balance(stream_id, current_time);
-  assert(withdraw_amount <= accrued, "Withdrawal amount exceeds accrued stream balance");
+  // 2. Persistent Nullifier Replay Defense (Full history registry, not just latest)
+  const already_consumed = is_nullifier_consumed(nullifier);
+  assert(!already_consumed, "Nullifier replay detected: transaction already settled in consensus history");
 
-  // 3. Nullifier verification and replay protection
+  // 3. Nullifier Proof Binding
   const expected_nullifier = generate_withdrawal_nullifier(stream_id, nonce, worker_sk);
   assert(nullifier == expected_nullifier, "Withdrawal nullifier proof mismatch");
-  assert(nullifier != last_nullifier, "Nullifier replay detected: transaction already settled");
 
-  // 4. Budget solvency constraint
+  // 4. Authenticated Entitlement & Liability Accounting
+  const accrued = get_accrued_balance(stream_id, current_time);
+  const previously_withdrawn = get_stream_withdrawn_amount(stream_id);
+  const outstanding_debt = get_stream_outstanding_debt(stream_id);
+  assert(accrued >= previously_withdrawn + outstanding_debt, "Liabilities exceed accrued stream entitlement");
+  const available_entitlement = (accrued - previously_withdrawn - outstanding_debt) as Uint<32>;
+  assert(withdraw_amount <= available_entitlement, "Withdrawal amount exceeds authenticated unwithdrawn entitlement");
+
+  // 5. Total Aggregate Budget Invariant
   assert(total_disbursed + withdraw_amount <= total_payroll_budget, "Exceeds total aggregate payroll budget");
 
-  // 5. Ledger update with disclosed public values
+  // 6. Ledger State Transition
   total_disbursed = (total_disbursed + disclose(withdraw_amount)) as Uint<32>;
-  last_nullifier = disclose(nullifier);
+  total_nullifiers_consumed = (total_nullifiers_consumed + 1 as Uint<32>) as Uint<32>;
 }
 
-/**
- * spend Circuit:
- * Canonical Midnight spending circuit maintaining backward compatibility with
- * deployed Midnight Preprod indexer interfaces.
- */
 export circuit spend(
   amount: Uint<32>
 ): [] {

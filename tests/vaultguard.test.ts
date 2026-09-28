@@ -72,4 +72,25 @@ describe("Prisma VaultGuard Zero-Knowledge Treasury Solvency Compiled Circuit Te
     const currentLedger = ledger(ctx.currentQueryContext.state);
     expect(currentLedger.total_solvency_attestations).toBe(2n);
   });
+
+  it("strictly rejects attestation if cryptographic treasury signature verification fails", () => {
+    const contract = new Contract<void>({
+      verify_treasury_signature: () => false,
+      get_confidential_reserves: () => 100000n,
+    } as any);
+
+    let ctx = createTestCircuitContext(contract);
+
+    expect(() =>
+      contract.impureCircuits.attestSolvency(
+        ctx,
+        15000n,
+        90n,
+        1720000000n,
+        dummySalt,
+        dummyTreasurySig,
+        dummyVaultSk
+      )
+    ).toThrow("failed assert: Cryptographic authorization failed: Invalid treasury signature");
+  });
 });

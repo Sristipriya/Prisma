@@ -2,6 +2,7 @@
 import type * as __compactRuntime from '@midnight-ntwrk/compact-runtime';
 
 export type Witnesses<PS> = {
+  verify_compliance_signature(context: __compactRuntime.WitnessContext<PS>, compliance_vk: Uint8Array | string, fiscal_year: bigint, jurisdiction_id: Uint8Array | string, sig: Uint8Array | string): boolean;
   get_confidential_tax_records(context: __compactRuntime.WitnessContext<PS>, worker_sk: Uint8Array | string, fiscal_year: bigint): bigint;
   compute_audit_attestation_digest(context: __compactRuntime.WitnessContext<PS>, fiscal_year: bigint, jurisdiction_id: Uint8Array | string, salt: Uint8Array | string): Uint8Array | string;
 };
